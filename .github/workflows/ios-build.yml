@@ -1,0 +1,47 @@
+name: iOS prototype build
+
+# Manual trigger only: run it from the Actions tab when you want a compile check.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add the iOS platform and sync web assets
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Compile (unsigned iOS Simulator build)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package the built app
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name 'App.app' -path '*Debug-iphonesimulator*' | head -1)
+          test -n "$APP_PATH"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" arc-tracker-prototype-simulator.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arc-tracker-prototype-simulator
+          path: arc-tracker-prototype-simulator.zip
+          retention-days: 14
