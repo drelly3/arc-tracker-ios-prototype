@@ -1,0 +1,14 @@
+{
+  "name": "arc-tracker-ios-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototype native shell around the existing Arc Tracker web app. Built from kaminari-site@096bd63. Does not touch the live site.",
+  "scripts": {
+    "sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/ios": "^8.6.2"
+  }
+}
