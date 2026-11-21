@@ -175,6 +175,7 @@ jobs:
           uitest.add_dependency(app)
           uitest.build_configurations.each do |c|
             c.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.animemindset.arctracker.uitests'
+            c.build_settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
             c.build_settings['TEST_TARGET_NAME'] = 'App'
             c.build_settings['SWIFT_VERSION'] = '5.0'
             c.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
@@ -292,6 +293,11 @@ jobs:
             /tmp/scheme.tpl > "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
           echo 'shared scheme written:'
           grep -c 'BuildableReference' "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+
+      - name: Show UI test target build settings
+        run: |
+          xcodebuild -project "$PROJECT_DIR" -list
+          xcodebuild -project "$PROJECT_DIR" -target AppUITests -configuration Debug -sdk iphonesimulator -showBuildSettings | grep -E ' (PRODUCT_NAME|FULL_PRODUCT_NAME|WRAPPER_NAME|PRODUCT_BUNDLE_IDENTIFIER|TEST_TARGET_NAME) = '
 
       - name: Boot the iPhone simulator
         run: |
