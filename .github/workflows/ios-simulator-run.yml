@@ -75,11 +75,11 @@ jobs:
       - name: Best-effort interaction via accessibility bridge (idb)
         run: |
           set +e
-          python3 -m pip install --user --quiet fb-idb
-          PYBIN="$(python3 -c 'import site,os; print(os.path.join(site.getuserbase(),"bin"))')"
-          export PATH="$PYBIN:$PATH"
-          idb list-targets || true
-          # helper: find an element centre by label/type substring
+          python3 -m venv /tmp/idbenv
+          /tmp/idbenv/bin/pip install --quiet fb-idb || python3 -m pip install --user --break-system-packages --quiet fb-idb
+          if [ -x /tmp/idbenv/bin/idb ]; then IDB=/tmp/idbenv/bin/idb; else IDB="$(python3 -c 'import site,os; print(os.path.join(site.getuserbase(),"bin","idb"))')"; fi
+          "$IDB" list-targets || true
+          # helper: find an element centre by label substring
           cat > /tmp/find_el.py <<'PYEOF'
           import json,sys
           data=json.load(sys.stdin)
@@ -92,35 +92,41 @@ jobs:
                   for v in n: yield from walk(v)
           for n in walk(data):
               label=str(n.get('label') or n.get('AXLabel') or '').lower()
-              typ=str(n.get('type') or n.get('AXType') or '')
               f=n.get('frame') or {}
               if needle in label and f:
                   print(int(f['x']+f['width']/2), int(f['y']+f['height']/2))
                   sys.exit(0)
           sys.exit(1)
           PYEOF
-          idb ui describe-all --udid "$UDID" > /tmp/ax1.json 2>/dev/null || true
-          XY=$(python3 /tmp/find_el.py "licence key" < /tmp/ax1.json || true)
-          if [ -n "$XY" ]; then
-            idb ui tap $XY --udid "$UDID" || true
-            sleep 1
-            (idb ui input "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID" || idb ui text "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID") || true
-            sleep 1
-            idb ui describe-all --udid "$UDID" > /tmp/ax2.json 2>/dev/null || true
-            UXY=$(python3 /tmp/find_el.py "unlock" < /tmp/ax2.json || true)
-            [ -n "$UXY" ] && idb ui tap $UXY --udid "$UDID" || true
-            sleep 8
-            xcrun simctl io "$UDID" screenshot shots/native-02-after-unlock.png || true
-            # first-run intro: tap centre to advance, then pick first archetype card
-            idb ui tap 195 400 --udid "$UDID" || true
-            sleep 3
-            xcrun simctl io "$UDID" screenshot shots/native-03-intro.png || true
-            idb ui tap 130 360 --udid "$UDID" || true
-            sleep 4
-            xcrun simctl io "$UDID" screenshot shots/native-04-app.png || true
+          "$IDB" ui describe-all --udid "$UDID" > /tmp/ax1.json 2>/dev/null || true
+          # primary path: the preview "skip" button opens the tracker with the sample key, no typing needed
+          SXY=$(python3 /tmp/find_el.py "skip the key" < /tmp/ax1.json || true)
+          if [ -n "$SXY" ]; then
+            "$IDB" ui tap $SXY --udid "$UDID" || true
           else
-            echo "idb: text field not found; keeping gate screenshot only"
+            # fallback: type the sample key into the licence field and tap Unlock
+            KXY=$(python3 /tmp/find_el.py "licence key" < /tmp/ax1.json || true)
+            if [ -n "$KXY" ]; then
+              "$IDB" ui tap $KXY --udid "$UDID" || true
+              sleep 1
+              ("$IDB" ui input "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID" || "$IDB" ui text "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID") || true
+              sleep 1
+              "$IDB" ui describe-all --udid "$UDID" > /tmp/ax2.json 2>/dev/null || true
+              UXY=$(python3 /tmp/find_el.py "unlock" < /tmp/ax2.json || true)
+              [ -n "$UXY" ] && "$IDB" ui tap $UXY --udid "$UDID" || true
+            fi
           fi
+          sleep 8
+          xcrun simctl io "$UDID" screenshot shots/native-02-after-unlock.png || true
+          # first-run intro: tap centre to advance, then pick the first archetype card
+          "$IDB" ui tap 195 400 --udid "$UDID" || true
+          sleep 3
+          xcrun simctl io "$UDID" screenshot shots/native-03-intro.png || true
+          "$IDB" ui tap 130 360 --udid "$UDID" || true
+          sleep 4
+          xcrun simctl io "$UDID" screenshot shots/native-04-app.png || true
+          # state dump for verification
+          "$IDB" ui describe-all --udid "$UDID" > shots/native-ax-final.json 2>/dev/null || true
           exit 0
 
       - name: Resize screenshots for review
