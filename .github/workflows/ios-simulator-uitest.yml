@@ -20,7 +20,19 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+
+      - name: Block production API egress for the test
+        run: |
+          set -e
+          echo '127.0.0.1 animemindset.com' | sudo tee -a /etc/hosts
+          echo '127.0.0.1 www.animemindset.com' | sudo tee -a /etc/hosts
+          grep animemindset /etc/hosts
+          if curl -sS -m 5 https://animemindset.com/api/arc-verify -o /dev/null 2>/tmp/curlerr; then
+            echo 'ERROR: production API host still reachable'; exit 1
+          else
+            echo "production API host blocked as intended: $(cat /tmp/curlerr)"
+          fi
 
       - name: Install JS dependencies
         run: npm ci --no-audit --no-fund
@@ -74,59 +86,82 @@ jobs:
                   add(attachment)
               }
 
-              func centerTap(_ x: Double = 0.5, _ y: Double = 0.5) {
-                  app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: y)).tap()
+              func textExists(_ fragment: String, _ timeout: Double = 10) -> Bool {
+                  let pred = NSPredicate(format: "label CONTAINS[c] %@", fragment)
+                  return app.staticTexts.matching(pred).firstMatch.waitForExistence(timeout: timeout)
+              }
+
+              func tapNav(_ label: String) {
+                  let b = app.buttons[label]
+                  if b.waitForExistence(timeout: 10) { b.tap() }
+                  sleep(2)
               }
 
               func testTrackerFlow() throws {
                   sleep(8) // let any system banner fade and the web view finish loading
-                  shot("01-native-gate")
+                  shot("01-gate")
 
-                  // Gate -> intro (use the sample/free key path)
+                  // Gate -> open the tracker with the preview/sample path (native origin is not the live domain)
                   let skip = app.buttons["Skip the key and open the tracker"]
-                  if skip.waitForExistence(timeout: 10) { skip.tap() } else { centerTap(0.5, 0.72) }
-                  sleep(3)
-                  shot("02-intro-question")
+                  XCTAssertTrue(skip.waitForExistence(timeout: 15), "preview skip button on the gate")
+                  skip.tap()
+                  sleep(5)
+                  shot("02-today-empty")
+                  XCTAssertTrue(textExists("Pick your archetype"), "empty-state banner on Today")
 
-                  // Intro advances on tap (card -> question -> picker)
-                  centerTap()
+                  // Archetypes tab: open The Strategist card and choose it
+                  tapNav("Archetypes")
+                  shot("03-archetypes")
+                  XCTAssertTrue(textExists("Know your archetype"), "archetypes tab heading")
+                  let strategist = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
+                  if strategist.waitForExistence(timeout: 10) { strategist.tap() }
                   sleep(2)
-                  shot("03-archetype-picker")
+                  shot("04-strategist-open")
+                  let choose = app.buttons["Choose this archetype"]
+                  XCTAssertTrue(choose.waitForExistence(timeout: 10), "choose button inside the opened card")
+                  choose.tap()
+                  sleep(2)
+                  shot("05-archetype-chosen")
+                  XCTAssertTrue(app.buttons["This is your archetype"].waitForExistence(timeout: 10), "archetype marked as current after choosing")
 
-                  let strategist = app.staticTexts["The Strategist"].firstMatch
-                  if strategist.waitForExistence(timeout: 10) { strategist.tap() } else { centerTap(0.5, 0.42) }
-                  sleep(3)
-                  shot("04-guide-top")
+                  // Setup tab: name + non-negotiable habit, then save
+                  tapNav("Setup")
+                  shot("06-setup")
+                  XCTAssertTrue(textExists("Your habits"), "habits section on Setup")
+                  XCTAssertTrue(textExists("Your weakness"), "weakness section appears once an archetype is picked")
 
-                  // Scroll the guide to the bottom
-                  for _ in 0..<8 {
-                      app.swipeUp()
-                      usleep(300000)
+                  let nameField = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] %@", "running this arc")).firstMatch
+                  if nameField.waitForExistence(timeout: 10) {
+                      nameField.tap()
+                      app.typeText("Native CI Test")
                   }
-                  shot("05-guide-bottom")
+                  let h1Field = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Ex. Read one page")).firstMatch
+                  if h1Field.waitForExistence(timeout: 10) {
+                      h1Field.tap()
+                      app.typeText("Meditate for 10 minutes")
+                  }
+                  // blur the field and bring the save button into view
+                  for _ in 0..<3 { app.swipeUp(); usleep(300000) }
+                  shot("07-setup-filled")
 
-                  let enter = app.buttons["Enter the Dojo"]
-                  if enter.waitForExistence(timeout: 10) { enter.tap() } else { centerTap(0.5, 0.88) }
-                  sleep(3)
-                  shot("06-tracker-board")
-
-                  // Board assertions
-                  XCTAssertTrue(app.staticTexts["Today's Performance"].waitForExistence(timeout: 10),
-                                "today performance block visible on the board")
-                  XCTAssertTrue(app.staticTexts["Day 1 of 30"].firstMatch.exists, "day counter visible")
-
-                  // Stats tab
-                  let stats = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'stats'")).firstMatch
-                  if stats.waitForExistence(timeout: 10) { stats.tap() }
+                  let save = app.buttons["Save character & habits"]
+                  XCTAssertTrue(save.waitForExistence(timeout: 10), "save button on Setup")
+                  save.tap()
                   sleep(2)
-                  shot("07-stats")
-                  XCTAssertTrue(app.staticTexts["Focus Trend"].waitForExistence(timeout: 10), "stats trend cards visible")
 
-                  // Reflection tab
-                  let refl = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'reflection'")).firstMatch
-                  if refl.waitForExistence(timeout: 10) { refl.tap() }
-                  sleep(2)
-                  shot("08-reflection")
+                  // Today: the saved habit must render as a log line
+                  tapNav("Today")
+                  shot("08-today-configured")
+                  XCTAssertTrue(textExists("Meditate for 10 minutes"), "saved habit renders on Today")
+
+                  // Progress and Start Here tabs render natively
+                  tapNav("Progress")
+                  shot("09-progress")
+                  XCTAssertTrue(textExists("No math on you"), "progress tab renders")
+
+                  tapNav("Start Here")
+                  shot("10-guide")
+                  XCTAssertTrue(textExists("Get started"), "guide tab renders")
               }
           }
           SWIFT
@@ -347,13 +382,17 @@ jobs:
           Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           Captured by an XCUITest UI-test target injected into the Capacitor project during CI,
-          driving the real app shell on an iPhone simulator: gate, intro, archetype picker,
-          guide, tracker board, stats and reflection.
+          driving the real app shell on an iPhone simulator: gate, Today empty state, Archetypes
+          (choosing The Strategist), Setup (saving a synthetic name + habit), the configured Today
+          log line, Progress, and Start Here.
 
-          These are native simulator renders of the prototype web app inside the Capacitor shell,
-          with the sample/free key path. This does not test real sync (the Worker has no CORS
-          handling, so API calls from the native shell are preflight-blocked), real devices,
-          the camera, or push.
+          The name "Native CI Test" and habit "Meditate for 10 minutes" are synthetic test data
+          that live only in the simulator's local storage. During this run the production API
+          host (animemindset.com) was pinned to 127.0.0.1 in the runner's /etc/hosts (verified
+          by a failing curl in the run log), so no request from the app could leave for
+          production. These are native simulator renders of the prototype web app inside the
+          Capacitor shell via the preview/sample key path. This does not test real sync,
+          real devices, the camera, or push.
           EOF2
           git add .
           git commit -q -m "Native UI test screenshots for run ${{ github.run_id }}"
