@@ -1,0 +1,140 @@
+name: iOS simulator run (native screenshots)
+
+# Manual trigger only. Builds the unsigned simulator app (same as the compile check),
+# boots an iPhone Simulator on the free macos runner, installs and launches the app,
+# and captures native-runtime screenshots. No signing, no secrets, no paid services.
+# Synthetic sample key only; the app's own preview path keeps this off the live backend
+# (the backend has no cross-origin allowance, so app API calls never leave the device).
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  simulator-run:
+    runs-on: macos-latest
+    permissions:
+      contents: write # push the screenshots scratch branch only; ephemeral token dies with the run
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add the iOS platform and sync web assets
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Compile (unsigned iOS Simulator build)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Boot an iPhone simulator
+        run: |
+          set -e
+          RUNTIME=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform=="iOS" and .isAvailable)] | .[-1].identifier')
+          DEVTYPE=$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name | startswith("iPhone"))] | .[-1].identifier')
+          echo "runtime=$RUNTIME devicetype=$DEVTYPE"
+          UDID=$(xcrun simctl create arc-proto-test "$DEVTYPE" "$RUNTIME")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Install and launch the app, capture the native gate screen
+        run: |
+          set -e
+          mkdir -p shots
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name 'App.app' -path '*Debug-iphonesimulator*' | head -1)
+          echo "app=$APP_PATH"
+          test -n "$APP_PATH"
+          xcrun simctl install "$UDID" "$APP_PATH"
+          xcrun simctl listapps "$UDID" | grep -i arctracker || true
+          xcrun simctl launch "$UDID" com.animemindset.arctracker
+          sleep 12
+          xcrun simctl io "$UDID" screenshot shots/native-01-gate.png
+          # app still alive = no crash on launch
+          xcrun simctl spawn "$UDID" launchctl list | grep -i animemindset || true
+
+      - name: Best-effort interaction via accessibility bridge (idb)
+        run: |
+          set +e
+          python3 -m pip install --user --quiet fb-idb
+          PYBIN="$(python3 -c 'import site,os; print(os.path.join(site.getuserbase(),"bin"))')"
+          export PATH="$PYBIN:$PATH"
+          idb list-targets || true
+          # helper: find an element centre by label/type substring
+          cat > /tmp/find_el.py <<'PYEOF'
+          import json,sys
+          data=json.load(sys.stdin)
+          needle=sys.argv[1].lower()
+          def walk(n):
+              if isinstance(n,dict):
+                  yield n
+                  for v in n.values(): yield from walk(v)
+              elif isinstance(n,list):
+                  for v in n: yield from walk(v)
+          for n in walk(data):
+              label=str(n.get('label') or n.get('AXLabel') or '').lower()
+              typ=str(n.get('type') or n.get('AXType') or '')
+              f=n.get('frame') or {}
+              if needle in label and f:
+                  print(int(f['x']+f['width']/2), int(f['y']+f['height']/2))
+                  sys.exit(0)
+          sys.exit(1)
+          PYEOF
+          idb ui describe-all --udid "$UDID" > /tmp/ax1.json 2>/dev/null || true
+          XY=$(python3 /tmp/find_el.py "licence key" < /tmp/ax1.json || true)
+          if [ -n "$XY" ]; then
+            idb ui tap $XY --udid "$UDID" || true
+            sleep 1
+            (idb ui input "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID" || idb ui text "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID") || true
+            sleep 1
+            idb ui describe-all --udid "$UDID" > /tmp/ax2.json 2>/dev/null || true
+            UXY=$(python3 /tmp/find_el.py "unlock" < /tmp/ax2.json || true)
+            [ -n "$UXY" ] && idb ui tap $UXY --udid "$UDID" || true
+            sleep 8
+            xcrun simctl io "$UDID" screenshot shots/native-02-after-unlock.png || true
+            # first-run intro: tap centre to advance, then pick first archetype card
+            idb ui tap 195 400 --udid "$UDID" || true
+            sleep 3
+            xcrun simctl io "$UDID" screenshot shots/native-03-intro.png || true
+            idb ui tap 130 360 --udid "$UDID" || true
+            sleep 4
+            xcrun simctl io "$UDID" screenshot shots/native-04-app.png || true
+          else
+            echo "idb: text field not found; keeping gate screenshot only"
+          fi
+          exit 0
+
+      - name: Resize screenshots for review
+        run: |
+          for f in shots/*.png; do sips -Z 780 "$f" >/dev/null 2>&1 || true; done
+          ls -la shots/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-simulator-screenshots
+          path: shots/
+          retention-days: 14
+
+      - name: Push screenshots to a scratch branch (removed after review)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "native-run-$GITHUB_RUN_ID"
+          git add shots/
+          git commit -m "Native simulator screenshots, run $GITHUB_RUN_ID (scratch, to be removed)"
+          git push origin "native-run-$GITHUB_RUN_ID"
