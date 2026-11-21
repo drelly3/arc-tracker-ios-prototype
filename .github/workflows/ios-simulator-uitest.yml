@@ -1,0 +1,361 @@
+name: iOS simulator UI test run
+on:
+  workflow_dispatch:
+
+# Only the sim-test job below may write (it pushes screenshots to a scratch branch).
+permissions: {}
+
+env:
+  PROJECT_DIR: ios/App/App.xcodeproj
+  SCHEME: App
+  DERIVED: build/DerivedData
+
+jobs:
+  sim-test:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate the iOS project
+        run: npx cap add ios
+
+      - name: Sync web assets into the iOS project
+        run: npx cap sync ios
+
+      - name: Install Capacitor pods
+        run: pod install --project-directory=ios/App
+
+      - name: Build the iOS app
+        run: |
+          xcodebuild -project "$PROJECT_DIR" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$DERIVED" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Add UI test target and shared scheme
+        run: |
+          set -e
+          mkdir -p ios/App/AppUITests
+          cat > ios/App/AppUITests/AppUITests.swift <<'SWIFT'
+          import XCTest
+
+          final class AppUITests: XCTestCase {
+
+              var app: XCUIApplication!
+
+              override func setUpWithError() throws {
+                  continueAfterFailure = true
+                  app = XCUIApplication()
+                  app.launch()
+                  addUIInterruptionMonitor(withDescription: "system-prompts") { alert in
+                      for label in ["Not Now", "OK", "Allow", "Dismiss", "Maybe Later"] {
+                          if alert.buttons[label].exists { alert.buttons[label].tap(); return true }
+                      }
+                      return false
+                  }
+              }
+
+              func shot(_ name: String) {
+                  let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+                  attachment.name = name
+                  attachment.lifetime = .keepAlways
+                  add(attachment)
+              }
+
+              func centerTap(_ x: Double = 0.5, _ y: Double = 0.5) {
+                  app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: y)).tap()
+              }
+
+              func testTrackerFlow() throws {
+                  sleep(8) // let any system banner fade and the web view finish loading
+                  shot("01-native-gate")
+
+                  // Gate -> intro (use the sample/free key path)
+                  let skip = app.buttons["Skip the key and open the tracker"]
+                  if skip.waitForExistence(timeout: 10) { skip.tap() } else { centerTap(0.5, 0.72) }
+                  sleep(3)
+                  shot("02-intro-question")
+
+                  // Intro advances on tap (card -> question -> picker)
+                  centerTap()
+                  sleep(2)
+                  shot("03-archetype-picker")
+
+                  let strategist = app.staticTexts["The Strategist"].firstMatch
+                  if strategist.waitForExistence(timeout: 10) { strategist.tap() } else { centerTap(0.5, 0.42) }
+                  sleep(3)
+                  shot("04-guide-top")
+
+                  // Scroll the guide to the bottom
+                  for _ in 0..<8 {
+                      app.swipeUp()
+                      usleep(300000)
+                  }
+                  shot("05-guide-bottom")
+
+                  let enter = app.buttons["Enter the Dojo"]
+                  if enter.waitForExistence(timeout: 10) { enter.tap() } else { centerTap(0.5, 0.88) }
+                  sleep(3)
+                  shot("06-tracker-board")
+
+                  // Board assertions
+                  XCTAssertTrue(app.staticTexts["Today's Performance"].waitForExistence(timeout: 10),
+                                "today performance block visible on the board")
+                  XCTAssertTrue(app.staticTexts["Day 1 of 30"].firstMatch.exists, "day counter visible")
+
+                  // Stats tab
+                  let stats = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'stats'")).firstMatch
+                  if stats.waitForExistence(timeout: 10) { stats.tap() }
+                  sleep(2)
+                  shot("07-stats")
+                  XCTAssertTrue(app.staticTexts["Focus Trend"].waitForExistence(timeout: 10), "stats trend cards visible")
+
+                  // Reflection tab
+                  let refl = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'reflection'")).firstMatch
+                  if refl.waitForExistence(timeout: 10) { refl.tap() }
+                  sleep(2)
+                  shot("08-reflection")
+              }
+          }
+          SWIFT
+
+          cat > /tmp/inject.rb <<'RUBY'
+          require 'xcodeproj'
+          proj = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+          app = proj.targets.find { |t| t.name == 'App' } or abort 'App target not found'
+          abort 'AppUITests already exists' if proj.targets.any? { |t| t.name == 'AppUITests' }
+          uitest = proj.new_target(:ui_test_bundle, 'AppUITests', :ios, '15.0', nil, :swift)
+          grp = proj.main_group.new_group('AppUITests', 'AppUITests')
+          ref = grp.new_file('AppUITests.swift')
+          uitest.source_build_phase.add_file_reference(ref)
+          uitest.add_dependency(app)
+          uitest.build_configurations.each do |c|
+            c.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.animemindset.arctracker.uitests'
+            c.build_settings['TEST_TARGET_NAME'] = 'App'
+            c.build_settings['SWIFT_VERSION'] = '5.0'
+            c.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
+            c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+            c.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+            c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+            c.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+          end
+          proj.save
+          puts "APP_UUID=#{app.uuid}"
+          puts "UITEST_UUID=#{uitest.uuid}"
+          RUBY
+
+          RUBY_BIN=$(head -1 "$(command -v pod)" | sed 's/^#!//')
+          "$RUBY_BIN" /tmp/inject.rb | tee /tmp/uuids.txt
+          APP_UUID=$(grep '^APP_UUID=' /tmp/uuids.txt | cut -d= -f2)
+          UITEST_UUID=$(grep '^UITEST_UUID=' /tmp/uuids.txt | cut -d= -f2)
+          [ -n "$APP_UUID" ] && [ -n "$UITEST_UUID" ] || { echo 'uuid capture failed'; exit 1; }
+
+          cat > /tmp/scheme.tpl <<'SCHEME'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Scheme
+             LastUpgradeVersion = "2600"
+             version = "1.7">
+             <BuildAction
+                parallelizeBuildables = "YES"
+                buildImplicitDependencies = "YES"
+                buildArchitectures = "Automatic">
+                <BuildActionEntries>
+                   <BuildActionEntry
+                      buildForTesting = "YES"
+                      buildForRunning = "YES"
+                      buildForProfiling = "YES"
+                      buildForArchiving = "YES"
+                      buildForAnalyzing = "YES">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "__APP_UUID__"
+                         BuildableName = "App.app"
+                         BlueprintName = "App"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </BuildActionEntry>
+                </BuildActionEntries>
+             </BuildAction>
+             <TestAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                shouldUseLaunchSchemeArgsEnv = "YES">
+                <Testables>
+                   <TestableReference
+                      skipped = "NO"
+                      parallelizable = "NO">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "__UITEST_UUID__"
+                         BuildableName = "AppUITests.xctest"
+                         BlueprintName = "AppUITests"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </TestableReference>
+                </Testables>
+             </TestAction>
+             <LaunchAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                launchStyle = "0"
+                useCustomWorkingDirectory = "NO"
+                ignoresPersistentStateOnLaunch = "NO"
+                debugDocumentVersioning = "YES"
+                debugServiceExtension = "internal"
+                allowLocationSimulation = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "__APP_UUID__"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </LaunchAction>
+             <ProfileAction
+                buildConfiguration = "Release"
+                shouldUseLaunchSchemeArgsEnv = "YES"
+                savedToolIdentifier = ""
+                useCustomWorkingDirectory = "NO"
+                debugDocumentVersioning = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "__APP_UUID__"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </ProfileAction>
+             <AnalyzeAction
+                buildConfiguration = "Debug">
+             </AnalyzeAction>
+             <ArchiveAction
+                buildConfiguration = "Release"
+                revealArchiveInOrganizer = "YES">
+             </ArchiveAction>
+          </Scheme>
+          SCHEME
+
+          mkdir -p "$PROJECT_DIR/xcshareddata/xcschemes"
+          sed -e "s/__APP_UUID__/$APP_UUID/g" -e "s/__UITEST_UUID__/$UITEST_UUID/g" \
+            /tmp/scheme.tpl > "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+          echo 'shared scheme written:'
+          grep -c 'BuildableReference' "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+
+      - name: Boot the iPhone simulator
+        run: |
+          set -e
+          TYPE=$(xcrun simctl list devicetypes -j | python3 -c '
+          import json,sys,re
+          d=json.load(sys.stdin)
+          ids=[t["identifier"] for t in d["devicetypes"] if re.search(r"iPhone-1[6-9]", t["identifier"])]
+          print(sorted(ids)[-1] if ids else "com.apple.CoreSimulator.SimDeviceType.iPhone-15")')
+          UDID=$(xcrun simctl create arctracker "$TYPE" 2>/dev/null || true)
+          if [ -z "$UDID" ]; then
+            UDID=$(xcrun simctl list devices -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)
+          ids=[]
+          for rt,devs in d["devices"].items():
+            if "iOS" in rt:
+              for dev in devs:
+                if dev.get("isAvailable") and "iPhone 1" in dev["name"]:
+                  ids.append(dev["udid"])
+          print(ids[-1] if ids else "")')
+          fi
+          [ -n "$UDID" ] || { echo 'no simulator available'; exit 1; }
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          sleep 5
+
+      - name: Run the XCUITest tracker flow
+        run: |
+          xcodebuild test \
+            -project "$PROJECT_DIR" \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -resultBundlePath /tmp/arcrest.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+        timeout-minutes: 25
+
+      - name: Export the test screenshots
+        run: |
+          set -e
+          mkdir -p shots
+          xcrun xcresulttool export attachments --path /tmp/arcrest.xcresult --output-path shots
+          ls -la shots
+          for f in shots/*_*.png; do
+            [ -e "$f" ] || continue
+            base=$(basename "$f")
+            new=$(echo "$base" | sed -E 's/_[A-F0-9a-f-]{36}\.png$/.png/')
+            mv "$f" "shots/$new"
+          done
+          ls -la shots
+
+      - name: Downscale screenshots for the artifact
+        run: |
+          for f in shots/*.png; do
+            [ -e "$f" ] || continue
+            sips -Z 1320 "$f" --out "$f" >/dev/null 2>&1 || true
+          done
+          ls -la shots/
+
+      - name: Upload simulator screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: uitest-shots-${{ github.run_id }}
+          path: shots/*.png
+
+      - name: Push screenshots to a scratch branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.email "ci@localhost"
+          git config user.name "ci"
+          BR="native-uitest-${{ github.run_id }}"
+          echo "BRANCH=$BR" >> "$GITHUB_ENV"
+          rm -rf /tmp/shotpush && mkdir -p /tmp/shotpush
+          cd /tmp/shotpush
+          git init -q
+          git checkout -q -b "$BR"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          cp "$GITHUB_WORKSPACE"/shots/*.png . 2>/dev/null || true
+          cat > RUN.md <<EOF2
+          # Native simulator UI test screenshots
+
+          Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Captured by an XCUITest UI-test target injected into the Capacitor project during CI,
+          driving the real app shell on an iPhone simulator: gate, intro, archetype picker,
+          guide, tracker board, stats and reflection.
+
+          These are native simulator renders of the prototype web app inside the Capacitor shell,
+          with the sample/free key path. This does not test real sync (the Worker has no CORS
+          handling, so API calls from the native shell are preflight-blocked), real devices,
+          the camera, or push.
+          EOF2
+          git add .
+          git commit -q -m "Native UI test screenshots for run ${{ github.run_id }}"
+          git push -q origin "$BR"
+          echo "Pushed screenshots to branch $BR"
