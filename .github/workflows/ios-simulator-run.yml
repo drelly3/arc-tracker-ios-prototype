@@ -45,12 +45,16 @@ jobs:
       - name: Boot an iPhone simulator
         run: |
           set -e
-          RUNTIME=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform=="iOS" and .isAvailable)] | .[-1].identifier')
-          DEVTYPE=$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name | startswith("iPhone"))] | .[-1].identifier')
-          echo "runtime=$RUNTIME devicetype=$DEVTYPE"
-          UDID=$(xcrun simctl create arc-proto-test "$DEVTYPE" "$RUNTIME")
+          # Prefer a modern pre-created simulator; otherwise create one from a recent device type.
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | test("^iPhone 1[5-9]"))] | .[-1].udid')
+          if [ -z "$UDID" ] || [ "$UDID" = "null" ]; then
+            RUNTIME=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform=="iOS" and .isAvailable)] | .[-1].identifier')
+            DEVTYPE=$(xcrun simctl list devicetypes -j | jq -r '([.devicetypes[] | select(.name | test("^iPhone 17"))] | .[0].identifier) // ([.devicetypes[] | select(.name | test("^iPhone 16"))] | .[0].identifier) // ([.devicetypes[] | select(.name | test("^iPhone 15"))] | .[0].identifier)')
+            echo "runtime=$RUNTIME devicetype=$DEVTYPE"
+            UDID=$(xcrun simctl create arc-proto-test "$DEVTYPE" "$RUNTIME")
+          fi
           echo "UDID=$UDID" >> "$GITHUB_ENV"
-          xcrun simctl boot "$UDID"
+          xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
 
       - name: Install and launch the app, capture the native gate screen
