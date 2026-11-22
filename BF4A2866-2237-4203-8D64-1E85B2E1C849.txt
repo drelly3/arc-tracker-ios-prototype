@@ -1,0 +1,22 @@
+Application, 0x104a53840, pid: 15213, label: 'Arc Tracker' <App element pid: 15213>
+  Window (Main), 0x104a53e80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4335142912.5>
+    Other, 0x104a53c00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4383926272.7>
+      Other, 0x115652d00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4385080576.9>
+        WebView, 0x115652e40, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4385292288.11>
+          WebView, 0x115652f80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4385554432.12>
+            WebView, 0x1156530c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4335632384.3>
+              Other, 0x115653200, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 13260904039501711426.9999>
+                Other, 0x115653340, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15253, elementOrHash.elementID: 4308234928.3>
+                  Other, 0x115653480, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15253, elementOrHash.elementID: 5128409120.4>
+                    Other, 0x115651040, {{0.0, 0.0}, {980.0, 2121.0}}, Focused <AX element pid: 15253, elementOrHash.elementID: 5128412736.5>
+            Other, 0x115651180, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0% <AX element pid: 15213, elementOrHash.elementID: 4383931904.13>
+              Other, 0x115650140, {{384.0, 792.0}, {3.0, 7.0}} <AX element pid: 15213, elementOrHash.elementID: 4336717760.15>
+            Other, 0x115650280, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 3 pages', value: 0% <AX element pid: 15213, elementOrHash.elementID: 4383931392.14>
+              Other, 0x1156535c0, {{338.3, 838.0}, {7.0, 3.0}} <AX element pid: 15213, elementOrHash.elementID: 4336716864.16>
+            Other, 0x115651540, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0% <AX element pid: 15213, elementOrHash.elementID: 4383931904.13>
+              Other, 0x115651680, {{384.0, 792.0}, {3.0, 7.0}} <AX element pid: 15213, elementOrHash.elementID: 4336717760.15>
+            Other, 0x115650640, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 3 pages', value: 0% <AX element pid: 15213, elementOrHash.elementID: 4383931392.14>
+              Other, 0x1156503c0, {{338.3, 838.0}, {7.0, 3.0}} <AX element pid: 15213, elementOrHash.elementID: 4336716864.16>
+  Window, 0x115650500, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4386211072.6>
+    Other, 0x115650000, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4383902336.8>
+      Other, 0x115650b40, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 15213, elementOrHash.elementID: 4383903232.10>

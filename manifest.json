@@ -1,0 +1,188 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "FBB5D283-24A2-41C7-B62D-5E3354411C96.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "App UI hierarchy for com.animemindset_0_95B828FC-A70F-48BE-BFCC-33B949EED68D.arctracker",
+        "timestamp" : 1795371790.82
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "FDF5A833-2E29-4F11-A163-65C5F8816009",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-11-22 at 06.23.10 PM",
+        "timestamp" : 1795371790.821
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "42874321-3384-459F-A388-E7477D387295.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_62197DF4-E2B6-43F4-B553-1F14FC607734.txt",
+        "timestamp" : 1795371790.206
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "14120B81-D966-4F0F-B0B3-87BE24F1194A.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_9EEB55DE-3B58-410C-B713-3BAA364FD296.txt",
+        "timestamp" : 1795371789.048
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "4ADBC322-0C73-4074-A2E6-7AD3CF2D4BE1.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_617B7B70-627F-4B30-8D12-DFEF0AE6C4E8.txt",
+        "timestamp" : 1795371788.164
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "B07F780F-7C23-4B45-A271-81F8B5A2EA49.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_6E0F0EBF-2FB8-4406-A866-218B6B364FFD.txt",
+        "timestamp" : 1795371787.026
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "5852A13C-B169-499F-A529-D84AA6B20432.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_8DC58542-6E25-4463-9F09-440DBE1D4C8C.txt",
+        "timestamp" : 1795371785.994
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "0F20D60C-E84E-42D4-AA38-F799F6671374.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_71B53EC8-96DA-49DB-9A85-861098154377.txt",
+        "timestamp" : 1795371784.962
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "BFC2CFD4-3A3C-498C-835C-5CBE32F7375B.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_34E91ABD-C837-4EF0-A08D-8B987658020D.txt",
+        "timestamp" : 1795371783.968
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "A64530F3-5F12-433C-8544-36B12ADB7EFE.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_143540AE-4936-4525-9C8F-01B38A23E9EF.txt",
+        "timestamp" : 1795371783.012
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "9142423C-D094-46A9-A0EA-FE2A8622613C.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_2B5FA7E9-4F3E-4E9A-8D58-4E6D9232F98E.txt",
+        "timestamp" : 1795371781.985
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "A20DD406-2FF2-4A60-8C10-2C88C8222636.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_E3675121-AB0C-4854-A8B2-162B4657878D.txt",
+        "timestamp" : 1795371781.12
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "A798DEC3-DAA9-4EEC-A4E9-6BF9C65ECA62.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_5C347C8B-4BE5-4A4A-ADCF-C4A443136F26.txt",
+        "timestamp" : 1795371780.29
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "CE72E47A-1842-47A3-9844-138A94D2F608.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_36C1BDE0-420C-48FD-AE3A-5B87BC31A219.txt",
+        "timestamp" : 1795371779.915
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "AFDC21F4-7544-4299-95F8-FFB898C4305A.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_9B33AF13-CB93-424F-9B31-F1943735D653.txt",
+        "timestamp" : 1795371776.938
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "AFABEFBE-6835-49A5-AB76-1B0AB2685E53.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"Skip the key and open the tracker\" Button`_0_D327447C-033D-48F5-9B75-C4EB60374A94.txt",
+        "timestamp" : 1795371776.232
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "EFCC17DF-E665-48D5-8047-ADA567C890F6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-gate_0_5890651A-D61A-4EB2-8088-8CD5E12A92EB.png",
+        "timestamp" : 1795371774.905
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "FA8E7054-6993-4550-9518-3035234F39D6.mp4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Screen Recording 2026-11-22 at 06.22.32 PM.mp4",
+        "timestamp" : 1795371752.976
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "BF4A2866-2237-4203-8D64-1E85B2E1C849.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "App UI hierarchy for com.animemindset_0_742719BB-6C1A-4F5C-94E9-7B3BA7958360.arctracker",
+        "timestamp" : 1795371795.422
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "BE4DC88D-9DCE-463A-B32B-375B08D498C8",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "53385A1B-B3B6-4C7F-B801-8BBA83B54FDB",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-11-22 at 06.23.15 PM",
+        "timestamp" : 1795371795.422
+      }
+    ],
+    "testIdentifier" : "AppUITests/testTrackerFlow()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testTrackerFlow"
+  }
+]
