@@ -135,7 +135,7 @@ jobs:
                   tapNav("Archetypes")
                   shot("04-archetypes")
                   XCTAssertTrue(textExists("Know your archetype"), "archetypes tab heading")
-                  XCTAssertTrue(textExists("This is your archetype"), "chosen archetype marked current")
+                  XCTAssertTrue(app.buttons["This is your archetype"].firstMatch.waitForExistence(timeout: 10), "chosen archetype marked current")
 
                   // Setup tab: name + non-negotiable habit, then save
                   tapNav("Setup")
