@@ -113,30 +113,33 @@ jobs:
                   let skip = app.buttons["Skip the key and open the tracker"]
                   XCTAssertTrue(skip.waitForExistence(timeout: 15), "preview skip button on the gate")
                   skip.tap()
-                  sleep(5)
-                  shot("02-today-empty")
-                  XCTAssertTrue(textExists("Pick your archetype"), "empty-state banner on Today")
 
-                  // Archetypes tab: open The Strategist card and choose it
+                  // First-run onboarding (run 5 evidence + www/arc-tracker.js showFirstRun/showArchetypePicker):
+                  // an auto-advancing splash, then a FULL-SCREEN archetype picker that covers the nav bar.
+                  // Never touch the nav bar until the picker overlay is gone.
+                  let pickerHeading = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  XCTAssertTrue(pickerHeading.waitForExistence(timeout: 25), "first-run archetype picker appears after gate skip")
+                  shot("02-onboarding-picker")
+                  dumpHierarchy("dump-02-picker")
+
+                  // Pick The Strategist on the picker itself; source lands on Start Here (showTab('guide'))
+                  let strat = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
+                  XCTAssertTrue(strat.waitForExistence(timeout: 10), "strategist card on the onboarding picker")
+                  strat.tap()
+                  XCTAssertTrue(pickerHeading.waitForNonExistence(timeout: 15), "picker overlay dismissed after picking")
+                  sleep(2)
+                  shot("03-after-pick-start-here")
+                  dumpHierarchy("dump-03-after-pick")
+
+                  // Archetypes tab renders natively and marks the chosen archetype as current
                   tapNav("Archetypes")
-                  shot("03-archetypes")
-                  dumpHierarchy("dump-03-archetypes")
+                  shot("04-archetypes")
                   XCTAssertTrue(textExists("Know your archetype"), "archetypes tab heading")
-                  let strategist = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
-                  if strategist.waitForExistence(timeout: 10) { strategist.tap() }
-                  sleep(2)
-                  shot("04-strategist-open")
-                  let choose = app.buttons["Choose this archetype"]
-                  XCTAssertTrue(choose.waitForExistence(timeout: 10), "choose button inside the opened card")
-                  choose.tap()
-                  sleep(2)
-                  shot("05-archetype-chosen")
-                  XCTAssertTrue(app.buttons["This is your archetype"].waitForExistence(timeout: 10), "archetype marked as current after choosing")
+                  XCTAssertTrue(textExists("This is your archetype"), "chosen archetype marked current")
 
                   // Setup tab: name + non-negotiable habit, then save
                   tapNav("Setup")
-                  shot("06-setup")
-                  dumpHierarchy("dump-06-setup")
+                  shot("05-setup")
                   XCTAssertTrue(textExists("Your habits"), "habits section on Setup")
                   XCTAssertTrue(textExists("Your weakness"), "weakness section appears once an archetype is picked")
 
@@ -152,25 +155,25 @@ jobs:
                   }
                   // blur the field and bring the save button into view
                   for _ in 0..<3 { app.swipeUp(); usleep(300000) }
-                  shot("07-setup-filled")
+                  shot("06-setup-filled")
 
-                  let save = app.buttons["Save character & habits"]
+                  let save = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Save character")).firstMatch
                   XCTAssertTrue(save.waitForExistence(timeout: 10), "save button on Setup")
                   save.tap()
                   sleep(2)
 
                   // Today: the saved habit must render as a log line
                   tapNav("Today")
-                  shot("08-today-configured")
+                  shot("07-today-configured")
                   XCTAssertTrue(textExists("Meditate for 10 minutes"), "saved habit renders on Today")
 
                   // Progress and Start Here tabs render natively
                   tapNav("Progress")
-                  shot("09-progress")
+                  shot("08-progress")
                   XCTAssertTrue(textExists("No math on you"), "progress tab renders")
 
                   tapNav("Start Here")
-                  shot("10-guide")
+                  shot("09-guide")
                   XCTAssertTrue(textExists("Get started"), "guide tab renders")
               }
           }
@@ -403,9 +406,9 @@ jobs:
           Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           Captured by an XCUITest UI-test target injected into the Capacitor project during CI,
-          driving the real app shell on an iPhone simulator: gate, Today empty state, Archetypes
-          (choosing The Strategist), Setup (saving a synthetic name + habit), the configured Today
-          log line, Progress, and Start Here.
+          driving the real app shell on an iPhone simulator: gate, the first-run archetype
+          picker (choosing The Strategist), Start Here after the pick, the Archetypes tab,
+          Setup (saving a synthetic name + habit), the configured Today log line, and Progress.
 
           The name "Native CI Test" and habit "Meditate for 10 minutes" are synthetic test data
           that live only in the simulator's local storage. During this run the production API
