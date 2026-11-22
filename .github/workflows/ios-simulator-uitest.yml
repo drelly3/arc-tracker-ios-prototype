@@ -83,6 +83,17 @@ jobs:
                   add(attachment)
               }
 
+              // Read-only diagnostics: hierarchy dump captured as a kept attachment.
+              // Does not change any assertion or selector.
+              func dumpHierarchy(_ name: String) {
+                  let counts = "counts staticTexts=\(app.staticTexts.count) buttons=\(app.buttons.count) textFields=\(app.textFields.count) any=\(app.descendants(matching: .any).count)"
+                  print("DUMP[\(name)] \(counts)")
+                  let att = XCTAttachment(string: counts + "\n\n" + app.debugDescription)
+                  att.name = name
+                  att.lifetime = .keepAlways
+                  add(att)
+              }
+
               func textExists(_ fragment: String, _ timeout: Double = 10) -> Bool {
                   let pred = NSPredicate(format: "label CONTAINS[c] %@", fragment)
                   return app.staticTexts.matching(pred).firstMatch.waitForExistence(timeout: timeout)
@@ -109,6 +120,7 @@ jobs:
                   // Archetypes tab: open The Strategist card and choose it
                   tapNav("Archetypes")
                   shot("03-archetypes")
+                  dumpHierarchy("dump-03-archetypes")
                   XCTAssertTrue(textExists("Know your archetype"), "archetypes tab heading")
                   let strategist = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
                   if strategist.waitForExistence(timeout: 10) { strategist.tap() }
@@ -124,6 +136,7 @@ jobs:
                   // Setup tab: name + non-negotiable habit, then save
                   tapNav("Setup")
                   shot("06-setup")
+                  dumpHierarchy("dump-06-setup")
                   XCTAssertTrue(textExists("Your habits"), "habits section on Setup")
                   XCTAssertTrue(textExists("Your weakness"), "weakness section appears once an archetype is picked")
 
@@ -328,15 +341,17 @@ jobs:
 
       - name: Run the XCUITest tracker flow
         run: |
+          set -o pipefail
           xcodebuild test \
             -project "$PROJECT_DIR" \
             -scheme "$SCHEME" \
             -destination "platform=iOS Simulator,id=$UDID" \
             -resultBundlePath /tmp/arcrest.xcresult \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee /tmp/xcodebuild-test.log
         timeout-minutes: 25
 
       - name: Export the test screenshots
+        if: always()
         run: |
           set -e
           mkdir -p shots
@@ -351,6 +366,7 @@ jobs:
           ls -la shots
 
       - name: Downscale screenshots for the artifact
+        if: always()
         run: |
           for f in shots/*.png; do
             [ -e "$f" ] || continue
@@ -359,12 +375,14 @@ jobs:
           ls -la shots/
 
       - name: Upload simulator screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: uitest-shots-${{ github.run_id }}
-          path: shots/*.png
+          path: shots/*
 
       - name: Push screenshots to a scratch branch
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -378,7 +396,7 @@ jobs:
           git init -q
           git checkout -q -b "$BR"
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          cp "$GITHUB_WORKSPACE"/shots/*.png . 2>/dev/null || true
+          cp "$GITHUB_WORKSPACE"/shots/* . 2>/dev/null || true
           cat > RUN.md <<EOF2
           # Native simulator UI test screenshots
 
