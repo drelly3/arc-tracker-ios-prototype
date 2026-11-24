@@ -105,6 +105,30 @@ jobs:
                   sleep(2)
               }
 
+              // Press-drag scroll: app.swipeUp() did not move the Capacitor
+              // WKWebView content in run 45325695949 (vertical scroll bar stayed
+              // at 0%), leaving below-fold elements unhittable under the fixed nav.
+              func dragScroll(_ times: Int = 1) {
+                  let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+                  let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.30))
+                  for _ in 0..<times {
+                      start.press(forDuration: 0.15, thenDragTo: end)
+                      usleep(400000)
+                  }
+              }
+
+              // Scroll until the element is actually hittable (on screen and
+              // clear of the fixed bottom nav), not just present in the AX tree.
+              @discardableResult
+              func scrollUntilHittable(_ el: XCUIElement, _ maxDrags: Int = 10) -> Bool {
+                  var n = 0
+                  while !el.isHittable && n < maxDrags {
+                      dragScroll()
+                      n += 1
+                  }
+                  return el.isHittable
+              }
+
               func testTrackerFlow() throws {
                   // Staged launch diagnosis (follow-up to the blank launch in run
                   // 45054036186): a slow first paint must be distinguishable from a
@@ -230,16 +254,12 @@ jobs:
                   XCTAssertTrue(survived, "saved habit survives app relaunch")
 
                   // Scroll Today so the saved habit line is visibly on screen (not just in the AX tree)
-                  var habitShown = textExists("Meditate for 10 minutes", 5)
-                  var swipes = 0
-                  while !habitShown && swipes < 6 {
-                      app.swipeUp()
-                      usleep(400000)
-                      swipes += 1
-                      habitShown = textExists("Meditate for 10 minutes", 2)
-                  }
+                  let habitLine = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Meditate for 10 minutes")).firstMatch
+                  XCTAssertTrue(habitLine.waitForExistence(timeout: 10), "saved habit line present on Today")
+                  let habitVisible = scrollUntilHittable(habitLine, 10)
                   shot("12-today-habit-visible")
-                  XCTAssertTrue(habitShown, "saved habit line visible on Today after scrolling")
+                  if !habitVisible { dumpHierarchy("dump-12-habit-not-hittable") }
+                  XCTAssertTrue(habitVisible, "saved habit line scrolled into view on Today")
 
                   // Photo proof: the non-negotiable checks off only with proof, stored in
                   // IndexedDB on the device. A generated test image was added to the
@@ -247,6 +267,9 @@ jobs:
                   let addProof = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Add proof to check it off")).firstMatch
                   if !addProof.waitForExistence(timeout: 8) { dumpHierarchy("dump-12-no-add-proof") }
                   XCTAssertTrue(addProof.exists, "add-proof control on the non-negotiable")
+                  let proofHittable = scrollUntilHittable(addProof, 8)
+                  if !proofHittable { shot("12b-add-proof-not-hittable"); dumpHierarchy("dump-12b-add-proof") }
+                  XCTAssertTrue(proofHittable, "add-proof control scrolled clear of the bottom nav")
                   addProof.tap()
                   let photoLib = app.buttons["Photo Library"]
                   if !photoLib.waitForExistence(timeout: 10) { shot("13a-no-picker-menu"); dumpHierarchy("dump-13a-picker-menu") }
@@ -272,18 +295,12 @@ jobs:
                   // The API host has been hosts-blocked for this whole run, so every local
                   // step above already ran without a backend; this checks the visible signal.
                   tapNav("Setup")
-                  var backupShown = textExists("Backup", 5)
-                  var s2 = 0
-                  while !backupShown && s2 < 8 {
-                      app.swipeUp()
-                      usleep(400000)
-                      s2 += 1
-                      backupShown = textExists("Backup", 2)
-                  }
                   let backupGroup = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch
-                  if backupGroup.exists { backupGroup.tap(); sleep(1) }
+                  _ = scrollUntilHittable(backupGroup, 10)
+                  if backupGroup.isHittable { backupGroup.tap(); sleep(1) }
                   let syncNowBtn = app.buttons["Back up now"]
-                  if !syncNowBtn.waitForExistence(timeout: 8) { app.swipeUp(); usleep(400000) }
+                  _ = syncNowBtn.waitForExistence(timeout: 8)
+                  _ = scrollUntilHittable(syncNowBtn, 8)
                   XCTAssertTrue(syncNowBtn.waitForExistence(timeout: 8), "Back up now button in the Backup group")
                   syncNowBtn.tap()
                   let unreachable = textExists("Couldn't reach the backup", 20) || textExists("offline", 20)
