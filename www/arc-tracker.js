@@ -3108,7 +3108,7 @@ function showArchetypePicker(done){
     '<div class="intro-title">Which one are you?</div>'+
     '<p class="pick-sub">Read each one, then tap the one that sounds most like you. You can change it later.</p>'+
     '<div class="pick-grid">'+cards+'</div>'+
-    '<a class="pick-quiz" href="/quiz" target="_blank" rel="noopener">Don’t know? Take the archetype quiz to figure it out →</a>'+
+    '<a class="pick-quiz" href="https://animemindset.com/quiz.html" target="_blank" rel="noopener">Don’t know? Take the archetype quiz to figure it out →</a>'+
     '<button type="button" class="pick-later">Skip for now</button></div>', 'picker');
   let watch = null;
   const finish = (tab)=>{ clearInterval(watch); closeIntro(el, ()=>{ showTab(tab); done(); }); };
