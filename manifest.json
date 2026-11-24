@@ -1,0 +1,25 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "602FFEDD-7F37-46B4-A3FB-68AC08D5DB17",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "AE03EE4D-B1EB-4E5E-859B-9E601E76B649.mp4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Screen Recording 2026-11-24 at 11.42.16 PM.mp4",
+        "timestamp" : 1795563736.234
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "602FFEDD-7F37-46B4-A3FB-68AC08D5DB17",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "75495E5A-86A9-47E2-B544-0EEE3BF74119.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "AppUITests/testTrackerFlow()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testTrackerFlow"
+  }
+]

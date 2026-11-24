@@ -1,0 +1,1 @@
+Failed to launch <XCUIApplicationImpl: 0x105925d80 com.animemindset.arctracker at /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app> via Xcode: Timed out while launching application via Xcode.
