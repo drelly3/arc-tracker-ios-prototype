@@ -53,6 +53,26 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+      - name: Read generated Info.plist and iOS project config (read-only)
+        run: |
+          set +e
+          mkdir -p shots
+          exec > >(tee shots/plist-report.txt) 2>&1
+          echo '--- ios/App/App/Info.plist (source)'
+          cat ios/App/App/Info.plist
+          APP=$(find "$DERIVED" -name 'App.app' -maxdepth 6 | head -1)
+          echo "--- built app: $APP"
+          plutil -p "$APP/Info.plist"
+          echo '--- entitlements / push in project'
+          find ios -name '*.entitlements' | head
+          grep -rn -iE 'aps-environment|remote-notification|UIBackgroundModes' ios/App --include=*.plist --include=*.entitlements --include=project.pbxproj | head
+          echo '--- app icon / launch assets'
+          find ios/App/App/Assets.xcassets -maxdepth 2 | head -20
+          echo '--- capacitor config'
+          cat capacitor.config.* 2>/dev/null | head -40
+          echo '--- network symbols in built bundle (hosts referenced in www)'
+          grep -rhoE 'https?://[A-Za-z0-9./_-]+' "$APP/public" 2>/dev/null | sed -E 's#(https?://[^/]+).*#\1#' | sort | uniq -c | sort -rn | head -30
+
       - name: Add UI test target and shared scheme
         run: |
           set -e
@@ -163,6 +183,30 @@ jobs:
                   XCTAssertTrue(pickerHeading.waitForExistence(timeout: 25), "first-run archetype picker appears after gate skip")
                   shot("02-onboarding-picker")
                   dumpHierarchy("dump-02-picker")
+
+                  // Quiz link on the picker: tap and confirm it leaves the app for Safari
+                  let quiz = app.links.matching(NSPredicate(format: "label CONTAINS[c] %@", "archetype quiz")).firstMatch
+                  let quizB = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "archetype quiz")).firstMatch
+                  let quizT = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "archetype quiz")).firstMatch
+                  let q = quiz.exists ? quiz : (quizB.exists ? quizB : quizT)
+                  print("QUIZ-DIAG link=\(quiz.exists) button=\(quizB.exists) text=\(quizT.exists) hittable=\(q.isHittable)")
+                  if q.exists {
+                      q.tap()
+                      let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+                      let inSafari = safari.wait(for: .runningForeground, timeout: 20)
+                      sleep(4)
+                      let shotA = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+                      shotA.name = "02b-quiz-after-tap"; shotA.lifetime = .keepAlways; add(shotA)
+                      var urlText = ""
+                      let urlField = safari.textFields.firstMatch
+                      if urlField.exists { urlText = (urlField.value as? String) ?? "" }
+                      let buttonsDesc = safari.buttons.allElementsBoundByIndex.prefix(8).map { $0.label }.joined(separator: " | ")
+                      print("QUIZ-RESULT safariForeground=\(inSafari) urlField=\(urlText) buttons=\(buttonsDesc)")
+                      app.activate()
+                      XCTAssertTrue(pickerHeading.waitForExistence(timeout: 20), "picker still shown after returning from quiz")
+                  } else {
+                      print("QUIZ-RESULT link not found in hierarchy")
+                  }
 
                   // Pick The Strategist on the picker itself; source lands on Start Here (showTab('guide'))
                   let strat = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
@@ -515,6 +559,7 @@ jobs:
         run: |
           set -e
           mkdir -p shots
+          grep -E 'QUIZ-|LAUNCH-DIAG' /tmp/xcodebuild-test.log > shots/quiz-result.txt || true
           xcrun xcresulttool export attachments --path /tmp/arcrest.xcresult --output-path shots
           ls -la shots
           for f in shots/*_*.png; do
