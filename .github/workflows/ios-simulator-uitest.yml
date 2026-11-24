@@ -34,6 +34,18 @@ jobs:
             echo "production API host blocked as intended: $(cat /tmp/curlerr)"
           fi
 
+      - name: Instrument fetch in the CI copy of the web files (evidence only)
+        run: |
+          cat >> www/api-shim.js <<'JSEOF'
+          (()=>{const KEY='zz_netlog',f=window.fetch;
+          function rd(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return []}}
+          function draw(){let d=document.getElementById('zznet');if(!d){if(!document.body)return;d=document.createElement('div');d.id='zznet';d.style.cssText='position:fixed;left:0;bottom:0;font-size:8px;opacity:.03;pointer-events:none;z-index:2147483647;max-width:100%;word-break:break-all';document.body.appendChild(d);}const a=rd();d.textContent='ZZNET '+a.length+' '+JSON.stringify(a).slice(0,6000);}
+          function rec(e){const a=rd();a.push(e);try{localStorage.setItem(KEY,JSON.stringify(a))}catch(_){}draw();}
+          window.fetch=function(i,init){try{const u=typeof i==='string'?i:((i&&i.url)||'');const b=init&&init.body;let keys=null,len=null,bt=typeof b;if(typeof b==='string'){len=b.length;try{const o=JSON.parse(b);keys=Object.keys(o);if(o.state)keys.push('state:'+Object.keys(o.state).join(','));if(o.key)keys.push('key='+o.key);}catch(_){}}else if(b&&b.size!=null){bt='blob';len=b.size;}const h=init&&init.headers?Object.keys(init.headers).join(','):'';rec({t:Date.now()%1000000,u,m:(init&&init.method)||'GET',bt,len,keys,h});}catch(_){}return f.apply(this,arguments)};
+          document.addEventListener('DOMContentLoaded',draw);})();
+          JSEOF
+          tail -c 300 www/api-shim.js
+
       - name: Install JS dependencies
         run: npm ci --no-audit --no-fund
 
@@ -307,6 +319,9 @@ jobs:
                   XCTAssertTrue(proofKept, "proof still shown after relaunch")
                   XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
                   XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  let netlog = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "ZZNET")).firstMatch
+                  _ = netlog.waitForExistence(timeout: 15)
+                  print("NETLOG-FINAL exists=\(netlog.exists) " + netlog.label)
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
