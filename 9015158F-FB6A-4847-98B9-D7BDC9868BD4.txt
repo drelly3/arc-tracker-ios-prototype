@@ -1,0 +1,53 @@
+counts staticTexts=6 buttons=2 textFields=1 any=36
+
+Optional(Attributes: Application, 0x11562e6c0, pid: 20632, label: 'Arc Tracker'
+Element subtree:
+ →Application, 0x11562e6c0, pid: 20632, label: 'Arc Tracker'
+    Window (Main), 0x11562e800, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x11562fac0, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x11562cdc0, {{0.0, 0.0}, {390.0, 844.0}}
+          WebView, 0x11562f700, {{0.0, 0.0}, {390.0, 844.0}}
+            WebView, 0x11562f840, {{0.0, 0.0}, {390.0, 844.0}}
+              WebView, 0x11562fd40, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x11562fc00, {{0.0, 0.0}, {390.0, 844.0}}
+                  Other, 0x11562f5c0, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x11562fe80, {{0.0, 0.0}, {390.0, 844.0}}
+                      Other, 0x11562f0c0, {{0.0, 0.0}, {390.0, 844.0}}, label: 'Arc Tracker | Kaminari', Focused
+                        Other, 0x11562f980, {{0.0, 0.0}, {390.0, 844.0}}, label: 'main', Focused
+                          Other, 0x11562ef80, {{16.0, 48.0}, {358.0, 534.0}}, label: 'form', Focused
+                            Other, 0x11562ed00, {{45.0, 129.0}, {300.0, 30.0}}, label: 'Unlock Arc Tracker', value: 1, Focused
+                              StaticText, 0x11562ebc0, {{91.0, 129.0}, {208.0, 30.0}}, label: 'Unlock Arc Tracker', value: Unlock Arc Tracker, Focused
+                            Other, 0x11562e940, {{45.0, 164.0}, {300.0, 18.0}}, Focused
+                              StaticText, 0x11562ea80, {{123.0, 164.0}, {144.0, 18.0}}, label: 'Enter your access key.', value: Enter your access ..., Focused
+                            Other, 0x11562f200, {{45.0, 202.0}, {300.0, 17.0}}, label: 'Licence key', Focused
+                              StaticText, 0x11562ee40, {{45.0, 202.0}, {72.0, 17.0}}, label: 'Licence key', value: Licence key, Focused
+                            TextField, 0x11562f480, {{45.0, 224.0}, {300.0, 42.0}}, label: 'Licence key', placeholderValue: 'XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX', value: XXXXXXXX-XXXXXXXX-..., Focused
+                            Other, 0x11562f340, {{45.0, 272.0}, {300.0, 20.0}}, label: 'alert', Focused
+                            Button, 0x104a2b480, {{45.0, 302.0}, {300.0, 40.0}}, label: 'Unlock', Focused
+                            Other, 0x104a2b200, {{45.0, 358.0}, {300.0, 34.0}}, Focused
+                              StaticText, 0x104a2bc00, {{49.0, 358.0}, {292.0, 34.0}}, label: 'Arc Tracker is coming soon. Access is invite-only for now.', value: Arc Tracker is com..., Focused
+                            Button, 0x104a2b840, {{45.0, 406.0}, {300.0, 40.0}}, label: 'Skip the key and open the tracker', Focused
+                            Other, 0x104a2b5c0, {{45.0, 462.0}, {300.0, 51.0}}, Focused
+                              StaticText, 0x104a2bac0, {{49.0, 462.0}, {292.0, 51.0}}, label: 'Preview only. This button and the sample key ARC7-K2MQ-9XTD-4HPL do not work on the live site.', value: Preview only. This..., Focused
+                            Other, 0x104a2b700, {{45.0, 529.0}, {300.0, 20.0}}, Focused
+                              Link, 0x104a2bd40, {{137.0, 530.0}, {116.0, 17.0}}, label: '← Back to Kaminari', Focused
+                                StaticText, 0x104a2b340, {{137.0, 530.0}, {116.0, 17.0}}, label: '← Back to Kaminari', value: ← Back to Kaminari, Focused
+              Other, 0x104a2be80, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                Other, 0x104a2b980, {{384.0, 50.3}, {3.0, 295.7}}
+              Other, 0x11563c000, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x11563c140, {{50.3, 838.0}, {115.0, 3.0}}
+              Other, 0x11563c280, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                Other, 0x11563c3c0, {{384.0, 50.3}, {3.0, 295.7}}
+              Other, 0x11563c500, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x11563c640, {{50.3, 838.0}, {115.0, 3.0}}
+    Window, 0x11563c780, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x11563c8c0, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x11563ca00, {{0.0, 0.0}, {390.0, 844.0}}
+Path to element:
+ →Application, 0x11562e6c0, pid: 20632, label: 'Arc Tracker'
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  Output: {
+    Application, 0x11563cb40, pid: 20632, label: 'Arc Tracker'
+  }
+)

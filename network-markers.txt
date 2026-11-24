@@ -1,0 +1,8 @@
+capture started 2026-11-24 22:53:28 UTC
+test finished 2026-11-24 23:01:29 UTC
+tcpdump: data link type PKTAP
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on any, link-type PKTAP (Apple DLT_PKTAP), snapshot length 524288 bytes
+8733 packets captured
+172978 packets received by filter
+27013 packets dropped by kernel
