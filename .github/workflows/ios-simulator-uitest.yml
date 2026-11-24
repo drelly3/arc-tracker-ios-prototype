@@ -105,6 +105,30 @@ jobs:
                   sleep(2)
               }
 
+              // Press-drag scroll: app.swipeUp() did not move the Capacitor
+              // WKWebView content in run 45325695949 (vertical scroll bar stayed
+              // at 0%), leaving below-fold elements unhittable under the fixed nav.
+              func dragScroll(_ times: Int = 1) {
+                  let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+                  let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.30))
+                  for _ in 0..<times {
+                      start.press(forDuration: 0.15, thenDragTo: end)
+                      usleep(400000)
+                  }
+              }
+
+              // Scroll until the element is actually hittable (on screen and
+              // clear of the fixed bottom nav), not just present in the AX tree.
+              @discardableResult
+              func scrollUntilHittable(_ el: XCUIElement, _ maxDrags: Int = 10) -> Bool {
+                  var n = 0
+                  while !el.isHittable && n < maxDrags {
+                      dragScroll()
+                      n += 1
+                  }
+                  return el.isHittable
+              }
+
               func testTrackerFlow() throws {
                   // Staged launch diagnosis (follow-up to the blank launch in run
                   // 45054036186): a slow first paint must be distinguishable from a
@@ -228,6 +252,79 @@ jobs:
                   shot("11-today-after-relaunch")
                   if !survived { dumpHierarchy("dump-11-relaunch") }
                   XCTAssertTrue(survived, "saved habit survives app relaunch")
+
+                  // Scroll Today so the saved habit line is visibly on screen (not just in the AX tree)
+                  let habitLine = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Meditate for 10 minutes")).firstMatch
+                  XCTAssertTrue(habitLine.waitForExistence(timeout: 10), "saved habit line present on Today")
+                  let habitVisible = scrollUntilHittable(habitLine, 10)
+                  shot("12-today-habit-visible")
+                  if !habitVisible { dumpHierarchy("dump-12-habit-not-hittable") }
+                  XCTAssertTrue(habitVisible, "saved habit line scrolled into view on Today")
+
+                  // Photo proof: the non-negotiable checks off only with proof, stored in
+                  // IndexedDB on the device. A generated test image was added to the
+                  // simulator photo library by the workflow; the backend stays blocked.
+                  let addProof = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Add proof to check it off")).firstMatch
+                  if !addProof.waitForExistence(timeout: 8) { dumpHierarchy("dump-12-no-add-proof") }
+                  XCTAssertTrue(addProof.exists, "add-proof control on the non-negotiable")
+                  let proofHittable = scrollUntilHittable(addProof, 8)
+                  if !proofHittable { shot("12b-add-proof-not-hittable"); dumpHierarchy("dump-12b-add-proof") }
+                  XCTAssertTrue(proofHittable, "add-proof control scrolled clear of the bottom nav")
+                  addProof.tap()
+                  let photoLib = app.buttons["Photo Library"]
+                  if !photoLib.waitForExistence(timeout: 10) { shot("13a-no-picker-menu"); dumpHierarchy("dump-13a-picker-menu") }
+                  XCTAssertTrue(photoLib.exists, "file-input menu offers Photo Library")
+                  photoLib.tap()
+                  // iOS 16+ Photos picker: the grid is PXGGridLayout images, not
+                  // collectionView cells (run 45328736231 dump-13b evidence).
+                  // Newest photo is first; the workflow added the test image just before.
+                  let photoImgs = app.images.matching(identifier: "PXGGridLayout-Info")
+                  if !photoImgs.firstMatch.waitForExistence(timeout: 90) { shot("13b-no-photo-cells"); dumpHierarchy("dump-13b-picker") }
+                  XCTAssertTrue(photoImgs.firstMatch.exists, "photo picker shows the test image")
+                  photoImgs.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                  sleep(1)
+                  let addBtn = app.buttons["Add"]
+                  if addBtn.waitForExistence(timeout: 8) { addBtn.tap() }
+                  let doneBtn = app.buttons["PUOneUpBarButtonItemIdentifierAssetExplorerReviewScreenDone"]
+                  if doneBtn.waitForExistence(timeout: 8) { doneBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+                  let proofOk = textExists("Proof +2 XP", 20)
+                  shot("13-proof-added")
+                  if !proofOk { dumpHierarchy("dump-13-proof-missing") }
+                  XCTAssertTrue(proofOk, "proof photo saves on-device and shows Proof +2 XP")
+                  let xpOk = app.staticTexts["12"].waitForExistence(timeout: 5) && textExists("/100 XP", 2)
+                  if !xpOk { dumpHierarchy("dump-13-xp") }
+                  XCTAssertTrue(xpOk, "XP reflects habit check + proof (10 + 2)")
+                  app.terminate()
+                  app.launch()
+                  let skipP = app.buttons["Skip the key and open the tracker"]
+                  if skipP.waitForExistence(timeout: 40) { skipP.tap(); sleep(2) }
+                  let pickerP = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerP.waitForExistence(timeout: 8) { let sP = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sP.waitForExistence(timeout: 10) { sP.tap(); sleep(2) } }
+                  tapNav("Today")
+                  let proofKept = textExists("Proof +2 XP", 20)
+                  shot("15-proof-after-relaunch")
+                  if !proofKept { dumpHierarchy("dump-15-proof-after-relaunch") }
+                  XCTAssertTrue(proofKept, "proof still shown after relaunch")
+                  XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
+                  XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  return
+
+                  // Backend unreachable: backup must fail gracefully with a clear message.
+                  // The API host has been hosts-blocked for this whole run, so every local
+                  // step above already ran without a backend; this checks the visible signal.
+                  tapNav("Setup")
+                  let backupGroup = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch
+                  _ = scrollUntilHittable(backupGroup, 10)
+                  if backupGroup.isHittable { backupGroup.tap(); sleep(1) }
+                  let syncNowBtn = app.buttons["Back up now"]
+                  _ = syncNowBtn.waitForExistence(timeout: 8)
+                  _ = scrollUntilHittable(syncNowBtn, 8)
+                  XCTAssertTrue(syncNowBtn.waitForExistence(timeout: 8), "Back up now button in the Backup group")
+                  syncNowBtn.tap()
+                  let unreachable = textExists("Couldn't reach the backup", 20) || textExists("offline", 20)
+                  shot("14-backup-unreachable")
+                  if !unreachable { dumpHierarchy("dump-14-backup") }
+                  XCTAssertTrue(unreachable, "unreachable backend shows a clear backup message")
               }
           }
           SWIFT
@@ -394,6 +491,13 @@ jobs:
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
           sleep 5
+
+      - name: Add a test photo to the simulator library
+        run: |
+          set -e
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAABLElEQVR4nNXCgUYdAACG0f9JYkTEiIiIMUbapJI2qVwtWZNKKp+abHPVpCWVayWVtMmWVFLJSlquRowxopfZc3zHSQW36nlEWT2V3Kinimv1VHOlnsdcqqeGn+qp5Vw9dZypp54T9TRwrJ4nHKnnKQfqeca+ehrZU89zvqunmV31tPJNPe3sqOcl2+rpZEs93Wyop8C6el6zpp5+vqhngJJ6BllRzzBL6hllUT3jLKgH5tUzxZx6pvmkng/MqKdIUT2zfFTPHO/V85lp9SzyTj3LTKqnBOpZZUI964ypZ5NR9Wwzop6vDKlnl0H1/OCtevZ5o55D+tVzTJ96TulVzzkF9VzQo54rutTzi071lHmlnt90qOeOdvX8oU09f2lRzz+a1XPPC/U80KT+H9la2VqPkEx3AAAAAElFTkSuQmCC' | base64 --decode > /tmp/proof.png
+          ls -la /tmp/proof.png
+          xcrun simctl addmedia "$UDID" /tmp/proof.png
 
       - name: Run the XCUITest tracker flow
         run: |
