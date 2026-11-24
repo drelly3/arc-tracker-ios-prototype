@@ -1,0 +1,5 @@
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  ↪︎Find: Descendants matching type CollectionView
+    ↪︎Find: Descendants matching type Cell
+      ↪︎Find: First Match
