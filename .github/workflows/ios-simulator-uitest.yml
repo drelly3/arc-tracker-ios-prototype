@@ -275,14 +275,16 @@ jobs:
                   if !photoLib.waitForExistence(timeout: 10) { shot("13a-no-picker-menu"); dumpHierarchy("dump-13a-picker-menu") }
                   XCTAssertTrue(photoLib.exists, "file-input menu offers Photo Library")
                   photoLib.tap()
-                  let cells = app.collectionViews.cells
-                  if !cells.firstMatch.waitForExistence(timeout: 20) { shot("13b-no-photo-cells"); dumpHierarchy("dump-13b-picker") }
-                  XCTAssertTrue(cells.firstMatch.exists, "photo picker shows the test image")
-                  let lastCell = cells.element(boundBy: cells.count - 1)
-                  if lastCell.exists { lastCell.tap() } else { cells.firstMatch.tap() }
+                  // iOS 16+ Photos picker: the grid is PXGGridLayout images, not
+                  // collectionView cells (run 45328736231 dump-13b evidence).
+                  // Newest photo is first; the workflow added the test image just before.
+                  let photoImgs = app.images.matching(identifier: "PXGGridLayout-Info")
+                  if !photoImgs.firstMatch.waitForExistence(timeout: 20) { shot("13b-no-photo-cells"); dumpHierarchy("dump-13b-picker") }
+                  XCTAssertTrue(photoImgs.firstMatch.exists, "photo picker shows the test image")
+                  photoImgs.firstMatch.tap()
                   sleep(1)
                   let addBtn = app.buttons["Add"]
-                  if addBtn.waitForExistence(timeout: 3) { addBtn.tap() }
+                  if addBtn.waitForExistence(timeout: 8) { addBtn.tap() }
                   let proofOk = textExists("Proof +2 XP", 20)
                   shot("13-proof-added")
                   if !proofOk { dumpHierarchy("dump-13-proof-missing") }
