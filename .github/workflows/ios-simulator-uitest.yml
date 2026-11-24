@@ -281,7 +281,7 @@ jobs:
                   let photoImgs = app.images.matching(identifier: "PXGGridLayout-Info")
                   if !photoImgs.firstMatch.waitForExistence(timeout: 20) { shot("13b-no-photo-cells"); dumpHierarchy("dump-13b-picker") }
                   XCTAssertTrue(photoImgs.firstMatch.exists, "photo picker shows the test image")
-                  photoImgs.firstMatch.tap()
+                  photoImgs.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
                   sleep(1)
                   let addBtn = app.buttons["Add"]
                   if addBtn.waitForExistence(timeout: 8) { addBtn.tap() }
