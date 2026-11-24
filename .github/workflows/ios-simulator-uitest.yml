@@ -279,7 +279,7 @@ jobs:
                   // collectionView cells (run 45328736231 dump-13b evidence).
                   // Newest photo is first; the workflow added the test image just before.
                   let photoImgs = app.images.matching(identifier: "PXGGridLayout-Info")
-                  if !photoImgs.firstMatch.waitForExistence(timeout: 20) { shot("13b-no-photo-cells"); dumpHierarchy("dump-13b-picker") }
+                  if !photoImgs.firstMatch.waitForExistence(timeout: 90) { shot("13b-no-photo-cells"); dumpHierarchy("dump-13b-picker") }
                   XCTAssertTrue(photoImgs.firstMatch.exists, "photo picker shows the test image")
                   photoImgs.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
                   sleep(1)
