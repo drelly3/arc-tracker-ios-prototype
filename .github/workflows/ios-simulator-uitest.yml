@@ -106,12 +106,30 @@ jobs:
               }
 
               func testTrackerFlow() throws {
-                  sleep(8) // let any system banner fade and the web view finish loading
+                  // Staged launch diagnosis (follow-up to the blank launch in run
+                  // 45054036186): a slow first paint must be distinguishable from a
+                  // stuck web view load. Probe for the gate's skip button while
+                  // capturing a screenshot and hierarchy dump at about 10/20/40s
+                  // after launch, then allow a long final wait. The hierarchy counts
+                  // also print to the run log as DUMP[...] lines.
+                  let skip = app.buttons["Skip the key and open the tracker"]
+                  var waited = 0
+                  var painted = skip.exists
+                  for mark in [10, 20, 40] {
+                      while waited < mark && !painted {
+                          sleep(2)
+                          waited += 2
+                          painted = skip.exists
+                      }
+                      shot("00-launch-\(mark)s")
+                      dumpHierarchy("dump-00-launch-\(mark)s")
+                      if painted { break }
+                  }
+                  print("LAUNCH-DIAG painted=\(painted) waitedSeconds=\(waited)")
                   shot("01-gate")
 
                   // Gate -> open the tracker with the preview/sample path (native origin is not the live domain)
-                  let skip = app.buttons["Skip the key and open the tracker"]
-                  XCTAssertTrue(skip.waitForExistence(timeout: 15), "preview skip button on the gate")
+                  XCTAssertTrue(skip.waitForExistence(timeout: 60), "preview skip button on the gate")
                   skip.tap()
 
                   // First-run onboarding (run 5 evidence + www/arc-tracker.js showFirstRun/showArchetypePicker):
