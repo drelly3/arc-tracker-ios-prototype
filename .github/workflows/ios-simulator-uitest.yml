@@ -285,6 +285,8 @@ jobs:
                   sleep(1)
                   let addBtn = app.buttons["Add"]
                   if addBtn.waitForExistence(timeout: 8) { addBtn.tap() }
+                  let doneBtn = app.buttons["PUOneUpBarButtonItemIdentifierAssetExplorerReviewScreenDone"]
+                  if doneBtn.waitForExistence(timeout: 8) { doneBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
                   let proofOk = textExists("Proof +2 XP", 20)
                   shot("13-proof-added")
                   if !proofOk { dumpHierarchy("dump-13-proof-missing") }
