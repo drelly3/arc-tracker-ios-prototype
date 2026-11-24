@@ -1,0 +1,5 @@
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  ↪︎Find: Descendants matching type Image
+    ↪︎Find: Elements matching predicate '"PXGGridLayout-Info" IN identifiers'
+      ↪︎Find: First Match
