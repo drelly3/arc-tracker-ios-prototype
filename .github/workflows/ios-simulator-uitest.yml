@@ -291,9 +291,23 @@ jobs:
                   shot("13-proof-added")
                   if !proofOk { dumpHierarchy("dump-13-proof-missing") }
                   XCTAssertTrue(proofOk, "proof photo saves on-device and shows Proof +2 XP")
-                  let xpOk = textExists("12/100 XP", 5)
+                  let xpOk = app.staticTexts["12"].waitForExistence(timeout: 5) && textExists("/100 XP", 2)
                   if !xpOk { dumpHierarchy("dump-13-xp") }
                   XCTAssertTrue(xpOk, "XP reflects habit check + proof (10 + 2)")
+                  app.terminate()
+                  app.launch()
+                  let skipP = app.buttons["Skip the key and open the tracker"]
+                  if skipP.waitForExistence(timeout: 40) { skipP.tap(); sleep(2) }
+                  let pickerP = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerP.waitForExistence(timeout: 8) { let sP = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sP.waitForExistence(timeout: 10) { sP.tap(); sleep(2) } }
+                  tapNav("Today")
+                  let proofKept = textExists("Proof +2 XP", 20)
+                  shot("15-proof-after-relaunch")
+                  if !proofKept { dumpHierarchy("dump-15-proof-after-relaunch") }
+                  XCTAssertTrue(proofKept, "proof still shown after relaunch")
+                  XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
+                  XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
                   // The API host has been hosts-blocked for this whole run, so every local
