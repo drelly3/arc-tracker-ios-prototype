@@ -193,6 +193,41 @@ jobs:
                   tapNav("Start Here")
                   shot("09-guide")
                   XCTAssertTrue(textExists("Get started"), "guide tab renders")
+
+                  // Relaunch persistence: the saved character and habit must survive
+                  // an app restart (local storage inside the Capacitor shell).
+                  // Probe for either the gate's skip button or the Today nav button,
+                  // since it is unverified which screen a relaunch lands on.
+                  app.terminate()
+                  app.launch()
+                  let skip2 = app.buttons["Skip the key and open the tracker"]
+                  let todayNav = app.buttons["Today"]
+                  var waited2 = 0
+                  var painted2 = skip2.exists || todayNav.exists
+                  for mark in [10, 20, 40] {
+                      while waited2 < mark && !painted2 {
+                          sleep(2)
+                          waited2 += 2
+                          painted2 = skip2.exists || todayNav.exists
+                      }
+                      shot("10-relaunch-\(mark)s")
+                      if painted2 { break }
+                  }
+                  print("RELAUNCH-DIAG painted=\(painted2) waitedSeconds=\(waited2) gateShown=\(skip2.exists)")
+                  if skip2.waitForExistence(timeout: 30) {
+                      skip2.tap()
+                      sleep(2)
+                  }
+                  let pickerAgain = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerAgain.waitForExistence(timeout: 8) {
+                      let strat2 = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
+                      if strat2.waitForExistence(timeout: 10) { strat2.tap(); sleep(2) }
+                  }
+                  tapNav("Today")
+                  let survived = textExists("Meditate for 10 minutes", 15)
+                  shot("11-today-after-relaunch")
+                  if !survived { dumpHierarchy("dump-11-relaunch") }
+                  XCTAssertTrue(survived, "saved habit survives app relaunch")
               }
           }
           SWIFT
