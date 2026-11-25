@@ -629,6 +629,7 @@ jobs:
           mkdir -p shots
           xcrun xcresulttool export attachments --path /tmp/arcrest.xcresult --output-path shots
           ls -la shots
+          rm -f shots/*.mp4
           for f in shots/*_*.png; do
             [ -e "$f" ] || continue
             base=$(basename "$f")
