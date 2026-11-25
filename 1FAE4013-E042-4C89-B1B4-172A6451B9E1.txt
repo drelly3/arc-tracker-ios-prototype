@@ -1,0 +1,41 @@
+Application, 0x115a0fc00, pid: 23142, label: 'Arc Tracker' <App element pid: 23142>
+  Window (Main), 0x115a0c780, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4398008320.4>
+    Other, 0x115a0ca00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4446824448.6>
+      Other, 0x115a0f5c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4447913216.8>
+        WebView, 0x115a0c8c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4448223232.10>
+          WebView, 0x115a0f980, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4397924352.11>
+            WebView, 0x115a0ea80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4398497792.3>
+              Other, 0x115a0f840, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 12065636577219806358.9999>
+                Other, 0x115a0e940, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 24314, elementOrHash.elementID: 4382218704.3>
+                  Other, 0x115a0e6c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 24314, elementOrHash.elementID: 4439294528.4>
+                    Other, 0x115a0e800, {{0.0, 0.0}, {390.0, 844.0}}, label: 'Arc Tracker | Kaminari', Focused <AX element pid: 24314, elementOrHash.elementID: 4439294560.5>
+                      Other, 0x115a0e580, {{0.0, 0.0}, {390.0, 844.0}}, label: 'main', Focused <AX element pid: 24314, elementOrHash.elementID: 4439294688.6>
+                        Other, 0x115a0e440, {{16.0, 48.0}, {358.0, 534.0}}, label: 'form', Focused <AX element pid: 24314, elementOrHash.elementID: 4439294592.7>
+                          Other, 0x115a0e300, {{45.0, 129.0}, {300.0, 30.0}}, label: 'Unlock Arc Tracker', value: 1, Focused <AX element pid: 24314, elementOrHash.elementID: 4439296032.8>
+                            StaticText, 0x115a0e080, {{91.0, 129.0}, {208.0, 30.0}}, label: 'Unlock Arc Tracker', value: Unlock Arc Tracker, Focused <AX element pid: 24314, elementOrHash.elementID: 4439297248.18>
+                          Other, 0x115a0e1c0, {{45.0, 164.0}, {300.0, 18.0}}, Focused <AX element pid: 24314, elementOrHash.elementID: 4439296064.9>
+                            StaticText, 0x115a0de00, {{123.0, 164.0}, {144.0, 18.0}}, label: 'Enter your access key.', value: Enter your access ..., Focused <AX element pid: 24314, elementOrHash.elementID: 4439297504.19>
+                          Other, 0x115a0df40, {{45.0, 202.0}, {300.0, 17.0}}, label: 'Licence key', Focused <AX element pid: 24314, elementOrHash.elementID: 4439293984.10>
+                            StaticText, 0x115a0db80, {{45.0, 202.0}, {72.0, 17.0}}, label: 'Licence key', value: Licence key, Focused <AX element pid: 24314, elementOrHash.elementID: 4439297760.20>
+                          TextField, 0x115a0dcc0, {{45.0, 224.0}, {300.0, 42.0}}, label: 'Licence key', placeholderValue: 'XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX', value: XXXXXXXX-XXXXXXXX-..., Focused <AX element pid: 24314, elementOrHash.elementID: 4439294784.11>
+                          Other, 0x1082a8000, {{45.0, 272.0}, {300.0, 20.0}}, label: 'alert', Focused <AX element pid: 24314, elementOrHash.elementID: 4439296096.12>
+                          Button, 0x108286f80, {{45.0, 302.0}, {300.0, 40.0}}, label: 'Unlock', Focused <AX element pid: 24314, elementOrHash.elementID: 4439296128.13>
+                          Other, 0x108285540, {{45.0, 358.0}, {300.0, 34.0}}, Focused <AX element pid: 24314, elementOrHash.elementID: 4439296192.14>
+                            StaticText, 0x108285680, {{49.0, 358.0}, {292.0, 34.0}}, label: 'Arc Tracker is coming soon. Access is invite-only for now.', value: Arc Tracker is com..., Focused <AX element pid: 24314, elementOrHash.elementID: 4439298816.21>
+                          Button, 0x1082852c0, {{45.0, 406.0}, {300.0, 40.0}}, label: 'Skip the key and open the tracker', Focused <AX element pid: 24314, elementOrHash.elementID: 4439296256.15>
+                          Other, 0x108285400, {{45.0, 462.0}, {300.0, 51.0}}, Focused <AX element pid: 24314, elementOrHash.elementID: 4439296320.16>
+                            StaticText, 0x108285040, {{49.0, 462.0}, {292.0, 51.0}}, label: 'Preview only. This button and the sample key ARC7-K2MQ-9XTD-4HPL do not work on the live site.', value: Preview only. This..., Focused <AX element pid: 24314, elementOrHash.elementID: 4439299296.22>
+                          Other, 0x108287340, {{45.0, 529.0}, {300.0, 20.0}}, Focused <AX element pid: 24314, elementOrHash.elementID: 4439296352.17>
+                            Link, 0x108287480, {{137.0, 530.0}, {116.0, 17.0}}, label: '← Back to Kaminari', Focused <AX element pid: 24314, elementOrHash.elementID: 4439299680.23>
+                              StaticText, 0x1082875c0, {{137.0, 530.0}, {116.0, 17.0}}, label: '← Back to Kaminari', value: ← Back to Kaminari, Focused <AX element pid: 24314, elementOrHash.elementID: 4439300512.24>
+            Other, 0x108287700, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 23142, elementOrHash.elementID: 4446828544.27>
+              Other, 0x108287840, {{384.0, 50.3}, {3.0, 743.3}} <AX element pid: 23142, elementOrHash.elementID: 4446253312.29>
+            Other, 0x108287e80, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 23142, elementOrHash.elementID: 4446829056.28>
+              Other, 0x1082870c0, {{50.3, 838.0}, {289.3, 3.0}} <AX element pid: 23142, elementOrHash.elementID: 4446252864.30>
+            Other, 0x108287980, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 23142, elementOrHash.elementID: 4446828544.27>
+              Other, 0x108287ac0, {{384.0, 50.3}, {3.0, 743.3}} <AX element pid: 23142, elementOrHash.elementID: 4446253312.29>
+            Other, 0x108287c00, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 23142, elementOrHash.elementID: 4446829056.28>
+              Other, 0x108287d40, {{50.3, 838.0}, {289.3, 3.0}} <AX element pid: 23142, elementOrHash.elementID: 4446252864.30>
+  Window, 0x108287200, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4397949696.5>
+    Other, 0x108285180, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4399577984.7>
+      Other, 0x116508000, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 23142, elementOrHash.elementID: 4446800512.9>
