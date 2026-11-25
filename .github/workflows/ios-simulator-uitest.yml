@@ -34,6 +34,24 @@ jobs:
             echo "production API host blocked as intended: $(cat /tmp/curlerr)"
           fi
 
+      - name: Instrument network calls in the CI copy of the web files (evidence only)
+        run: |
+          cat >> www/api-shim.js <<'JSEOF'
+          (()=>{const KEY='zz_netlog',f=window.fetch;
+          function rd(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return []}}
+          function draw(){let d=document.getElementById('zznet');if(!d){if(!document.body)return;d=document.createElement('div');d.id='zznet';d.style.cssText='position:fixed;left:0;bottom:0;font-size:8px;opacity:.03;pointer-events:none;z-index:2147483647;max-width:100%;word-break:break-all';document.body.appendChild(d);}const a=rd();d.textContent='ZZNET '+a.length+' '+a.map(e=>e.k+' '+e.h+e.p+' '+e.m).map(x=>x.slice(0,90)).join(' ;; ').slice(0,900);}
+          function rec(k,u,m){try{const x=new URL(String(u),location.href);const a=rd();a.push({k,h:x.host,p:x.pathname,m:m||'GET'});localStorage.setItem(KEY,JSON.stringify(a));draw();}catch(_){}}
+          window.fetch=function(i,init){try{rec('fetch',typeof i==='string'?i:((i&&i.url)||''),(init&&init.method)||'GET')}catch(_){}return f.apply(this,arguments)};
+          try{const xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){rec('xhr',u,m);return xo.apply(this,arguments)};}catch(_){}
+          try{const sb=navigator.sendBeacon&&navigator.sendBeacon.bind(navigator);if(sb)navigator.sendBeacon=function(u){rec('beacon',u,'POST');return sb.apply(null,arguments)};}catch(_){}
+          try{const W=window.WebSocket;window.WebSocket=function(u,pr){rec('ws',u,'WS');return pr?new W(u,pr):new W(u)};window.WebSocket.prototype=W.prototype;}catch(_){}
+          try{const E=window.EventSource;if(E)window.EventSource=function(u,o){rec('sse',u,'GET');return new E(u,o)};}catch(_){}
+          // positive control: proves the logger records a call made by page code in this build (same-origin, not external)
+          setTimeout(()=>{try{window.fetch('/zz-positive-control').catch(()=>{})}catch(_){}},1500);
+          document.addEventListener('DOMContentLoaded',draw);})();
+          JSEOF
+          tail -c 200 www/api-shim.js
+
       - name: Install JS dependencies
         run: npm ci --no-audit --no-fund
 
@@ -471,6 +489,68 @@ jobs:
                   tapNav("Setup")
                   for _ in 0..<4 { app.swipeUp(); usleep(300000) }
                   shot("S2-setup-scrolled")
+                  // Import: manual streak path (asserted, persisted across relaunch), then CSV picker (best effort, not asserted)
+                  func streakLabel() -> String {
+                      tapNav("Progress")
+                      let l = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "\u{1F525}")).firstMatch
+                      _ = l.waitForExistence(timeout: 8)
+                      return l.exists ? l.label : "none"
+                  }
+                  let streakBefore = streakLabel()
+                  tapNav("Setup")
+                  let moreI = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreI, 8)
+                  if moreI.isHittable { moreI.tap(); sleep(1) }
+                  let sField = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] %@", "Days in a row")).firstMatch
+                  _ = scrollUntilHittable(sField, 10)
+                  XCTAssertTrue(sField.isHittable, "import streak field")
+                  sField.tap(); sField.typeText("3")
+                  let addDays = app.buttons["Add these days"]
+                  _ = scrollUntilHittable(addDays, 6)
+                  if !addDays.isHittable { app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "No file?")).firstMatch.tap(); _ = scrollUntilHittable(addDays, 6) }
+                  XCTAssertTrue(addDays.isHittable, "Add these days button")
+                  addDays.tap(); sleep(2)
+                  let streakAfter = streakLabel()
+                  app.terminate(); app.launch(); sleep(3)
+                  let streakRelaunch = streakLabel()
+                  print("IMPORT-DIAG streakBefore=\(streakBefore) streakAfter=\(streakAfter) streakAfterRelaunch=\(streakRelaunch)")
+                  shot("I1-streak-after-import-relaunch")
+                  XCTAssertTrue(streakBefore != streakAfter, "importing 3 days changes the current streak")
+                  XCTAssertTrue(streakAfter == streakRelaunch, "imported days persist after relaunch")
+                  let netlogF = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "ZZNET")).firstMatch
+                  _ = netlogF.waitForExistence(timeout: 15)
+                  print("NETLOG-FINAL exists=\(netlogF.exists) " + netlogF.label)
+                  shot("N1-netlog")
+                  // CSV picker attempt
+                  tapNav("Setup")
+                  let moreC = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreC, 8)
+                  if moreC.isHittable { moreC.tap(); sleep(1) }
+                  let chooseBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Choose File")).firstMatch
+                  _ = scrollUntilHittable(chooseBtn, 10)
+                  print("CSV-DIAG chooseButton=\(chooseBtn.exists)")
+                  if chooseBtn.exists && chooseBtn.isHittable {
+                      chooseBtn.tap(); sleep(2)
+                      shot("I2-picker-sheet")
+                      let cf = app.buttons["Choose File"].exists ? app.buttons["Choose File"] : app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Choose File")).element(boundBy: 1)
+                      if cf.exists { cf.tap(); sleep(3) }
+                      shot("I3-files-browser")
+                      let fileItem = app.staticTexts["arcimport"].exists ? app.staticTexts["arcimport"] : app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "arcimport")).firstMatch
+                      print("CSV-DIAG fileVisible=\(fileItem.waitForExistence(timeout: 8))")
+                      if fileItem.exists { fileItem.tap(); sleep(3) }
+                      let found = textExists("Match your habits", 10)
+                      print("CSV-DIAG matchScreen=\(found)")
+                      shot("I4-csv-matched")
+                      if found {
+                          let go = app.buttons["Bring these days over"]
+                          _ = scrollUntilHittable(go, 8)
+                          print("CSV-DIAG goHittable=\(go.isHittable)")
+                          if go.isHittable { go.tap(); sleep(2) }
+                          let s2 = streakLabel()
+                          print("CSV-DIAG streakAfterCsv=\(s2)")
+                          shot("I5-after-csv")
+                      }
+                  }
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
@@ -662,6 +742,19 @@ jobs:
           printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAABLElEQVR4nNXCgUYdAACG0f9JYkTEiIiIMUbapJI2qVwtWZNKKp+abHPVpCWVayWVtMmWVFLJSlquRowxopfZc3zHSQW36nlEWT2V3Kinimv1VHOlnsdcqqeGn+qp5Vw9dZypp54T9TRwrJ4nHKnnKQfqeca+ehrZU89zvqunmV31tPJNPe3sqOcl2+rpZEs93Wyop8C6el6zpp5+vqhngJJ6BllRzzBL6hllUT3jLKgH5tUzxZx6pvmkng/MqKdIUT2zfFTPHO/V85lp9SzyTj3LTKqnBOpZZUI964ypZ5NR9Wwzop6vDKlnl0H1/OCtevZ5o55D+tVzTJ96TulVzzkF9VzQo54rutTzi071lHmlnt90qOeOdvX8oU09f2lRzz+a1XPPC/U80KT+H9la2VqPkEx3AAAAAElFTkSuQmCC' | base64 --decode > /tmp/proof.png
           ls -la /tmp/proof.png
           xcrun simctl addmedia "$UDID" /tmp/proof.png
+
+      - name: Place a CSV fixture where the iOS file picker can see it (best effort)
+        run: |
+          set +e
+          D1=$(date -v-4d +%F); D2=$(date -v-3d +%F); D3=$(date -v-2d +%F)
+          printf 'date,habit\n%s,Meditate\n%s,Meditate\n%s,Meditate\n%s,Read\n' "$D1" "$D2" "$D3" "$D3" > /tmp/arcimport.csv
+          cat /tmp/arcimport.csv
+          xcrun simctl launch "$UDID" com.apple.DocumentsApp; sleep 6
+          xcrun simctl terminate "$UDID" com.apple.DocumentsApp
+          DATA="$HOME/Library/Developer/CoreSimulator/Devices/$UDID/data"
+          FPS=$(find "$DATA/Containers/Shared/AppGroup" -maxdepth 4 -type d -name "File Provider Storage" 2>/dev/null | head -1)
+          echo "File Provider Storage: $FPS"
+          if [ -n "$FPS" ]; then cp /tmp/arcimport.csv "$FPS/arcimport.csv"; ls -la "$FPS"; fi
 
       - name: Start bounded network trace
         run: |
