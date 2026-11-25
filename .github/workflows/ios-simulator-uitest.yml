@@ -688,8 +688,17 @@ jobs:
           ls -la /tmp/net.pcap || true
           echo "NETTRACE total packets:"; sudo tcpdump -nn -r /tmp/net.pcap 2>/dev/null | wc -l
           echo "NETTRACE DNS names asked (count name):"; sudo tcpdump -nn -r /tmp/net.pcap 'udp port 53' 2>/dev/null | grep -o ' [A-Z]*? [^ ]*' | sort | uniq -c | sort -rn | head -40
-          echo "NETTRACE loopback TCP SYNs to ports 80/443 (blocked-host attempts):"; sudo tcpdump -nn -r /tmp/net.pcap 'dst host 127.0.0.1 and (dst port 443 or dst port 80) and tcp[tcpflags] & tcp-syn != 0' 2>/dev/null | wc -l
-          echo "NETTRACE non-local TCP SYN destinations (count ip.port):"; sudo tcpdump -nn -r /tmp/net.pcap 'tcp[tcpflags] & tcp-syn != 0 and tcp[tcpflags] & tcp-ack == 0 and not dst net 127.0.0.0/8 and not dst net 10.0.0.0/8 and not dst net 192.168.0.0/16' 2>/dev/null | grep -o '> [0-9.]*\.[0-9]*:' | sort | uniq -c | sort -rn | head -30
+
+      - name: Trace destinations
+        if: always()
+        run: |
+          sudo tcpdump -nn -r /tmp/net.pcap 'tcp dst port 443 or tcp dst port 80' 2>/dev/null | grep -c '127.0.0.1' > /tmp/lo.txt || true
+          echo "NETTRACE loopback packets to 127.0.0.1 port 80/443 (blocked-host attempts): $(cat /tmp/lo.txt)"
+          sudo tcpdump -nn -r /tmp/net.pcap 'tcp[tcpflags] == tcp-syn' 2>/dev/null > /tmp/syn.txt || true
+          echo "NETTRACE TCP SYN total: $(wc -l < /tmp/syn.txt)"
+          echo "NETTRACE SYN destinations (count dest):"
+          awk '{for(i=1;i<=NF;i++) if($i==">"){d=$(i+1); sub(/:$/,"",d); print d}}' /tmp/syn.txt | sort | uniq -c | sort -rn | head -25 || true
+          echo "NETTRACE end"
 
       - name: Export the test screenshots
         if: always()
