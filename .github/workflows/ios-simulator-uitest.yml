@@ -218,6 +218,32 @@ jobs:
                   shot("09-guide")
                   XCTAssertTrue(textExists("Get started"), "guide tab renders")
 
+                  // On-phone reminders (local notifications): turn on, allow, read the scheduled line
+                  tapNav("Setup")
+                  let remGroup = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Daily nudge")).firstMatch
+                  _ = remGroup.waitForExistence(timeout: 10)
+                  _ = scrollUntilHittable(remGroup, 12)
+                  if remGroup.isHittable { remGroup.tap(); sleep(1) }
+                  let turnOn = app.buttons["Turn on notifications"]
+                  _ = turnOn.waitForExistence(timeout: 10)
+                  _ = scrollUntilHittable(turnOn, 10)
+                  shot("R1-reminders-before")
+                  if !turnOn.isHittable { dumpHierarchy("dump-R1-reminders") }
+                  XCTAssertTrue(turnOn.isHittable, "Turn on notifications button in the iOS shell")
+                  turnOn.tap()
+                  let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+                  let allowBtn = springboard.alerts.buttons["Allow"]
+                  let alertSeen = allowBtn.waitForExistence(timeout: 15)
+                  print("REMINDER-DIAG permissionAlert=\(alertSeen)")
+                  shot("R2-permission-alert")
+                  if alertSeen { allowBtn.tap() }
+                  let sched = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Scheduled")).firstMatch
+                  let schedOk = sched.waitForExistence(timeout: 20)
+                  print("REMINDER-DIAG scheduledLabel=\(schedOk ? sched.label : "none")")
+                  shot("R3-reminders-on")
+                  if !schedOk { dumpHierarchy("dump-R3-reminders") }
+                  XCTAssertTrue(schedOk, "reminders scheduled line appears after allowing notifications")
+
                   // Relaunch persistence: the saved character and habit must survive
                   // an app restart (local storage inside the Capacitor shell).
                   // Probe for either the gate's skip button or the Today nav button,
