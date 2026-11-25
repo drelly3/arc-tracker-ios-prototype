@@ -555,7 +555,14 @@ jobs:
                       shot("I3-files-browser")
                       let fileItem = app.staticTexts["arcimport"].exists ? app.staticTexts["arcimport"] : app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "arcimport")).firstMatch
                       print("CSV-DIAG fileVisible=\(fileItem.waitForExistence(timeout: 8))")
-                      if fileItem.exists { fileItem.tap(); sleep(3) }
+                      if fileItem.exists {
+                          let cell = app.cells.containing(NSPredicate(format: "label CONTAINS[c] %@", "arcimport")).firstMatch
+                          if cell.exists { cell.tap() } else { fileItem.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: -1.6)).tap() }
+                          sleep(3)
+                          print("CSV-DIAG afterFirstTapPickerStillOpen=\(app.buttons["Browse"].exists)")
+                          if app.buttons["Browse"].exists && fileItem.exists { fileItem.doubleTap(); sleep(3) }
+                          print("CSV-DIAG afterSecondTapPickerStillOpen=\(app.buttons["Browse"].exists)")
+                      }
                       let found = textExists("Match your habits", 10)
                       print("CSV-DIAG matchScreen=\(found)")
                       shot("I4-csv-matched")
@@ -594,6 +601,8 @@ jobs:
                       icsBtn.tap(); sleep(4)
                       let sb2 = XCUIApplication(bundleIdentifier: "com.apple.springboard")
                       print("CALENDAR-DIAG afterIcsTap appState=\(app.state.rawValue) alerts=\(app.alerts.count) sheets=\(app.sheets.count) sbAlerts=\(sb2.alerts.count)")
+                      let shareUp = app.otherElements["ActivityListView"].exists || app.navigationBars["UIActivityContentView"].exists || app.buttons["Copy"].exists || app.collectionViews.cells.count > 0
+                      print("CALENDAR-DIAG shareSheetVisible=\(shareUp)")
                       shot("C2-after-ics-tap")
                       dumpHierarchy("dump-C2")
                   }
