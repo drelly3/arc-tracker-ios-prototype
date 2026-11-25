@@ -1,0 +1,97 @@
+Application, 0x118fbbe80, pid: 14679, label: 'Arc Tracker' <App element pid: 14679>
+  Window (Main), 0x118fbb480, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4335455232.4>
+    Other, 0x118fbb700, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4383844352.6>
+      Other, 0x118fba580, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4384539904.8>
+        WebView, 0x118fbaf80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4384882688.10>
+          WebView, 0x118fbb5c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4335075328.11>
+            WebView, 0x118fbaa80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4335878144.3>
+              Other, 0x118fba300, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 12697161490460687924.9999>
+                Other, 0x118fba940, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14811, elementOrHash.elementID: 4343721280.3>
+                  Other, 0x118fbbc00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14811, elementOrHash.elementID: 4401411680.6>
+                    Other, 0x118fba440, {{0.0, 0.0}, {390.0, 1713.0}}, label: 'Arc Tracker | Kaminari', Focused <AX element pid: 14811, elementOrHash.elementID: 4401411648.7>
+                      Other, 0x118fbbac0, {{0.0, 0.0}, {390.0, 1713.0}}, label: 'main', Focused <AX element pid: 14811, elementOrHash.elementID: 4401411840.8>
+                        Other, 0x118fba800, {{16.0, 0.0}, {358.0, 113.0}}, label: 'section header', Focused <AX element pid: 14811, elementOrHash.elementID: 4401415616.27>
+                          StaticText, 0x118fbb980, {{40.0, 67.0}, {130.0, 25.0}}, label: 'ARC TRACKER', value: ARC TRACKER, Focused <AX element pid: 14811, elementOrHash.elementID: 4401418208.49>
+                          StaticText, 0x118fba080, {{260.0, 71.0}, {49.0, 17.0}}, label: 'Reactor', value: Reactor, Focused <AX element pid: 14811, elementOrHash.elementID: 4401480544.517>
+                          StaticText, 0x118fbbd40, {{316.0, 71.0}, {12.0, 17.0}}, label: '·', value:  · , Focused <AX element pid: 14811, elementOrHash.elementID: 4401480512.518>
+                          StaticText, 0x118fb1e00, {{335.0, 72.0}, {26.0, 17.0}}, label: '🔥0', value: 🔥0, Focused <AX element pid: 14811, elementOrHash.elementID: 4401480448.519>
+                        Other, 0x109db4000, {{16.0, 133.0}, {358.0, 26.0}}, label: 'Setup', value: 2, Focused <AX element pid: 14811, elementOrHash.elementID: 4401485024.488>
+                          StaticText, 0x109db4140, {{16.0, 133.0}, {58.0, 26.0}}, label: 'Setup', value: Setup, Focused <AX element pid: 14811, elementOrHash.elementID: 4401480032.520>
+                        Other, 0x109db4280, {{35.0, 182.0}, {320.0, 17.0}}, label: 'Your name', Focused <AX element pid: 14811, elementOrHash.elementID: 4401483936.489>
+                          StaticText, 0x109db43c0, {{35.0, 182.0}, {65.0, 17.0}}, label: 'Your name', value: Your name, Focused <AX element pid: 14811, elementOrHash.elementID: 4401479744.521>
+                        TextField, 0x109db4500, {{35.0, 204.0}, {320.0, 42.0}}, label: 'Your name', placeholderValue: 'Who’s running this arc?', value: Native CI Test, Focused <AX element pid: 14811, elementOrHash.elementID: 4401489408.490>
+                        Other, 0x109db4640, {{16.0, 298.0}, {358.0, 21.0}}, label: 'Your habits', value: 2, Focused <AX element pid: 14811, elementOrHash.elementID: 4401492160.491>
+                          StaticText, 0x109db4780, {{16.0, 298.0}, {88.0, 21.0}}, label: 'Your habits', value: Your habits, Focused <AX element pid: 14811, elementOrHash.elementID: 4401491264.522>
+                        Other, 0x109db48c0, {{16.0, 323.0}, {358.0, 23.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401485376.492>
+                          Button, 0x109db4a00, {{16.0, 323.0}, {358.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?', Focused <AX element pid: 14811, elementOrHash.elementID: 4401490880.523>
+                            Button, 0x109db4b40, {{16.0, 327.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?, Focused <AX element pid: 14811, elementOrHash.elementID: 4401458816.536>
+                        Other, 0x109db4c80, {{33.0, 371.0}, {324.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', Focused <AX element pid: 14811, elementOrHash.elementID: 4401486272.493>
+                          StaticText, 0x109db4dc0, {{33.0, 371.0}, {200.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', value: NON-NEGOTIABLE · E..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401484288.524>
+                        TextField, 0x109db4f00, {{33.0, 392.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Read one page', value: Meditate for 10 mi..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401492224.494>
+                        Other, 0x109db5040, {{33.0, 454.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused <AX element pid: 14811, elementOrHash.elementID: 4401494208.495>
+                        Other, 0x109db5180, {{33.0, 541.0}, {324.0, 15.0}}, label: 'HABIT 2', Focused <AX element pid: 14811, elementOrHash.elementID: 4401484352.496>
+                          StaticText, 0x109db52c0, {{33.0, 541.0}, {52.0, 15.0}}, label: 'HABIT 2', value: HABIT 2, Focused <AX element pid: 14811, elementOrHash.elementID: 4401490144.525>
+                        TextField, 0x109db5400, {{33.0, 562.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Plan tomorrow’s top 3', value: Ex. Plan tomorrow’..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401491104.497>
+                        Other, 0x109db5540, {{33.0, 628.0}, {221.0, 39.0}}, label: 'How often', value: Every day, Focused <AX element pid: 14811, elementOrHash.elementID: 4401484256.498>
+                        Other, 0x109db5680, {{262.0, 624.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused <AX element pid: 14811, elementOrHash.elementID: 4401491520.499>
+                        Other, 0x109db57c0, {{33.0, 711.0}, {324.0, 15.0}}, label: 'HABIT 3', Focused <AX element pid: 14811, elementOrHash.elementID: 4401495040.500>
+                          StaticText, 0x109db5900, {{33.0, 711.0}, {52.0, 15.0}}, label: 'HABIT 3', value: HABIT 3, Focused <AX element pid: 14811, elementOrHash.elementID: 4401489280.526>
+                        TextField, 0x109db5a40, {{33.0, 732.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. 10 push-ups', value: Ex. 10 push-ups, Focused <AX element pid: 14811, elementOrHash.elementID: 4401482752.501>
+                        Other, 0x109db5b80, {{33.0, 798.0}, {221.0, 39.0}}, label: 'How often', value: Every day, Focused <AX element pid: 14811, elementOrHash.elementID: 4401486048.502>
+                        Other, 0x109db5cc0, {{262.0, 794.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused <AX element pid: 14811, elementOrHash.elementID: 4401483456.503>
+                        Other, 0x109db5e00, {{16.0, 133.0}, {358.0, 10.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401483360.504>
+                        Button, 0x109db5f40, {{16.0, 866.0}, {121.0, 40.0}}, label: '+ Add a habit', Focused <AX element pid: 14811, elementOrHash.elementID: 4401483328.505>
+                        Other, 0x109db6080, {{16.0, 912.0}, {358.0, 18.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401483296.506>
+                          StaticText, 0x109db61c0, {{16.0, 912.0}, {259.0, 17.0}}, label: 'Up to 6 habits besides your non-negotiable.', value: Up to 6 habits bes..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401495616.527>
+                        Other, 0x109db6300, {{16.0, 955.0}, {358.0, 21.0}}, label: 'Your weakness', value: 2, Focused <AX element pid: 14811, elementOrHash.elementID: 4401483264.507>
+                          StaticText, 0x109db6440, {{16.0, 955.0}, {115.0, 21.0}}, label: 'Your weakness', value: Your weakness, Focused <AX element pid: 14811, elementOrHash.elementID: 4401492480.528>
+                        Other, 0x109db6580, {{33.0, 995.0}, {324.0, 51.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401483200.508>
+                          StaticText, 0x109db66c0, {{33.0, 995.0}, {154.0, 17.0}}, label: 'What you’re overcoming:', value: What you’re overco..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401484128.529>
+                          StaticText, 0x109db6800, {{33.0, 995.0}, {309.0, 51.0}}, label: 'Manipulation & paralysis. Overthinks, never commits. Pick one small thing that fights it.', value:  Manipulation & pa..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401487744.530>
+                        Other, 0x109db6940, {{33.0, 1056.0}, {324.0, 23.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401483168.509>
+                          Button, 0x109db6a80, {{33.0, 1056.0}, {324.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?', Focused <AX element pid: 14811, elementOrHash.elementID: 4401485472.531>
+                            Button, 0x109db6bc0, {{33.0, 1060.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?, Focused <AX element pid: 14811, elementOrHash.elementID: 4401448864.537>
+                        TextField, 0x109db6d00, {{33.0, 1089.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Make one decision today with the info you already have, no more research', value: Ex. Make one decis..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401483136.510>
+                        Other, 0x109db6e40, {{33.0, 1151.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused <AX element pid: 14811, elementOrHash.elementID: 4401483008.511>
+                        Button, 0x109db6f80, {{16.0, 1229.0}, {188.0, 40.0}}, label: 'Save character & habits', Focused <AX element pid: 14811, elementOrHash.elementID: 4401493024.512>
+                        Other, 0x109db70c0, {{16.0, 1279.0}, {358.0, 66.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401492992.513>
+                          Button, 0x109db7200, {{17.0, 1280.0}, {356.0, 64.0}}, label: '🔔 Reminders Daily nudge, your own reminders, calendar ›', Focused <AX element pid: 14811, elementOrHash.elementID: 4401409568.532>
+                            Button, 0x109db7340, {{33.0, 1299.0}, {23.0, 26.0}}, label: '🔔', value: 🔔, Focused <AX element pid: 14811, elementOrHash.elementID: 4401447296.538>
+                            Button, 0x109db7480, {{68.0, 1294.0}, {79.0, 19.0}}, label: 'Reminders', value: Reminders, Focused <AX element pid: 14811, elementOrHash.elementID: 4401459392.539>
+                            Button, 0x109db75c0, {{68.0, 1315.0}, {244.0, 15.0}}, label: 'Daily nudge, your own reminders, calendar', value: Daily nudge, your ..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401452576.540>
+                            Button, 0x109db7700, {{348.0, 1298.0}, {9.0, 28.0}}, label: '›', Focused <AX element pid: 14811, elementOrHash.elementID: 5982470336.841>
+                        Other, 0x109db7840, {{16.0, 1355.0}, {358.0, 66.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401482944.514>
+                          Button, 0x109db7980, {{17.0, 1356.0}, {356.0, 64.0}}, label: '☁️ Backup Your arc on every phone you sign in on ›', Focused <AX element pid: 14811, elementOrHash.elementID: 4401371008.533>
+                            Button, 0x109db7ac0, {{33.0, 1375.0}, {23.0, 26.0}}, label: '☁️', value: ☁️, Focused <AX element pid: 14811, elementOrHash.elementID: 4401456960.542>
+                            Button, 0x109db7c00, {{68.0, 1370.0}, {55.0, 19.0}}, label: 'Backup', value: Backup, Focused <AX element pid: 14811, elementOrHash.elementID: 4401459008.543>
+                            Button, 0x109db7d40, {{68.0, 1391.0}, {222.0, 15.0}}, label: 'Your arc on every phone you sign in on', value: Your arc on every ..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401458368.544>
+                            Button, 0x109db7e80, {{348.0, 1374.0}, {9.0, 28.0}}, label: '›', Focused <AX element pid: 14811, elementOrHash.elementID: 5982485248.842>
+                        Other, 0x1190b8000, {{16.0, 1431.0}, {358.0, 66.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401483680.515>
+                          Button, 0x1190b8140, {{17.0, 1432.0}, {356.0, 64.0}}, label: '🔁 Start a new arc Change your archetype or go back to Week 1 ›', Focused <AX element pid: 14811, elementOrHash.elementID: 4401451296.534>
+                            Button, 0x1190b8280, {{33.0, 1451.0}, {23.0, 26.0}}, label: '🔁', value: 🔁, Focused <AX element pid: 14811, elementOrHash.elementID: 4401449152.546>
+                            Button, 0x1190b83c0, {{68.0, 1446.0}, {110.0, 19.0}}, label: 'Start a new arc', value: Start a new arc, Focused <AX element pid: 14811, elementOrHash.elementID: 4401449568.547>
+                            Button, 0x1190b8500, {{68.0, 1467.0}, {256.0, 15.0}}, label: 'Change your archetype or go back to Week 1', value: Change your archet..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401449184.548>
+                            Button, 0x1190b8640, {{348.0, 1450.0}, {9.0, 28.0}}, label: '›', Focused <AX element pid: 14811, elementOrHash.elementID: 5982470944.843>
+                        Other, 0x1190b8780, {{16.0, 1507.0}, {358.0, 66.0}}, Focused <AX element pid: 14811, elementOrHash.elementID: 4401493088.516>
+                          Button, 0x1190b88c0, {{17.0, 1508.0}, {356.0, 64.0}}, label: '⚙️ More Bring over past progress, erase everything ›', Focused <AX element pid: 14811, elementOrHash.elementID: 4401447552.535>
+                            Button, 0x1190b8a00, {{33.0, 1527.0}, {23.0, 26.0}}, label: '⚙️', value: ⚙️, Focused <AX element pid: 14811, elementOrHash.elementID: 4401450688.550>
+                            Button, 0x1190b8b40, {{68.0, 1522.0}, {38.0, 19.0}}, label: 'More', value: More, Focused <AX element pid: 14811, elementOrHash.elementID: 4401451680.551>
+                            Button, 0x1190b8c80, {{68.0, 1543.0}, {242.0, 15.0}}, label: 'Bring over past progress, erase everything', value: Bring over past pr..., Focused <AX element pid: 14811, elementOrHash.elementID: 4401451584.552>
+                            Button, 0x1190b8dc0, {{348.0, 1526.0}, {9.0, 28.0}}, label: '›', Focused <AX element pid: 14811, elementOrHash.elementID: 5982474432.844>
+                        Other, 0x1190b8f00, {{0.0, 755.0}, {390.0, 89.0}}, label: 'Arc Tracker, navigation', Focused <AX element pid: 14811, elementOrHash.elementID: 4401416448.45>
+                          Button, 0x1190b9040, {{6.0, 756.0}, {76.0, 54.0}}, label: 'Today', Focused <AX element pid: 14811, elementOrHash.elementID: 4401426720.78>
+                          Button, 0x1190b9180, {{81.0, 756.0}, {77.0, 54.0}}, label: 'Progress', Focused <AX element pid: 14811, elementOrHash.elementID: 4401426752.79>
+                          Button, 0x1190b92c0, {{157.0, 756.0}, {76.0, 54.0}}, label: 'Archetypes', Focused <AX element pid: 14811, elementOrHash.elementID: 4401426784.80>
+                          Button, 0x1190b9400, {{232.0, 756.0}, {77.0, 54.0}}, label: 'Setup', Focused <AX element pid: 14811, elementOrHash.elementID: 4401426816.81>
+                          Button, 0x1190b9540, {{308.0, 756.0}, {77.0, 54.0}}, label: 'Start Here', Focused <AX element pid: 14811, elementOrHash.elementID: 4401426848.82>
+            Other, 0x1190b9680, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0% <AX element pid: 14679, elementOrHash.elementID: 5151099904.17>
+              Other, 0x1190b97c0, {{384.0, 50.3}, {3.0, 368.3}} <AX element pid: 14679, elementOrHash.elementID: 4383256832.19>
+            Other, 0x1190b9900, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 14679, elementOrHash.elementID: 5151099392.18>
+              Other, 0x1190b9a40, {{50.3, 838.0}, {289.3, 3.0}} <AX element pid: 14679, elementOrHash.elementID: 4383256384.20>
+            Other, 0x1190b9b80, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0% <AX element pid: 14679, elementOrHash.elementID: 5151099904.17>
+              Other, 0x1190b9cc0, {{384.0, 50.3}, {3.0, 368.3}} <AX element pid: 14679, elementOrHash.elementID: 4383256832.19>
+            Other, 0x1190b9e00, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 14679, elementOrHash.elementID: 5151099392.18>
+              Other, 0x1190b9f40, {{50.3, 838.0}, {289.3, 3.0}} <AX element pid: 14679, elementOrHash.elementID: 4383256384.20>
+  Window, 0x1190ba080, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4386915584.5>
+    Other, 0x1190ba1c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4383820864.7>
+      Other, 0x1190ba300, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 14679, elementOrHash.elementID: 4383828032.9>

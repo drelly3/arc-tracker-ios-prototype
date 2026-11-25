@@ -1,0 +1,5 @@
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  ↪︎Find: Descendants matching type StaticText
+    ↪︎Find: Elements matching predicate 'label CONTAINS[c] "Daily nudge"'
+      ↪︎Find: First Match

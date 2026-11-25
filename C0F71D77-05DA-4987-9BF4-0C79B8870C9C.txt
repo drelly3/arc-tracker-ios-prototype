@@ -1,0 +1,109 @@
+counts staticTexts=14 buttons=31 textFields=5 any=92
+
+Optional(Attributes: Application, 0x1190b8000, pid: 14679, label: 'Arc Tracker'
+Element subtree:
+ →Application, 0x1190b8000, pid: 14679, label: 'Arc Tracker'
+    Window (Main), 0x1190b88c0, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x1190b9040, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x1190b9900, {{0.0, 0.0}, {390.0, 844.0}}
+          WebView, 0x118fb5cc0, {{0.0, 0.0}, {390.0, 844.0}}
+            WebView, 0x11764abc0, {{0.0, 0.0}, {390.0, 844.0}}
+              WebView, 0x11764aa80, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x11764b700, {{0.0, 0.0}, {390.0, 844.0}}
+                  Other, 0x1176492c0, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x11764ad00, {{0.0, -869.0}, {390.0, 844.0}}
+                      Other, 0x11764bc00, {{0.0, -869.0}, {390.0, 1713.0}}, label: 'Arc Tracker | Kaminari', Focused
+                        Other, 0x11764b840, {{0.0, -869.0}, {390.0, 1713.0}}, label: 'main', Focused
+                          Other, 0x11764af80, {{16.0, -869.0}, {358.0, 113.0}}, label: 'section header', Focused
+                            StaticText, 0x11764a800, {{40.0, -802.0}, {130.0, 25.0}}, label: 'ARC TRACKER', value: ARC TRACKER, Focused
+                            StaticText, 0x117649680, {{260.0, -798.0}, {49.0, 17.0}}, label: 'Reactor', value: Reactor, Focused
+                            StaticText, 0x11764a940, {{316.0, -798.0}, {12.0, 17.0}}, label: '·', value:  · , Focused
+                            StaticText, 0x11764bd40, {{335.0, -797.0}, {26.0, 17.0}}, label: '🔥0', value: 🔥0, Focused
+                          Other, 0x11764b480, {{16.0, -736.0}, {358.0, 26.0}}, label: 'Setup', value: 2, Focused
+                            StaticText, 0x11764a6c0, {{16.0, -736.0}, {58.0, 26.0}}, label: 'Setup', value: Setup, Focused
+                          Other, 0x11764b200, {{35.0, -687.0}, {320.0, 17.0}}, label: 'Your name', Focused
+                            StaticText, 0x11764ae40, {{35.0, -687.0}, {65.0, 17.0}}, label: 'Your name', value: Your name, Focused
+                          TextField, 0x11764b980, {{35.0, -665.0}, {320.0, 42.0}}, label: 'Your name', placeholderValue: 'Who’s running this arc?', value: Native CI Test, Focused
+                          Other, 0x11764b340, {{16.0, -571.0}, {358.0, 21.0}}, label: 'Your habits', value: 2, Focused
+                            StaticText, 0x11764be80, {{16.0, -571.0}, {88.0, 21.0}}, label: 'Your habits', value: Your habits, Focused
+                          Other, 0x11764b5c0, {{16.0, -546.0}, {358.0, 23.0}}, Focused
+                            Button, 0x11764bac0, {{16.0, -546.0}, {358.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?', Focused
+                              Button, 0x11764b0c0, {{16.0, -542.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?, Focused
+                          Other, 0x109d9c780, {{33.0, -498.0}, {324.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', Focused
+                            StaticText, 0x118f76d00, {{33.0, -498.0}, {200.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', value: NON-NEGOTIABLE · E..., Focused
+                          TextField, 0x118f76a80, {{33.0, -477.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Read one page', value: Meditate for 10 mi..., Focused
+                          Other, 0x118f775c0, {{33.0, -415.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Other, 0x118f75cc0, {{33.0, -328.0}, {324.0, 15.0}}, label: 'HABIT 2', Focused
+                            StaticText, 0x118f757c0, {{33.0, -328.0}, {52.0, 15.0}}, label: 'HABIT 2', value: HABIT 2, Focused
+                          TextField, 0x118f77840, {{33.0, -307.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Plan tomorrow’s top 3', value: Ex. Plan tomorrow’..., Focused
+                          Other, 0x118f76800, {{33.0, -241.0}, {221.0, 39.0}}, label: 'How often', value: Every day, Focused
+                          Other, 0x118f75a40, {{262.0, -245.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Other, 0x118f76440, {{33.0, -158.0}, {324.0, 15.0}}, label: 'HABIT 3', Focused
+                            StaticText, 0x118f74140, {{33.0, -158.0}, {52.0, 15.0}}, label: 'HABIT 3', value: HABIT 3, Focused
+                          TextField, 0x118f74000, {{33.0, -137.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. 10 push-ups', value: Ex. 10 push-ups, Focused
+                          Other, 0x118f76f80, {{33.0, -71.0}, {221.0, 39.0}}, label: 'How often', value: Every day, Focused
+                          Other, 0x118f75540, {{262.0, -75.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Other, 0x118f76580, {{16.0, -736.0}, {358.0, 10.0}}, Focused
+                          Button, 0x118f75680, {{16.0, -3.0}, {121.0, 40.0}}, label: '+ Add a habit', Focused
+                          Other, 0x118f77200, {{16.0, 43.0}, {358.0, 18.0}}, Focused
+                            StaticText, 0x118f74c80, {{16.0, 43.0}, {259.0, 17.0}}, label: 'Up to 6 habits besides your non-negotiable.', value: Up to 6 habits bes..., Focused
+                          Other, 0x118f74a00, {{16.0, 86.0}, {358.0, 21.0}}, label: 'Your weakness', value: 2, Focused
+                            StaticText, 0x118f75400, {{16.0, 86.0}, {115.0, 21.0}}, label: 'Your weakness', value: Your weakness, Focused
+                          Other, 0x118f77700, {{33.0, 126.0}, {324.0, 51.0}}, Focused
+                            StaticText, 0x118f74640, {{33.0, 126.0}, {154.0, 17.0}}, label: 'What you’re overcoming:', value: What you’re overco..., Focused
+                            StaticText, 0x118f74f00, {{33.0, 126.0}, {309.0, 51.0}}, label: 'Manipulation & paralysis. Overthinks, never commits. Pick one small thing that fights it.', value:  Manipulation & pa..., Focused
+                          Other, 0x118f77480, {{33.0, 187.0}, {324.0, 23.0}}, Focused
+                            Button, 0x119104a00, {{33.0, 187.0}, {324.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?', Focused
+                              Button, 0x119104780, {{33.0, 191.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?, Focused
+                          TextField, 0x1191043c0, {{33.0, 220.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Make one decision today with the info you already have, no more research', value: Ex. Make one decis..., Focused
+                          Other, 0x119104140, {{33.0, 282.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Button, 0x119104f00, {{16.0, 360.0}, {188.0, 40.0}}, label: 'Save character & habits', Focused
+                          Other, 0x1191048c0, {{16.0, 410.0}, {358.0, 66.0}}, Focused
+                            Button, 0x1190d9cc0, {{17.0, 411.0}, {356.0, 64.0}}, label: '🔔 Reminders Daily nudge, your own reminders, calendar ›', Focused
+                              Button, 0x1190d88c0, {{33.0, 430.0}, {23.0, 26.0}}, label: '🔔', value: 🔔, Focused
+                              Button, 0x1190d8a00, {{68.0, 425.0}, {79.0, 19.0}}, label: 'Reminders', value: Reminders, Focused
+                              Button, 0x1190d9f40, {{68.0, 446.0}, {244.0, 15.0}}, label: 'Daily nudge, your own reminders, calendar', value: Daily nudge, your ..., Focused
+                              Button, 0x1190d9040, {{348.0, 429.0}, {9.0, 28.0}}, label: '›', Focused
+                          Other, 0x1190d8280, {{16.0, 486.0}, {358.0, 66.0}}, Focused
+                            Button, 0x1190daf80, {{17.0, 487.0}, {356.0, 64.0}}, label: '☁️ Backup Your arc on every phone you sign in on ›', Focused
+                              Button, 0x1190dbe80, {{33.0, 506.0}, {23.0, 26.0}}, label: '☁️', value: ☁️, Focused
+                              Button, 0x1190da300, {{68.0, 501.0}, {55.0, 19.0}}, label: 'Backup', value: Backup, Focused
+                              Button, 0x1190d8f00, {{68.0, 522.0}, {222.0, 15.0}}, label: 'Your arc on every phone you sign in on', value: Your arc on every ..., Focused
+                              Button, 0x1190daa80, {{348.0, 505.0}, {9.0, 28.0}}, label: '›', Focused
+                          Other, 0x1190d8000, {{16.0, 562.0}, {358.0, 66.0}}, Focused
+                            Button, 0x1190db340, {{17.0, 563.0}, {356.0, 64.0}}, label: '🔁 Start a new arc Change your archetype or go back to Week 1 ›', Focused
+                              Button, 0x1190d8140, {{33.0, 582.0}, {23.0, 26.0}}, label: '🔁', value: 🔁, Focused
+                              Button, 0x1190d8b40, {{68.0, 577.0}, {110.0, 19.0}}, label: 'Start a new arc', value: Start a new arc, Focused
+                              Button, 0x1190d9180, {{68.0, 598.0}, {256.0, 15.0}}, label: 'Change your archetype or go back to Week 1', value: Change your archet..., Focused
+                              Button, 0x1190d9680, {{348.0, 581.0}, {9.0, 28.0}}, label: '›', Focused
+                          Other, 0x1190d9e00, {{16.0, 638.0}, {358.0, 66.0}}, Focused
+                            Button, 0x1190da440, {{17.0, 639.0}, {356.0, 64.0}}, label: '⚙️ More Bring over past progress, erase everything ›', Focused
+                              Button, 0x1190dad00, {{33.0, 658.0}, {23.0, 26.0}}, label: '⚙️', value: ⚙️, Focused
+                              Button, 0x1190da800, {{68.0, 653.0}, {38.0, 19.0}}, label: 'More', value: More, Focused
+                              Button, 0x1190d8640, {{68.0, 674.0}, {242.0, 15.0}}, label: 'Bring over past progress, erase everything', value: Bring over past pr..., Focused
+                              Button, 0x1190d92c0, {{348.0, 657.0}, {9.0, 28.0}}, label: '›', Focused
+                          Other, 0x1190dbac0, {{0.0, 755.0}, {390.0, 89.0}}, label: 'Arc Tracker, navigation', Focused
+                            Button, 0x1190da6c0, {{6.0, 756.0}, {76.0, 54.0}}, label: 'Today', Focused
+                            Button, 0x1190da080, {{81.0, 756.0}, {77.0, 54.0}}, label: 'Progress', Focused
+                            Button, 0x1190d8780, {{157.0, 756.0}, {76.0, 54.0}}, label: 'Archetypes', Focused
+                            Button, 0x1190da940, {{232.0, 756.0}, {77.0, 54.0}}, label: 'Setup', Focused
+                            Button, 0x1190d8500, {{308.0, 756.0}, {77.0, 54.0}}, label: 'Start Here', Focused
+              Other, 0x1190db700, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 100%
+                Other, 0x1190d8c80, {{384.0, 427.3}, {3.0, 366.3}}
+              Other, 0x1190db5c0, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x1190da1c0, {{50.3, 838.0}, {289.3, 3.0}}
+              Other, 0x1190da580, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 100%
+                Other, 0x1190dae40, {{384.0, 427.3}, {3.0, 366.3}}
+              Other, 0x1190d9b80, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x1190d8dc0, {{50.3, 838.0}, {289.3, 3.0}}
+    Window, 0x1190db0c0, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x118fb1cc0, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x109dbc3c0, {{0.0, 0.0}, {390.0, 844.0}}
+Path to element:
+ →Application, 0x1190b8000, pid: 14679, label: 'Arc Tracker'
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  Output: {
+    Application, 0x109dbc280, pid: 14679, label: 'Arc Tracker'
+  }
+)
