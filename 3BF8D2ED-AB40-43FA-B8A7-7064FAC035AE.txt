@@ -1,0 +1,115 @@
+Application, 0x118054c80, pid: 26926, label: 'Arc Tracker' <App element pid: 26926>
+  Window (Main), 0x118054a00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4398270464.4>
+    Other, 0x11803e300, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4446873600.6>
+      Other, 0x1180535c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4447487232.8>
+        WebView, 0x1180530c0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4447895552.10>
+          WebView, 0x118050b40, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4397367296.11>
+            WebView, 0x118053c00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4398415872.3>
+              Other, 0x118053200, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 15011311862932694662.9999>
+                Other, 0x118052f80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 27057, elementOrHash.elementID: 4310537936.3>
+                  Other, 0x118052a80, {{0.0, -1466.0}, {390.0, 844.0}} <AX element pid: 27057, elementOrHash.elementID: 4366910592.4>
+                    Other, 0x118051cc0, {{0.0, -1466.0}, {390.0, 2310.0}}, label: 'Arc Tracker | Kaminari' <AX element pid: 27057, elementOrHash.elementID: 4366909952.5>
+                      Other, 0x118050140, {{0.0, -1466.0}, {390.0, 2310.0}}, label: 'main' <AX element pid: 27057, elementOrHash.elementID: 4366910880.6>
+                        Other, 0x1180503c0, {{16.0, -1466.0}, {358.0, 113.0}}, label: 'section header' <AX element pid: 27057, elementOrHash.elementID: 4366913024.7>
+                          StaticText, 0x118050000, {{40.0, -1399.0}, {130.0, 25.0}}, label: 'ARC TRACKER', value: ARC TRACKER <AX element pid: 27057, elementOrHash.elementID: 4366917184.46>
+                          StaticText, 0x118050c80, {{258.0, -1395.0}, {51.0, 17.0}}, label: 'Hopeful', value: Hopeful <AX element pid: 27057, elementOrHash.elementID: 4366917312.47>
+                          StaticText, 0x118050a00, {{316.0, -1395.0}, {12.0, 17.0}}, label: '·', value:  ·  <AX element pid: 27057, elementOrHash.elementID: 4366917344.48>
+                          StaticText, 0x118050280, {{335.0, -1394.0}, {26.0, 17.0}}, label: '🔥0', value: 🔥0 <AX element pid: 27057, elementOrHash.elementID: 4366917376.49>
+                        Other, 0x1180508c0, {{16.0, -1333.0}, {358.0, 26.0}}, label: 'Setup', value: 2 <AX element pid: 27057, elementOrHash.elementID: 4366918784.80>
+                          StaticText, 0x118050640, {{16.0, -1333.0}, {58.0, 26.0}}, label: 'Setup', value: Setup <AX element pid: 27057, elementOrHash.elementID: 4366937472.108>
+                        Other, 0x118051180, {{35.0, -1284.0}, {320.0, 17.0}}, label: 'Your name' <AX element pid: 27057, elementOrHash.elementID: 4366911968.81>
+                          StaticText, 0x118052940, {{35.0, -1284.0}, {65.0, 17.0}}, label: 'Your name', value: Your name <AX element pid: 27057, elementOrHash.elementID: 4366932288.109>
+                        TextField, 0x1180521c0, {{35.0, -1262.0}, {320.0, 42.0}}, label: 'Your name', placeholderValue: 'Who’s running this arc?', value: Native CI Test <AX element pid: 27057, elementOrHash.elementID: 4366912000.82>
+                        Other, 0x118052080, {{16.0, -1168.0}, {358.0, 21.0}}, label: 'Your habits', value: 2 <AX element pid: 27057, elementOrHash.elementID: 4366923072.83>
+                          StaticText, 0x118051e00, {{16.0, -1168.0}, {88.0, 21.0}}, label: 'Your habits', value: Your habits <AX element pid: 27057, elementOrHash.elementID: 4366940064.110>
+                        Other, 0x118052300, {{16.0, -1143.0}, {358.0, 23.0}} <AX element pid: 27057, elementOrHash.elementID: 4366919744.84>
+                          Button, 0x118051b80, {{16.0, -1143.0}, {358.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?' <AX element pid: 27057, elementOrHash.elementID: 4366935616.111>
+                            Button, 0x118051a40, {{16.0, -1139.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas? <AX element pid: 27057, elementOrHash.elementID: 4366931104.123>
+                        Other, 0x118050f00, {{33.0, -1095.0}, {324.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY' <AX element pid: 27057, elementOrHash.elementID: 4366912032.85>
+                          StaticText, 0x118051f40, {{33.0, -1095.0}, {200.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', value: NON-NEGOTIABLE · E... <AX element pid: 27057, elementOrHash.elementID: 4366922848.112>
+                        TextField, 0x118051900, {{33.0, -1074.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Read one page', value: Meditate for 10 mi... <AX element pid: 27057, elementOrHash.elementID: 4366912064.86>
+                        Other, 0x118050780, {{33.0, -1012.0}, {95.0, 47.0}}, label: 'Reminder time (optional)' <AX element pid: 27057, elementOrHash.elementID: 4366925376.87>
+                        Other, 0x1180512c0, {{33.0, -925.0}, {324.0, 15.0}}, label: 'HABIT 2' <AX element pid: 27057, elementOrHash.elementID: 4366912096.88>
+                          StaticText, 0x118051680, {{33.0, -925.0}, {52.0, 15.0}}, label: 'HABIT 2', value: HABIT 2 <AX element pid: 27057, elementOrHash.elementID: 4366910432.113>
+                        TextField, 0x118051540, {{33.0, -904.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Plan tomorrow’s top 3', value: Ex. Plan tomorrow’... <AX element pid: 27057, elementOrHash.elementID: 4366912128.89>
+                        Other, 0x118051040, {{33.0, -838.0}, {221.0, 39.0}}, label: 'How often', value: Every day <AX element pid: 27057, elementOrHash.elementID: 4366920896.90>
+                        Other, 0x1180517c0, {{262.0, -842.0}, {95.0, 47.0}}, label: 'Reminder time (optional)' <AX element pid: 27057, elementOrHash.elementID: 4366919424.91>
+                        Other, 0x118050500, {{33.0, -755.0}, {324.0, 15.0}}, label: 'HABIT 3' <AX element pid: 27057, elementOrHash.elementID: 4366912160.92>
+                          StaticText, 0x118051400, {{33.0, -755.0}, {52.0, 15.0}}, label: 'HABIT 3', value: HABIT 3 <AX element pid: 27057, elementOrHash.elementID: 4366912832.114>
+                        TextField, 0x118050dc0, {{33.0, -734.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. 10 push-ups', value: Ex. 10 push-ups <AX element pid: 27057, elementOrHash.elementID: 4366912192.93>
+                        Other, 0x118068000, {{33.0, -668.0}, {221.0, 39.0}}, label: 'How often', value: Every day <AX element pid: 27057, elementOrHash.elementID: 4366889184.94>
+                        Other, 0x118068140, {{262.0, -672.0}, {95.0, 47.0}}, label: 'Reminder time (optional)' <AX element pid: 27057, elementOrHash.elementID: 4366889088.95>
+                        Other, 0x118068280, {{16.0, -1333.0}, {359.0, 10.0}} <AX element pid: 27057, elementOrHash.elementID: 4366888992.96>
+                        Button, 0x1180683c0, {{16.0, -600.0}, {121.0, 40.0}}, label: '+ Add a habit' <AX element pid: 27057, elementOrHash.elementID: 4366888960.97>
+                        Other, 0x118068500, {{16.0, -554.0}, {358.0, 18.0}} <AX element pid: 27057, elementOrHash.elementID: 4366888928.98>
+                          StaticText, 0x118068640, {{16.0, -554.0}, {259.0, 17.0}}, label: 'Up to 6 habits besides your non-negotiable.', value: Up to 6 habits bes... <AX element pid: 27057, elementOrHash.elementID: 4366936576.115>
+                        Other, 0x118068780, {{16.0, -511.0}, {358.0, 21.0}}, label: 'Your weakness', value: 2 <AX element pid: 27057, elementOrHash.elementID: 4366888896.99>
+                          StaticText, 0x1180688c0, {{16.0, -511.0}, {115.0, 21.0}}, label: 'Your weakness', value: Your weakness <AX element pid: 27057, elementOrHash.elementID: 4366931968.116>
+                        Other, 0x118068a00, {{33.0, -471.0}, {324.0, 51.0}} <AX element pid: 27057, elementOrHash.elementID: 4366888832.100>
+                          StaticText, 0x118068b40, {{33.0, -471.0}, {154.0, 17.0}}, label: 'What you’re overcoming:', value: What you’re overco... <AX element pid: 27057, elementOrHash.elementID: 4366935168.117>
+                          StaticText, 0x118068c80, {{33.0, -471.0}, {321.0, 51.0}}, label: 'Naivety. Denies hard truths, leans on hope instead of action. Pick one small thing that fights it.', value:  Naivety. Denies h... <AX element pid: 27057, elementOrHash.elementID: 4366933984.118>
+                        Other, 0x118068dc0, {{33.0, -410.0}, {324.0, 23.0}} <AX element pid: 27057, elementOrHash.elementID: 4366888800.101>
+                          Button, 0x118068f00, {{33.0, -410.0}, {324.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?' <AX element pid: 27057, elementOrHash.elementID: 4366928992.119>
+                            Button, 0x118069040, {{33.0, -406.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas? <AX element pid: 27057, elementOrHash.elementID: 4366938912.124>
+                        TextField, 0x118069180, {{33.0, -377.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Write down one hard truth you’ve been avoiding', value: Ex. Write down one... <AX element pid: 27057, elementOrHash.elementID: 4366888768.102>
+                        Other, 0x1180692c0, {{33.0, -315.0}, {95.0, 47.0}}, label: 'Reminder time (optional)' <AX element pid: 27057, elementOrHash.elementID: 4366888640.103>
+                        Button, 0x118069400, {{16.0, -237.0}, {188.0, 40.0}}, label: 'Save character & habits' <AX element pid: 27057, elementOrHash.elementID: 4366888544.104>
+                        Other, 0x118069540, {{16.0, -187.0}, {358.0, 66.0}} <AX element pid: 27057, elementOrHash.elementID: 4366925504.105>
+                          Button, 0x118069680, {{17.0, -186.0}, {356.0, 64.0}}, label: '🔔 Reminders Daily nudge, your own reminders, calendar ›' <AX element pid: 27057, elementOrHash.elementID: 4366931008.120>
+                            Button, 0x1180697c0, {{33.0, -167.0}, {23.0, 26.0}}, label: '🔔', value: 🔔 <AX element pid: 27057, elementOrHash.elementID: 4366935776.125>
+                            Button, 0x118069900, {{68.0, -172.0}, {79.0, 19.0}}, label: 'Reminders', value: Reminders <AX element pid: 27057, elementOrHash.elementID: 4366929280.126>
+                            Button, 0x118069a40, {{68.0, -151.0}, {244.0, 15.0}}, label: 'Daily nudge, your own reminders, calendar', value: Daily nudge, your ... <AX element pid: 27057, elementOrHash.elementID: 4366930080.127>
+                            Button, 0x118069b80, {{348.0, -168.0}, {9.0, 28.0}}, label: '›' <AX element pid: 27057, elementOrHash.elementID: 4366933600.128>
+                        Other, 0x118069cc0, {{16.0, -111.0}, {358.0, 66.0}} <AX element pid: 27057, elementOrHash.elementID: 4366888512.106>
+                          Button, 0x118069e00, {{17.0, -110.0}, {356.0, 64.0}}, label: '🔁 Start a new arc Change your archetype or go back to Week 1 ›' <AX element pid: 27057, elementOrHash.elementID: 4366927776.121>
+                            Button, 0x118069f40, {{33.0, -91.0}, {23.0, 26.0}}, label: '🔁', value: 🔁 <AX element pid: 27057, elementOrHash.elementID: 4366940800.129>
+                            Button, 0x11806a080, {{68.0, -96.0}, {110.0, 19.0}}, label: 'Start a new arc', value: Start a new arc <AX element pid: 27057, elementOrHash.elementID: 4366929856.130>
+                            Button, 0x11806a1c0, {{68.0, -75.0}, {256.0, 15.0}}, label: 'Change your archetype or go back to Week 1', value: Change your archet... <AX element pid: 27057, elementOrHash.elementID: 4366934560.131>
+                            Button, 0x11806a300, {{348.0, -92.0}, {9.0, 28.0}}, label: '›' <AX element pid: 27057, elementOrHash.elementID: 4366933760.132>
+                        Other, 0x11806a440, {{16.0, -35.0}, {359.0, 739.0}} <AX element pid: 27057, elementOrHash.elementID: 4366915040.107>
+                          Button, 0x11806a580, {{17.0, -34.0}, {358.0, 64.0}}, label: '⚙️ More Bring over past progress, erase everything ›', Focused <AX element pid: 27057, elementOrHash.elementID: 4366934272.122>
+                            Button, 0x11806a6c0, {{33.0, -15.0}, {23.0, 26.0}}, label: '⚙️', value: ⚙️, Focused <AX element pid: 27057, elementOrHash.elementID: 4366942208.133>
+                            Button, 0x11806a800, {{68.0, -20.0}, {38.0, 19.0}}, label: 'More', value: More, Focused <AX element pid: 27057, elementOrHash.elementID: 4366942272.134>
+                            Button, 0x11806a940, {{68.0, 1.0}, {242.0, 15.0}}, label: 'Bring over past progress, erase everything', value: Bring over past pr..., Focused <AX element pid: 27057, elementOrHash.elementID: 4366942336.135>
+                            Button, 0x11806aa80, {{338.0, -7.0}, {29.0, 10.0}}, label: '›', Focused <AX element pid: 27057, elementOrHash.elementID: 4366942400.136>
+                          Other, 0x11806abc0, {{33.0, 51.0}, {324.0, 21.0}}, label: 'Bring over past progress', value: 2 <AX element pid: 27057, elementOrHash.elementID: 4366939840.138>
+                            StaticText, 0x11806ad00, {{33.0, 51.0}, {191.0, 21.0}}, label: 'Bring over past progress', value: Bring over past pr... <AX element pid: 27057, elementOrHash.elementID: 4366936512.150>
+                          Other, 0x11806ae40, {{33.0, 76.0}, {324.0, 54.0}} <AX element pid: 27057, elementOrHash.elementID: 4366936416.139>
+                            StaticText, 0x11806af80, {{33.0, 76.0}, {318.0, 54.0}}, label: 'Coming from another habit tracker? Don’t start from zero. Days you bring over count toward your streak, full clears and rank.', value: Coming from anothe... <AX element pid: 27057, elementOrHash.elementID: 4366934816.151>
+                          Other, 0x11806b0c0, {{52.0, 167.0}, {286.0, 34.0}}, label: 'Upload an export from your old tracker (CSV file)' <AX element pid: 27057, elementOrHash.elementID: 4366912288.140>
+                            StaticText, 0x11806b200, {{52.0, 167.0}, {268.0, 34.0}}, label: 'Upload an export from your old tracker (CSV file)', value: Upload an export f... <AX element pid: 27057, elementOrHash.elementID: 4366938656.152>
+                          Button, 0x11806b340, {{52.0, 206.0}, {286.0, 35.0}}, label: 'Upload an export from your old tracker (CSV file)', value: no file selected <AX element pid: 27057, elementOrHash.elementID: 4366912320.141>
+                          Other, 0x11806b480, {{52.0, 249.0}, {286.0, 60.0}} <AX element pid: 27057, elementOrHash.elementID: 4366935264.142>
+                            StaticText, 0x11806b5c0, {{52.0, 249.0}, {161.0, 15.0}}, label: 'Most habit trackers have an', value: Most habit tracker... <AX element pid: 27057, elementOrHash.elementID: 4366934336.153>
+                            StaticText, 0x11806b700, {{212.0, 249.0}, {40.0, 15.0}}, label: 'Export', value: Export <AX element pid: 27057, elementOrHash.elementID: 4366937824.154>
+                            StaticText, 0x11806b840, {{52.0, 249.0}, {281.0, 60.0}}, label: 'option in their settings. The file needs a date and your habits: one row per day, or one row per completed habit. You can bring over up to', value:  option in their s... <AX element pid: 27057, elementOrHash.elementID: 4366930272.155>
+                            StaticText, 0x11806b980, {{194.0, 294.0}, {52.0, 15.0}}, label: 'one year', value: one year <AX element pid: 27057, elementOrHash.elementID: 4366928032.156>
+                            StaticText, 0x11806bac0, {{245.0, 294.0}, {61.0, 15.0}}, label: 'of history.', value:  of history. <AX element pid: 27057, elementOrHash.elementID: 4366942112.157>
+                          Other, 0x11806bc00, {{52.0, 344.0}, {286.0, 17.0}}, label: 'No file? Enter the streak you’re carrying over' <AX element pid: 27057, elementOrHash.elementID: 4366912352.143>
+                            StaticText, 0x11806bd40, {{52.0, 344.0}, {270.0, 17.0}}, label: 'No file? Enter the streak you’re carrying over', value: No file? Enter the... <AX element pid: 27057, elementOrHash.elementID: 4366934656.158>
+                          TextField, 0x11806be80, {{52.0, 366.0}, {143.0, 42.0}}, label: 'No file? Enter the streak you’re carrying over', placeholderValue: 'Days in a row (up to 90)', value: Days in a row (up ... <AX element pid: 27057, elementOrHash.elementID: 4366912384.144>
+                          Button, 0x118070000, {{202.0, 367.0}, {136.0, 40.0}}, label: 'Add these days' <AX element pid: 27057, elementOrHash.elementID: 4366930240.145>
+                          Other, 0x118070140, {{52.0, 416.0}, {286.0, 30.0}} <AX element pid: 27057, elementOrHash.elementID: 4366938688.146>
+                            StaticText, 0x118070280, {{52.0, 416.0}, {276.0, 30.0}}, label: 'Adds that many days, ending yesterday, with all three habits done. Be honest with it: it’s your arc.', value: Adds that many day... <AX element pid: 27057, elementOrHash.elementID: 4366935808.159>
+                          Other, 0x1180703c0, {{33.0, 486.0}, {324.0, 21.0}}, label: 'Erase everything', value: 2 <AX element pid: 27057, elementOrHash.elementID: 4366936736.147>
+                            StaticText, 0x118070500, {{33.0, 486.0}, {131.0, 21.0}}, label: 'Erase everything', value: Erase everything <AX element pid: 27057, elementOrHash.elementID: 4366927968.160>
+                          Other, 0x118070640, {{52.0, 530.0}, {286.0, 72.0}} <AX element pid: 27057, elementOrHash.elementID: 4366926048.148>
+                            StaticText, 0x118070780, {{52.0, 530.0}, {283.0, 72.0}}, label: 'Clears your log, habits, character, quests, notes and proof on this phone. To keep your habits and just go back to Week 1, use Start a new arc instead.', value: Clears your log, h... <AX element pid: 27057, elementOrHash.elementID: 4366931936.161>
+                          Button, 0x1180708c0, {{52.0, 614.0}, {118.0, 40.0}}, label: 'Reset my arc' <AX element pid: 27057, elementOrHash.elementID: 4366941248.149>
+                        Other, 0x118070a00, {{0.0, 755.0}, {390.0, 89.0}}, label: 'Arc Tracker, navigation' <AX element pid: 27057, elementOrHash.elementID: 4366914336.45>
+                          Button, 0x118070b40, {{6.0, 756.0}, {76.0, 54.0}}, label: 'Today' <AX element pid: 27057, elementOrHash.elementID: 4366926560.75>
+                          Button, 0x118070c80, {{81.0, 756.0}, {77.0, 54.0}}, label: 'Progress' <AX element pid: 27057, elementOrHash.elementID: 4366926592.76>
+                          Button, 0x118070dc0, {{157.0, 756.0}, {76.0, 54.0}}, label: 'Archetypes' <AX element pid: 27057, elementOrHash.elementID: 4366926688.77>
+                          Button, 0x118070f00, {{232.0, 756.0}, {77.0, 54.0}}, label: 'Setup' <AX element pid: 27057, elementOrHash.elementID: 4366926720.78>
+                          Button, 0x118071040, {{308.0, 756.0}, {77.0, 54.0}}, label: 'Start Here' <AX element pid: 27057, elementOrHash.elementID: 4366926752.79>
+            Other, 0x118071180, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 100% <AX element pid: 26926, elementOrHash.elementID: 5214068224.17>
+              Other, 0x1180712c0, {{384.0, 522.0}, {3.0, 271.7}} <AX element pid: 26926, elementOrHash.elementID: 4446283392.19>
+            Other, 0x118071400, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 26926, elementOrHash.elementID: 5214062080.18>
+              Other, 0x118071540, {{50.3, 838.0}, {289.3, 3.0}} <AX element pid: 26926, elementOrHash.elementID: 4446282944.20>
+            Other, 0x118071680, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 100% <AX element pid: 26926, elementOrHash.elementID: 5214068224.17>
+              Other, 0x1180717c0, {{384.0, 522.0}, {3.0, 271.7}} <AX element pid: 26926, elementOrHash.elementID: 4446283392.19>
+            Other, 0x118071900, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 26926, elementOrHash.elementID: 5214062080.18>
+              Other, 0x118071a40, {{50.3, 838.0}, {289.3, 3.0}} <AX element pid: 26926, elementOrHash.elementID: 4446282944.20>
+  Window, 0x118071b80, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4448698368.5>
+    Other, 0x118071cc0, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4446849664.7>
+      Other, 0x118071e00, {{0.0, 0.0}, {390.0, 844.0}} <AX element pid: 26926, elementOrHash.elementID: 4446855936.9>
