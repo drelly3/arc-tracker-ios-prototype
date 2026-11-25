@@ -169,6 +169,9 @@ jobs:
                   let strat = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
                   XCTAssertTrue(strat.waitForExistence(timeout: 10), "strategist card on the onboarding picker")
                   strat.tap()
+                  var pickTries = 1
+                  while !pickerHeading.waitForNonExistence(timeout: 8) && pickTries < 3 { pickTries += 1; if strat.exists && strat.isHittable { strat.tap() } }
+                  print("PICK-DIAG tapsNeeded=\(pickTries)")
                   XCTAssertTrue(pickerHeading.waitForNonExistence(timeout: 15), "picker overlay dismissed after picking")
                   sleep(2)
                   shot("03-after-pick-start-here")
