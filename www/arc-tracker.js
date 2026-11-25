@@ -3340,7 +3340,7 @@ if(location.hash==='#quote'){
   showQuoteReveal();
 }
 // tapping an on-phone reminder opens its screen (quote reveal or weekly review)
-if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ let tries=0; const t0=Date.now(); const done=()=>kind==='quote'?!!document.querySelector('.quote-reveal'):kind==='report'?!!document.querySelector('.month-recap'):true; const go=()=>{ tries++; if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } try{ if(kind==='quote') showQuoteReveal(); else if(kind==='report') maybeShowWeekReview(true); }catch(e){} if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } if(tries<12) setTimeout(go,1000); else window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:false}; }; setTimeout(go,1200); });
+if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ let tries=0; const t0=Date.now(); const done=()=>kind==='quote'?!!document.querySelector('.quote-reveal'):kind==='report'?!!document.querySelector('.month-recap'):true; const go=()=>{ tries++; if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } try{ if(kind==='quote') showQuoteReveal(); else if(kind==='report' && !document.getElementById('celBack') && (tries===1 || tries>=5)) maybeShowWeekReview(true); }catch(e){} if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } if(tries<12) setTimeout(go,1000); else window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:false}; }; setTimeout(go,1200); });
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e)=>{
   if(e.data && e.data.arc==='quote') showQuoteReveal();
   if(e.data && e.data.arc==='review') maybeShowWeekReview(true);
