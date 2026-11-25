@@ -266,7 +266,7 @@ function applyBackup(st){
 document.addEventListener('focusout', ()=>{ if(renderWhenIdle){ setTimeout(()=>{ const a=document.activeElement; if(!(a && /^(INPUT|TEXTAREA)$/.test(a.tagName))){ renderWhenIdle=false; renderAll(); } }, 50); } });
 // leaving the app: send anything still waiting
 function flushSync(){ if(syncTimer){ clearTimeout(syncTimer); syncTimer=null; syncNow({keepalive:true}); } }
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSync(); else syncNow(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSync(); else { syncNow(); if(typeof LOCAL_REM!=='undefined' && LOCAL_REM && pushState==='on') pushSync().then(()=>refreshPushBox()).catch(()=>{}); } });
 window.addEventListener('pagehide', flushSync);
 window.addEventListener('online', ()=>syncNow());
 function setSyncStatus(st){ syncStatus = st; const el=document.getElementById('syncBox'); if(el){ el.innerHTML = syncBoxHtml(); wireSyncBox(); } }
@@ -2801,7 +2801,11 @@ async function currentSub(){
   return reg ? reg.pushManager.getSubscription() : null;
 }
 // (re)register this device with the current reminder time, time zone and today's status
+// iOS shell only (api-shim.js defines it): reminders are scheduled on the phone instead of through the server
+const LOCAL_REM = window.ArcLocalReminders && window.ArcLocalReminders.available() ? window.ArcLocalReminders : null;
 async function pushSync(){
+  if(LOCAL_REM) return LOCAL_REM.sync({time:reminder.time||'08:00', archetype:profile.archetypeKey||'', clearedToday:clearedToday(),
+    reminders: [...habitReminders(), ...myReminders.filter(r=>!r.deleted && r.on!==false).map(r=>({id:r.id, label:r.label, note:r.note, time:r.time, days:r.days}))]});
   const sub=await currentSub(); if(!sub) return {ok:false};
   const key = backendKey();
   return pushApi('subscribe',{key, endpoint:sub.endpoint, subscription:sub.toJSON(), time:reminder.time||'08:00', archetype:profile.archetypeKey||'',
@@ -2819,6 +2823,13 @@ function habitReminders(){
   }).filter(Boolean);
 }
 async function pushInit(){
+  if(LOCAL_REM){
+    const p=await LOCAL_REM.permission();
+    pushState = p==='denied' ? 'blocked' : (p==='granted' && reminder.enabled) ? 'on' : 'off';
+    refreshPushBox();
+    if(pushState==='on') pushSync().then(()=>refreshPushBox()).catch(()=>{});
+    return;
+  }
   if(!PUSH_OK){ pushState=(IS_IOS && !IS_STANDALONE)?'ios-install':'unsupported'; return refreshPushBox(); }
   if(Notification.permission==='denied'){ pushState='blocked'; return refreshPushBox(); }
   try{ const sub=await currentSub(); pushState=(sub && Notification.permission==='granted')?'on':'off'; }catch(e){ pushState='off'; }
@@ -2827,6 +2838,14 @@ async function pushInit(){
 }
 async function pushEnable(){
   pushState='busy'; pushNote=''; refreshPushBox();
+  if(LOCAL_REM){
+    const perm=await LOCAL_REM.enable();
+    if(perm!=='granted'){ pushState=perm==='denied'?'blocked':'off'; return refreshPushBox(); }
+    reminder.enabled=true; persist(LS.reminder, reminder);
+    const res=await pushSync();
+    if(!res.ok){ reminder.enabled=false; persist(LS.reminder, reminder); pushState='off'; pushNote='Couldn\u2019t turn on reminders. Try again in a moment.'; return refreshPushBox(); }
+    pushState='on'; return refreshPushBox();
+  }
   try{
     const perm=await Notification.requestPermission();
     if(perm!=='granted'){ pushState=perm==='denied'?'blocked':'off'; return refreshPushBox(); }
@@ -2847,8 +2866,9 @@ async function pushEnable(){
   refreshPushBox();
 }
 async function pushDisable(){
+  if(LOCAL_REM) await LOCAL_REM.disable();
   try{
-    const sub=await currentSub();
+    const sub=LOCAL_REM ? null : await currentSub();
     if(sub){ await pushApi('unsubscribe',{endpoint:sub.endpoint}).catch(()=>{}); await sub.unsubscribe(); }
   }catch(e){}
   pushState='off'; pushNote=''; reminder.enabled=false; persist(LS.reminder, reminder);
@@ -2873,14 +2893,17 @@ async function pushTest(){
 // tell the server when today is cleared (or un-cleared) so it knows whether to remind
 function pushReportCleared(){
   if(pushState!=='on') return;
+  if(LOCAL_REM){ pushSync().then(()=>refreshPushBox()).catch(()=>{}); return; }
   currentSub().then(s=>s && pushApi('cleared',{endpoint:s.endpoint, cleared:clearedToday()})).catch(()=>{});
 }
 function pushBoxHtml(){
   const note=pushNote?'<div class="helptext" style="margin:10px 0 0;">'+escapeHtml(pushNote)+'</div>':'';
+  if(pushState==='on' && LOCAL_REM){ const l=LOCAL_REM.last; return '<div class="proof-ok" style="margin-bottom:10px;">Reminders are on for this phone.</div>'+(l?'<div class="helptext" style="margin:0 0 10px;">Scheduled '+l.count+' reminder'+(l.count===1?'':'s')+(l.through?' through '+fmtDate(l.through):'')+'. Open Arc Tracker now and then so the next days keep getting scheduled.</div>':'')+
+    '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note; }
   if(pushState==='on') return '<div class="proof-ok" style="margin-bottom:10px;">Notifications are on for this device.</div>'+
     '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note;
   if(pushState==='busy') return '<button class="btn" disabled>Turning on\u2026</button>';
-  if(pushState==='blocked') return '<div class="banner warn" style="margin:0;"><div>Notifications are blocked for this site in your browser settings. Allow them there, then reload this page.</div></div>';
+  if(pushState==='blocked') return '<div class="banner warn" style="margin:0;"><div>'+(LOCAL_REM?'Notifications are off for Arc Tracker. Allow them in the iPhone Settings app under Notifications, then come back.':'Notifications are blocked for this site in your browser settings. Allow them there, then reload this page.')+'</div></div>';
   if(pushState==='ios-install') return '<div class="banner info" style="margin:0;"><div><b>On iPhone and iPad, add Arc Tracker to your Home Screen first.</b> Tap the Share button, choose <b>Add to Home Screen</b>, then open Arc Tracker from the new icon and turn notifications on here.</div></div>';
   if(pushState==='unsupported') return '<div class="banner warn" style="margin:0;"><div>This browser doesn\u2019t support notifications. Use the calendar option below.</div></div>';
   return '<button class="btn" id="pushOnBtn">Turn on notifications</button>'+note;
