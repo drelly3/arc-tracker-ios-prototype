@@ -509,7 +509,12 @@ jobs:
                   _ = scrollUntilHittable(addDays, 6)
                   if !addDays.isHittable { app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "No file?")).firstMatch.tap(); _ = scrollUntilHittable(addDays, 6) }
                   XCTAssertTrue(addDays.isHittable, "Add these days button")
-                  addDays.tap(); sleep(2)
+                  addDays.tap(); sleep(1)
+                  let confirmAlert = app.alerts.firstMatch
+                  let sawConfirm = confirmAlert.waitForExistence(timeout: 6)
+                  print("IMPORT-DIAG confirmDialog=\(sawConfirm) text=\(sawConfirm ? confirmAlert.label : "")")
+                  if sawConfirm { shot("I0-confirm"); let okb = confirmAlert.buttons["OK"]; if okb.exists { okb.tap() } else { confirmAlert.buttons.element(boundBy: confirmAlert.buttons.count - 1).tap() } }
+                  sleep(2)
                   let streakAfter = streakLabel()
                   app.terminate(); app.launch(); sleep(3)
                   let streakRelaunch = streakLabel()
@@ -526,7 +531,8 @@ jobs:
                   let moreC = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
                   _ = scrollUntilHittable(moreC, 8)
                   if moreC.isHittable { moreC.tap(); sleep(1) }
-                  let chooseBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Choose File")).firstMatch
+                  dumpHierarchy("dump-csv-more")
+                  let chooseBtn = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "Choose File", "no file")).firstMatch
                   _ = scrollUntilHittable(chooseBtn, 10)
                   print("CSV-DIAG chooseButton=\(chooseBtn.exists)")
                   if chooseBtn.exists && chooseBtn.isHittable {
