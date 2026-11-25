@@ -220,11 +220,15 @@ jobs:
 
                   // On-phone reminders (local notifications): turn on, allow, read the scheduled line
                   tapNav("Setup")
-                  let remGroup = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Daily nudge")).firstMatch
+                  let remGroup = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "\u{1F514} Reminders")).firstMatch
                   _ = remGroup.waitForExistence(timeout: 10)
                   _ = scrollUntilHittable(remGroup, 12)
-                  if remGroup.isHittable { remGroup.tap(); sleep(2) }
                   let turnOn = app.buttons["Turn on notifications"]
+                  for _ in 0..<3 {
+                      if turnOn.exists { break }
+                      if remGroup.isHittable { remGroup.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.5)).tap() }
+                      sleep(2)
+                  }
                   _ = turnOn.waitForExistence(timeout: 10)
                   _ = scrollUntilHittable(turnOn, 10)
                   shot("R1-reminders-before")
