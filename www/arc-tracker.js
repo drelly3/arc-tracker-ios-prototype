@@ -193,7 +193,9 @@ let editSeq = 0; // bumped on every local change, so a backup reply never overwr
 let syncStatus = 'idle', syncTimer = null, syncBusy = false, syncAgain = false, applyingSync = false, renderWhenIdle = false, syncRestored = false;
 const blankProfile = ()=>({name:'',archetypeKey:''});
 const blankHabits = ()=>({h1:{cue:'',habit:''},h2:{cue:'',habit:''},h3:{cue:'',habit:''},sc:{cue:'',habit:''}});
-function licenceKey(){ try{ return localStorage.getItem('arc_license')||''; }catch(e){ return ''; } }
+// The iOS app has no access key and no account, so nothing is sent to a backup service; progress stays on the phone.
+function isLocalOnly(){ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+function licenceKey(){ if(isLocalOnly()) return ''; try{ return localStorage.getItem('arc_license')||''; }catch(e){ return ''; } }
 // The preview "Skip the key" button stores this shared public sample key so the app opens. It must never
 // reach the backup, photo or push services, so those use backendKey(), which is empty for the sample key.
 const SAMPLE_PREVIEW_KEY = 'ARC7-K2MQ-9XTD-4HPL';
@@ -1649,7 +1651,7 @@ async function renderGallery(){
     '<img src="'+x.thumbUrl+'" alt="" loading="lazy">'+(x.rec.kind==='video'?'<span class="gal-play" aria-hidden="true">▶</span>':'')+
     '<span class="gal-date">'+fmtDate(x.date)+'</span>'+(x.extra?'<span class="gal-extra" aria-hidden="true">'+CAMERA_ICON+'</span>':'')+'</button>').join('')+'</div>';
   if(items.length>shown.length) html += '<button type="button" class="btn ghost" id="galMore" style="margin-top:10px;">Show all '+items.length+'</button>';
-  html += '<p class="card-note">Backed up with your key. Videos turn into a still after '+VIDEO_KEEP_DAYS+' days to save space, and back up as that still.</p>';
+  html += '<p class="card-note">'+(isLocalOnly()?'Saved on this phone. Videos turn into a still after '+VIDEO_KEEP_DAYS+' days to save space.':'Backed up with your key. Videos turn into a still after '+VIDEO_KEEP_DAYS+' days to save space, and back up as that still.')+'</p>';
   el.innerHTML = html;
   el.querySelectorAll('[data-gal]').forEach(b=>b.addEventListener('click',()=>openViewer(shown, +b.dataset.gal)));
   wireLookBack(el);
@@ -2185,11 +2187,13 @@ function renderSetup(){
   html += '<div class="row" style="gap:8px;"><a class="btn" id="calGoogleBtn" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add to Google Calendar</a>';
   html += '<button class="btn ghost" id="calFileBtn">Apple or Outlook (.ics file)</button></div></div>';
   html += '</div></details>';
+  if(!isLocalOnly()){
   html += group('backup','☁️','Backup','Your arc on every phone you sign in on');
   html += '<p class="section-sub" style="margin-top:4px;">Your arc is saved to your licence key. Sign in with the same key on a new phone and everything comes back: habits, log, streaks, XP, reviews and your proof photos. Videos are backed up as a still frame.</p>';
   html += '<div class="card" id="syncBox">'+syncBoxHtml()+'</div>';
 
   html += '</div></details>';
+  }
   html += group('newarc','🔁','Start a new arc','Change your archetype or go back to Week 1');
   html += '<p class="section-sub" style="margin-top:4px;">Want a clean slate, or a different archetype? Start a new arc and you\u2019re back at Week 1. Your streak, XP, rank, log, weekly reports, challenges and proof photos start over. Your name, habits, Main Quests, notes and reminders stay.</p>';
   html += '<button class="btn" id="newArcBtn">Start a new arc</button>';
@@ -2209,7 +2213,7 @@ function renderSetup(){
   html += '<div class="card" id="impBox">'+importBoxHtml()+'</div>';
 
   html += '<h2 class="section-title" style="font-size:16px;margin-top:22px;">Erase everything</h2>';
-  html += '<div class="card"><p class="section-sub" style="margin-bottom:12px;">Clears your log, habits, character, quests, notes and proof, here and in your backup. To keep your habits and just go back to Week 1, use Start a new arc instead.</p><button class="btn danger" id="resetBtn">Reset my arc</button></div>';
+  html += '<div class="card"><p class="section-sub" style="margin-bottom:12px;">Clears your log, habits, character, quests, notes and proof'+(isLocalOnly()?' on this phone':', here and in your backup')+'. To keep your habits and just go back to Week 1, use Start a new arc instead.</p><button class="btn danger" id="resetBtn">Reset my arc</button></div>';
   html += '</div></details>';
 
   el.innerHTML = html;
@@ -2390,7 +2394,7 @@ function renderSetup(){
   wireImportBox();
   document.getElementById('newArcBtn').addEventListener('click', ()=>openNewArc());
   document.getElementById('resetBtn').addEventListener('click',()=>{
-    if(!confirm('Reset your whole arc? This clears your log, habits, character and proof on this device, and your backup too, so other devices signed in with your key are reset as well. This can\u2019t be undone.')) return;
+    if(!confirm('Reset your whole arc? This clears your log, habits, character and proof on this device'+(isLocalOnly()?'':', and your backup too, so other devices signed in with your key are reset as well')+'. This can\u2019t be undone.')) return;
     if(proofDb){ proofTx('readwrite', s=>s.clear()).catch(()=>{}); }
     Object.keys(dayProof).forEach(k=>URL.revokeObjectURL(dayProof[k].url)); dayProof={}; proofError='';
     profile={name:'',archetypeKey:''}; habits={h1:{cue:'',habit:''},h2:{cue:'',habit:''},h3:{cue:'',habit:''},sc:{cue:'',habit:''}}; log=[]; weekly=[];
@@ -2883,8 +2887,9 @@ async function pushSetTime(){
   pushNote = r && r.ok !== false ? 'Set. Your daily reminder is at '+timeLabel(reminder.time||'08:00')+'.' : 'Couldn\u2019t save that right now. Try again in a moment.';
   refreshPushBox();
 }
-async function pushTest(){
-  if(LOCAL_REM){ pushNote='Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to see how a new quote opens.'; refreshPushBox(); await LOCAL_REM.test(10).catch(()=>{}); return; }
+async function pushTest(kind){
+  if(typeof kind!=='string') kind='quote';
+  if(LOCAL_REM){ pushNote=kind==='report'?'Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to open your weekly review.':'Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to see how a new quote opens.'; refreshPushBox(); await LOCAL_REM.test(10,kind).catch(()=>{}); return; }
   const sub=await currentSub(); if(!sub) return;
   pushNote='Sending\u2026'; refreshPushBox();
   const r=await pushApi('test',{endpoint:sub.endpoint}).catch(()=>({ok:false}));
@@ -2900,7 +2905,7 @@ function pushReportCleared(){
 function pushBoxHtml(){
   const note=pushNote?'<div class="helptext" style="margin:10px 0 0;">'+escapeHtml(pushNote)+'</div>':'';
   if(pushState==='on' && LOCAL_REM){ const l=LOCAL_REM.last; return '<div class="proof-ok" style="margin-bottom:10px;">Reminders are on for this phone.</div>'+(l?'<div class="helptext" style="margin:0 0 10px;">Scheduled '+l.count+' reminder'+(l.count===1?'':'s')+(l.through?' through '+fmtDate(l.through):'')+'.'+(l.capped?' That is the most iOS allows at once, so later days are added as days pass.':'')+' Open Arc Tracker now and then so the next days keep getting scheduled. iPhone settings such as Focus can delay or silence reminders.</div>':'')+
-    '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button><button class="btn ghost" id="pushTestBtn">Send a test</button></div>'+note; }
+    '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button><button class="btn ghost" id="pushTestBtn">Send a test</button></div>'+(LOCAL_REM?'<div class="row" style="gap:8px;margin-top:8px;"><button class="btn ghost" id="pushTestRevBtn">Send a test review</button></div>':'')+note; }
   if(pushState==='on') return '<div class="proof-ok" style="margin-bottom:10px;">Notifications are on for this device.</div>'+
     '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note;
   if(pushState==='busy') return '<button class="btn" disabled>Turning on\u2026</button>';
@@ -2911,7 +2916,8 @@ function pushBoxHtml(){
 }
 function wirePushBox(){
   const on=document.getElementById('pushOnBtn'), off=document.getElementById('pushOffBtn'), set=document.getElementById('pushSetBtn'), tst=document.getElementById('pushTestBtn');
-  if(tst) tst.addEventListener('click', pushTest);
+  if(tst) tst.addEventListener('click', ()=>pushTest('quote'));
+  const tstRev=document.getElementById('pushTestRevBtn'); if(tstRev) tstRev.addEventListener('click', ()=>pushTest('report'));
   if(on) on.addEventListener('click', pushEnable);
   if(off) off.addEventListener('click', pushDisable);
   if(set) set.addEventListener('click', pushSetTime);
@@ -3049,7 +3055,7 @@ function openNewArc(key, switching){
         '<button type="button" data-na="'+x.key+'" class="'+(x.key===pick?'on':'')+'" aria-pressed="'+(x.key===pick)+'" style="--hue:'+x.hue+';">'+iconSVG(x,34)+'<span>'+escapeHtml(x.title.replace(/^The /,''))+(x.key===profile.archetypeKey?'<small>current</small>':'')+'</span></button>').join('')+'</div>')+
       '<div class="na-what"><div><b>Starts over</b>Streak, XP, rank, daily log, weekly reports, challenges and proof photos</div>'+
       '<div><b>Stays</b>Your name, habits, Main Quests, notes and reminders</div></div>'+
-      '<p class="na-note">This clears your old arc on every phone signed in with your key. It can\u2019t be undone.</p>'+
+      '<p class="na-note">'+(isLocalOnly()?'This clears your old arc on this phone.':'This clears your old arc on every phone signed in with your key.')+' It can\u2019t be undone.</p>'+
       '<button class="btn na-go" id="naGo"'+(a?'':' disabled')+'>'+(a?'Start Week 1 as '+escapeHtml(a.title):'Pick an archetype')+'</button>'+
       (switching ? '<button class="btn ghost" id="naKeep">Switch and keep my progress</button>' : '')+
       '<button class="btn ghost" id="naCancel">Cancel</button>'+
@@ -3334,7 +3340,7 @@ if(location.hash==='#quote'){
   showQuoteReveal();
 }
 // tapping an on-phone reminder opens its screen (quote reveal or weekly review)
-if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ let tries=0; const go=()=>{ tries++; if(kind==='quote'){ if(document.querySelector('.quote-reveal')) return; showQuoteReveal(); if(!document.querySelector('.quote-reveal') && tries<12) setTimeout(go,1000); } else if(kind==='report') maybeShowWeekReview(true); }; setTimeout(go,1200); });
+if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ let tries=0; const t0=Date.now(); const done=()=>kind==='quote'?!!document.querySelector('.quote-reveal'):kind==='report'?!!document.querySelector('.month-recap'):true; const go=()=>{ tries++; if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } try{ if(kind==='quote') showQuoteReveal(); else if(kind==='report') maybeShowWeekReview(true); }catch(e){} if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } if(tries<12) setTimeout(go,1000); else window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:false}; }; setTimeout(go,1200); });
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e)=>{
   if(e.data && e.data.arc==='quote') showQuoteReveal();
   if(e.data && e.data.arc==='review') maybeShowWeekReview(true);
