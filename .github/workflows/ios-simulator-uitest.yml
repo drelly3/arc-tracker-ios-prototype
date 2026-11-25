@@ -543,6 +543,15 @@ jobs:
                       print("CSV-DIAG appState=\(app.state.rawValue) sheetButtons=\(app.buttons.allElementsBoundByIndex.prefix(40).map{$0.label}.joined(separator: " | "))")
                       let cf = app.buttons["Choose File"].exists ? app.buttons["Choose File"] : app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Choose File")).element(boundBy: 1)
                       if cf.exists { cf.tap(); sleep(3) }
+                      let browseTab = app.buttons["Browse"].exists ? app.buttons["Browse"] : app.tabBars.buttons["Browse"]
+                      print("CSV-DIAG browseExists=\(browseTab.exists)")
+                      if browseTab.exists { browseTab.tap(); sleep(2) }
+                      shot("I3a-browse")
+                      let onPhone = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "On My iPhone")).firstMatch
+                      print("CSV-DIAG onMyIphone=\(onPhone.waitForExistence(timeout: 6))")
+                      if onPhone.exists { onPhone.tap(); sleep(2) }
+                      print("CSV-DIAG browseLabels=\(app.staticTexts.allElementsBoundByIndex.prefix(30).map{$0.label}.joined(separator: " | "))")
+                      dumpHierarchy("dump-I3-browse")
                       shot("I3-files-browser")
                       let fileItem = app.staticTexts["arcimport"].exists ? app.staticTexts["arcimport"] : app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "arcimport")).firstMatch
                       print("CSV-DIAG fileVisible=\(fileItem.waitForExistence(timeout: 8))")
