@@ -2342,8 +2342,10 @@ function renderSetup(){
     const p=n=>String(n).padStart(2,'0');
     // no time zone on purpose: the event sits at this clock time wherever the user is
     const local=x=>x.getFullYear()+p(x.getMonth()+1)+p(x.getDate())+'T'+p(x.getHours())+p(x.getMinutes())+'00';
-    const url=location.origin+'/arc-tracker/app';
-    return {start:local(d), end:local(end), title:'Log today’s arc', details:'Check off today’s habits in Arc Tracker: '+url, url:url};
+    // In the iPhone shell the page origin is capacitor://localhost, which is not a usable link in a calendar event.
+    const inShell=!/^https?:$/.test(location.protocol);
+    const url=inShell?'':location.origin+'/arc-tracker/app';
+    return {start:local(d), end:local(end), title:'Log today’s arc', details:'Check off today’s habits in Arc Tracker'+(url?': '+url:'.'), url:url};
   }
   const calG=document.getElementById('calGoogleBtn');
   function refreshCalendarLink(){
@@ -2358,9 +2360,14 @@ function renderSetup(){
     const stamp=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
     const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Kaminari//Arc Tracker//EN','BEGIN:VEVENT',
       'UID:arc-tracker-daily-reminder@joinkaminari.com','DTSTAMP:'+stamp,'DTSTART:'+ev.start,'DTEND:'+ev.end,
-      'RRULE:FREQ=DAILY','SUMMARY:Log today’s arc','DESCRIPTION:'+ev.details.replace(/,/g,'\\,'),'URL:'+ev.url,
+      'RRULE:FREQ=DAILY','SUMMARY:Log today’s arc','DESCRIPTION:'+ev.details.replace(/,/g,'\\,'),].concat(ev.url?['URL:'+ev.url]:[]).concat([
       'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Log today’s arc','TRIGGER:PT0M','END:VALARM',
-      'END:VEVENT','END:VCALENDAR'].join('\r\n');
+      'END:VEVENT','END:VCALENDAR']).join('\r\n');
+    // iPhone shell: a browser-style download shows nothing, so offer the iOS share sheet when the web view supports file sharing.
+    try{
+      const f=new File([ics],'arc-tracker-reminder.ics',{type:'text/calendar'});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){ navigator.share({files:[f],title:'Arc Tracker daily reminder'}).catch(()=>{}); return; }
+    }catch(e){}
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
     a.download='arc-tracker-reminder.ics';
