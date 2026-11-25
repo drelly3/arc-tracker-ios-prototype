@@ -392,10 +392,33 @@ jobs:
                   XCTAssertTrue(proofKept, "proof still shown after relaunch")
                   XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
                   XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  // Clear the whole day (habits 2 and 3 are still placeholders but count as due), then read the OS queue
+                  tapNav("Today")
+                  let hab2 = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Habit 2")).firstMatch
+                  _ = scrollUntilHittable(hab2, 8)
+                  hab2.tap()
+                  sleep(1)
+                  let hab3 = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Habit 3")).firstMatch
+                  _ = scrollUntilHittable(hab3, 8)
+                  hab3.tap()
+                  sleep(3)
+                  shot("R9a-day-cleared")
+                  dumpHierarchy("dump-R9a-after-clear")
+                  if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
                   tapNav("Setup")
                   openReminders()
-                  print("REMINDER-DIAG afterClearAndRelaunch=\(remLabel())")
-                  shot("R9-reminders-after-clear-relaunch")
+                  print("REMINDER-DIAG afterDayCleared=\(remLabel())")
+                  shot("R9b-reminders-after-clear")
+                  app.terminate()
+                  app.launch()
+                  let skipC = app.buttons["Skip the key and open the tracker"]
+                  if skipC.waitForExistence(timeout: 40) { skipC.tap(); sleep(2) }
+                  let pickerC = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerC.waitForExistence(timeout: 8) { let sC = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sC.waitForExistence(timeout: 10) { sC.tap(); sleep(2) } }
+                  tapNav("Setup")
+                  openReminders()
+                  print("REMINDER-DIAG afterClearedRelaunch=\(remLabel())")
+                  shot("R10-reminders-after-clear-relaunch")
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
