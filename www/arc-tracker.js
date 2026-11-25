@@ -3334,7 +3334,7 @@ if(location.hash==='#quote'){
   showQuoteReveal();
 }
 // tapping an on-phone reminder opens its screen (quote reveal or weekly review)
-if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ setTimeout(()=>{ if(kind==='quote') showQuoteReveal(); else if(kind==='report') maybeShowWeekReview(true); }, 1200); });
+if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ let tries=0; const go=()=>{ tries++; if(kind==='quote'){ if(document.querySelector('.quote-reveal')) return; showQuoteReveal(); if(!document.querySelector('.quote-reveal') && tries<12) setTimeout(go,1000); } else if(kind==='report') maybeShowWeekReview(true); }; setTimeout(go,1200); });
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e)=>{
   if(e.data && e.data.arc==='quote') showQuoteReveal();
   if(e.data && e.data.arc==='review') maybeShowWeekReview(true);
