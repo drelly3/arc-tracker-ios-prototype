@@ -2175,7 +2175,7 @@ function renderSetup(){
   // everything past the habits folds away, so a new member sees a short page
   const group = (key, icon, title, hint)=>'<details class="set-group" data-group="'+key+'"'+(setupOpen.has(key)?' open':'')+'><summary><span class="sg-icon">'+icon+'</span><span class="sg-title">'+title+'<small>'+hint+'</small></span></summary><div class="sg-body">';
   html += group('reminders','🔔','Reminders','Daily nudge, your own reminders, calendar');
-  html += '<h2 class="section-title" style="font-size:16px;margin-top:4px;">Daily reminder</h2><p class="section-sub">Get a notification if you haven\u2019t cleared today by this time, even when Arc Tracker is closed.</p>';
+  html += '<h2 class="section-title" style="font-size:16px;margin-top:4px;">Daily reminder</h2><p class="section-sub">'+(LOCAL_REM?'Get a daily reminder at this time, even when Arc Tracker is closed.':'Get a notification if you haven\u2019t cleared today by this time, even when Arc Tracker is closed.')+'</p>';
   html += '<div class="card"><label for="r_time">Reminder time</label><input type="time" id="r_time" value="'+(reminder.time||'08:00')+'">';
   html += '<div id="pushBox">'+pushBoxHtml()+'</div></div>';
   html += '<h2 class="section-title" style="font-size:16px;margin-top:22px;">Your reminders</h2>';
@@ -2871,7 +2871,7 @@ async function pushDisable(){
     const sub=LOCAL_REM ? null : await currentSub();
     if(sub){ await pushApi('unsubscribe',{endpoint:sub.endpoint}).catch(()=>{}); await sub.unsubscribe(); }
   }catch(e){}
-  pushState='off'; pushNote=''; reminder.enabled=false; persist(LS.reminder, reminder);
+  pushState='off'; pushNote=LOCAL_REM?('Reminders are off. '+(await LOCAL_REM.pendingCount())+' still scheduled on this phone.'):''; reminder.enabled=false; persist(LS.reminder, reminder);
   refreshPushBox();
 }
 // saves the daily reminder time picked above and confirms it
@@ -2884,6 +2884,7 @@ async function pushSetTime(){
   refreshPushBox();
 }
 async function pushTest(){
+  if(LOCAL_REM){ pushNote='Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to see how a new quote opens.'; refreshPushBox(); await LOCAL_REM.test(10).catch(()=>{}); return; }
   const sub=await currentSub(); if(!sub) return;
   pushNote='Sending\u2026'; refreshPushBox();
   const r=await pushApi('test',{endpoint:sub.endpoint}).catch(()=>({ok:false}));
@@ -2898,8 +2899,8 @@ function pushReportCleared(){
 }
 function pushBoxHtml(){
   const note=pushNote?'<div class="helptext" style="margin:10px 0 0;">'+escapeHtml(pushNote)+'</div>':'';
-  if(pushState==='on' && LOCAL_REM){ const l=LOCAL_REM.last; return '<div class="proof-ok" style="margin-bottom:10px;">Reminders are on for this phone.</div>'+(l?'<div class="helptext" style="margin:0 0 10px;">Scheduled '+l.count+' reminder'+(l.count===1?'':'s')+(l.through?' through '+fmtDate(l.through):'')+'. Open Arc Tracker now and then so the next days keep getting scheduled.</div>':'')+
-    '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note; }
+  if(pushState==='on' && LOCAL_REM){ const l=LOCAL_REM.last; return '<div class="proof-ok" style="margin-bottom:10px;">Reminders are on for this phone.</div>'+(l?'<div class="helptext" style="margin:0 0 10px;">Scheduled '+l.count+' reminder'+(l.count===1?'':'s')+(l.through?' through '+fmtDate(l.through):'')+'.'+(l.capped?' That is the most iOS allows at once, so later days are added as days pass.':'')+' Open Arc Tracker now and then so the next days keep getting scheduled. iPhone settings such as Focus can delay or silence reminders.</div>':'')+
+    '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button><button class="btn ghost" id="pushTestBtn">Send a test</button></div>'+note; }
   if(pushState==='on') return '<div class="proof-ok" style="margin-bottom:10px;">Notifications are on for this device.</div>'+
     '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note;
   if(pushState==='busy') return '<button class="btn" disabled>Turning on\u2026</button>';
@@ -2909,7 +2910,8 @@ function pushBoxHtml(){
   return '<button class="btn" id="pushOnBtn">Turn on notifications</button>'+note;
 }
 function wirePushBox(){
-  const on=document.getElementById('pushOnBtn'), off=document.getElementById('pushOffBtn'), set=document.getElementById('pushSetBtn');
+  const on=document.getElementById('pushOnBtn'), off=document.getElementById('pushOffBtn'), set=document.getElementById('pushSetBtn'), tst=document.getElementById('pushTestBtn');
+  if(tst) tst.addEventListener('click', pushTest);
   if(on) on.addEventListener('click', pushEnable);
   if(off) off.addEventListener('click', pushDisable);
   if(set) set.addEventListener('click', pushSetTime);
@@ -3331,6 +3333,8 @@ if(location.hash==='#quote'){
   history.replaceState(null, '', location.pathname + location.search);
   showQuoteReveal();
 }
+// tapping an on-phone reminder opens its screen (quote reveal or weekly review)
+if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ setTimeout(()=>{ if(kind==='quote') showQuoteReveal(); else if(kind==='report') maybeShowWeekReview(true); }, 1200); });
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e)=>{
   if(e.data && e.data.arc==='quote') showQuoteReveal();
   if(e.data && e.data.arc==='review') maybeShowWeekReview(true);
