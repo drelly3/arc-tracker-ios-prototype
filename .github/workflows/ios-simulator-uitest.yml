@@ -138,12 +138,13 @@ jobs:
                   // also print to the run log as DUMP[...] lines.
                   let skip = app.buttons["Skip the key and open the tracker"]
                   var waited = 0
-                  var painted = skip.exists
+                  let pickerProbe = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  var painted = pickerProbe.exists || skip.exists
                   for mark in [10, 20, 40] {
                       while waited < mark && !painted {
                           sleep(2)
                           waited += 2
-                          painted = skip.exists
+                          painted = pickerProbe.exists || skip.exists
                       }
                       shot("00-launch-\(mark)s")
                       dumpHierarchy("dump-00-launch-\(mark)s")
@@ -153,8 +154,8 @@ jobs:
                   shot("01-gate")
 
                   // Gate -> open the tracker with the preview/sample path (native origin is not the live domain)
-                  XCTAssertTrue(skip.waitForExistence(timeout: 60), "preview skip button on the gate")
-                  skip.tap()
+                  XCTAssertFalse(skip.exists, "iOS app opens without the key gate")
+                  XCTAssertFalse(textExists("licence key", 1), "no licence key text on first screen")
 
                   // First-run onboarding (run 5 evidence + www/arc-tracker.js showFirstRun/showArchetypePicker):
                   // an auto-advancing splash, then a FULL-SCREEN archetype picker that covers the nav bar.
@@ -238,7 +239,7 @@ jobs:
                       if painted2 { break }
                   }
                   print("RELAUNCH-DIAG painted=\(painted2) waitedSeconds=\(waited2) gateShown=\(skip2.exists)")
-                  if skip2.waitForExistence(timeout: 30) {
+                  if skip2.exists {
                       skip2.tap()
                       sleep(2)
                   }
@@ -297,7 +298,7 @@ jobs:
                   app.terminate()
                   app.launch()
                   let skipP = app.buttons["Skip the key and open the tracker"]
-                  if skipP.waitForExistence(timeout: 40) { skipP.tap(); sleep(2) }
+                  if skipP.exists { skipP.tap(); sleep(2) }
                   let pickerP = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
                   if pickerP.waitForExistence(timeout: 8) { let sP = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sP.waitForExistence(timeout: 10) { sP.tap(); sleep(2) } }
                   tapNav("Today")
@@ -307,6 +308,21 @@ jobs:
                   XCTAssertTrue(proofKept, "proof still shown after relaunch")
                   XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
                   XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  // Local-first: no Backup group, no key or account wording anywhere on Setup
+                  tapNav("Setup")
+                  for _ in 0..<6 { app.swipeUp(); usleep(300000) }
+                  shot("L1-setup-bottom")
+                  XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch.exists, "no Backup group on Setup")
+                  XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch.exists, "no backup text on Setup")
+                  XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Back up now")).firstMatch.exists, "no Back up now")
+                  let moreG = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreG, 6)
+                  if moreG.isHittable { moreG.tap(); sleep(1) }
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("L2-more-group")
+                  XCTAssertTrue(textExists("Erase everything", 5), "More group present")
+                  XCTAssertFalse(textExists("in your backup", 1), "no backup claim in the reset copy")
+                  XCTAssertFalse(textExists("signed in with your key", 1), "no key claim in the reset copy")
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
