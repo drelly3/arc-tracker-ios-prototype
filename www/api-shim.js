@@ -162,7 +162,7 @@ async function clearPending(ln) {
 R.disable = async () => { const ln = LN(); if (ln) { try { await clearPending(ln); } catch {} } R.last = null; };
 // ids 9000+ are one-off tests and never counted or cleared by sync
 R.pendingCount = async () => { const ln = LN(); if (!ln) return 0; try { return ((await ln.getPending()).notifications || []).filter(n => n.id < 9000).length; } catch { return 0; } };
-R.test = async (secs) => { const ln = LN(); if (!ln) return; await ln.schedule({ notifications: [{ id: 9001, title: MESSAGES.quote.title, body: MESSAGES.quote.body, schedule: { at: new Date(Date.now() + (secs || 10) * 1000) }, extra: { kind: 'quote' } }] }); };
+R.test = async (secs, kind) => { kind = kind === 'report' ? 'report' : 'quote'; const ln = LN(); if (!ln) return; await ln.schedule({ notifications: [{ id: 9001, title: MESSAGES[kind].title, body: MESSAGES[kind].body, schedule: { at: new Date(Date.now() + (secs || 10) * 1000) }, extra: { kind } }] }); };
 R.onTap = cb => { const ln = LN(); if (ln && ln.addListener) ln.addListener('localNotificationActionPerformed', e => { const x = e && e.notification && e.notification.extra; cb(x && x.kind); }); };
 R.sync = async s => {
   const ln = LN(); if (!ln) return { ok: false, reason: 'unsupported' };
