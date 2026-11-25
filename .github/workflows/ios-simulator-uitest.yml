@@ -138,12 +138,13 @@ jobs:
                   // also print to the run log as DUMP[...] lines.
                   let skip = app.buttons["Skip the key and open the tracker"]
                   var waited = 0
-                  var painted = skip.exists
+                  let pickerProbe = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  var painted = pickerProbe.exists || skip.exists
                   for mark in [10, 20, 40] {
                       while waited < mark && !painted {
                           sleep(2)
                           waited += 2
-                          painted = skip.exists
+                          painted = pickerProbe.exists || skip.exists
                       }
                       shot("00-launch-\(mark)s")
                       dumpHierarchy("dump-00-launch-\(mark)s")
@@ -153,8 +154,8 @@ jobs:
                   shot("01-gate")
 
                   // Gate -> open the tracker with the preview/sample path (native origin is not the live domain)
-                  XCTAssertTrue(skip.waitForExistence(timeout: 60), "preview skip button on the gate")
-                  skip.tap()
+                  XCTAssertFalse(skip.exists, "iOS app opens without the key gate")
+                  XCTAssertFalse(textExists("licence key", 1), "no licence key text on first screen")
 
                   // First-run onboarding (run 5 evidence + www/arc-tracker.js showFirstRun/showArchetypePicker):
                   // an auto-advancing splash, then a FULL-SCREEN archetype picker that covers the nav bar.
@@ -269,7 +270,7 @@ jobs:
                   print("REMINDER-DIAG bannerSeenWhileAppClosed=\(bannerSeen)")
                   shot("R5-banner")
                   if bannerSeen { banner.tap() }
-                  app.activate()
+                  if !bannerSeen { app.activate() }
                   _ = app.wait(for: .runningForeground, timeout: 30)
                   let skipB = app.buttons["Skip the key and open the tracker"]
                   if skipB.waitForExistence(timeout: 40) { skipB.tap(); sleep(2) }
@@ -323,7 +324,7 @@ jobs:
                       if painted2 { break }
                   }
                   print("RELAUNCH-DIAG painted=\(painted2) waitedSeconds=\(waited2) gateShown=\(skip2.exists)")
-                  if skip2.waitForExistence(timeout: 30) {
+                  if skip2.exists {
                       skip2.tap()
                       sleep(2)
                   }
@@ -382,7 +383,7 @@ jobs:
                   app.terminate()
                   app.launch()
                   let skipP = app.buttons["Skip the key and open the tracker"]
-                  if skipP.waitForExistence(timeout: 40) { skipP.tap(); sleep(2) }
+                  if skipP.exists { skipP.tap(); sleep(2) }
                   let pickerP = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
                   if pickerP.waitForExistence(timeout: 8) { let sP = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sP.waitForExistence(timeout: 10) { sP.tap(); sleep(2) } }
                   tapNav("Today")
@@ -392,6 +393,21 @@ jobs:
                   XCTAssertTrue(proofKept, "proof still shown after relaunch")
                   XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
                   XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  // Local-first: no Backup group, no key or account wording anywhere on Setup
+                  tapNav("Setup")
+                  for _ in 0..<6 { app.swipeUp(); usleep(300000) }
+                  shot("L1-setup-bottom")
+                  XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch.exists, "no Backup group on Setup")
+                  XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch.exists, "no backup text on Setup")
+                  XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Back up now")).firstMatch.exists, "no Back up now")
+                  let moreG = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreG, 6)
+                  if moreG.isHittable { moreG.tap(); sleep(1) }
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("L2-more-group")
+                  XCTAssertTrue(textExists("Erase everything", 5), "More group present")
+                  XCTAssertFalse(textExists("in your backup", 1), "no backup claim in the reset copy")
+                  XCTAssertFalse(textExists("signed in with your key", 1), "no key claim in the reset copy")
                   // Clear the whole day (habits 2 and 3 are still placeholders but count as due), then read the OS queue
                   tapNav("Today")
                   let hab2 = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Habit 2")).firstMatch
@@ -419,6 +435,39 @@ jobs:
                   openReminders()
                   print("REMINDER-DIAG afterClearedRelaunch=\(remLabel())")
                   shot("R10-reminders-after-clear-relaunch")
+                  // Cold-start routing, no app.activate() (that could relaunch the instance the banner tap started)
+                  func coldTap(_ tag: String, _ btnLabel: String, _ bannerText: String, _ expect: String) {
+                      tapNav("Setup")
+                      openReminders()
+                      let b = app.buttons[btnLabel]
+                      _ = scrollUntilHittable(b, 8)
+                      XCTAssertTrue(b.isHittable, "\(btnLabel) button")
+                      b.tap(); sleep(2)
+                      app.terminate()
+                      XCUIDevice.shared.press(.home)
+                      let ban = springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", bannerText)).firstMatch
+                      let seen = ban.waitForExistence(timeout: 45)
+                      print("REMINDER-DIAG \(tag)BannerSeen=\(seen)")
+                      if seen { ban.tap() } else { app.activate() }
+                      _ = app.wait(for: .runningForeground, timeout: 30)
+                      let routed = textExists(expect, 30)
+                      print("REMINDER-DIAG \(tag)Routed=\(routed)")
+                      shot("R-\(tag)-from-tap")
+                      if !routed { dumpHierarchy("dump-\(tag)-no-route") }
+                      XCTAssertTrue(seen, "\(tag): banner delivered with app closed")
+                      XCTAssertTrue(routed, "\(tag): tap opens the right screen")
+                      if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
+                      if app.buttons["Later"].exists { app.buttons["Later"].tap(); sleep(1) }
+                  }
+                  coldTap("review", "Send a test review", "Your Weekly Arc Review is ready", "Reflect and adjust")
+                  coldTap("quote2", "Send a test", "Your new arc quote just dropped", "Inspired by")
+                  // Scrolled views: status-bar area must stay clear
+                  tapNav("Today")
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("S1-today-scrolled")
+                  tapNav("Setup")
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("S2-setup-scrolled")
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
@@ -611,6 +660,13 @@ jobs:
           ls -la /tmp/proof.png
           xcrun simctl addmedia "$UDID" /tmp/proof.png
 
+      - name: Start bounded network trace
+        run: |
+          date -u +%FT%TZ | tee /tmp/trace-start.txt
+          sudo nohup tcpdump -i any -nn -w /tmp/net.pcap >/tmp/tcpdump.log 2>&1 &
+          sleep 3
+          pgrep tcpdump || echo "tcpdump not running"
+
       - name: Run the XCUITest tracker flow
         run: |
           set -o pipefail
@@ -621,6 +677,18 @@ jobs:
             -resultBundlePath /tmp/arcrest.xcresult \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee /tmp/xcodebuild-test.log
         timeout-minutes: 25
+
+      - name: Stop trace and summarize
+        if: always()
+        run: |
+          sudo pkill tcpdump || true
+          sleep 2
+          date -u +%FT%TZ
+          ls -la /tmp/net.pcap || true
+          echo "NETTRACE total packets:"; sudo tcpdump -nn -r /tmp/net.pcap 2>/dev/null | wc -l
+          echo "NETTRACE DNS names asked (count name):"; sudo tcpdump -nn -r /tmp/net.pcap 'udp port 53' 2>/dev/null | grep -o ' [A-Z]*? [^ ]*' | sort | uniq -c | sort -rn | head -40
+          echo "NETTRACE loopback TCP SYNs to ports 80/443 (blocked-host attempts):"; sudo tcpdump -nn -r /tmp/net.pcap 'dst host 127.0.0.1 and (dst port 443 or dst port 80) and tcp[tcpflags] & tcp-syn != 0' 2>/dev/null | wc -l
+          echo "NETTRACE non-local TCP SYN destinations (count ip.port):"; sudo tcpdump -nn -r /tmp/net.pcap 'tcp[tcpflags] & tcp-syn != 0 and tcp[tcpflags] & tcp-ack == 0 and not dst net 127.0.0.0/8 and not dst net 10.0.0.0/8 and not dst net 192.168.0.0/16' 2>/dev/null | grep -o '> [0-9.]*\.[0-9]*:' | sort | uniq -c | sort -rn | head -30
 
       - name: Export the test screenshots
         if: always()
