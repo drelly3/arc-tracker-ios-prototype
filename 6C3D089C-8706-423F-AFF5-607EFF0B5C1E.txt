@@ -1,0 +1,35 @@
+counts staticTexts=0 buttons=0 textFields=0 any=17
+
+Optional(Attributes: Application, 0x117e28500, pid: 18958, label: 'Arc Tracker'
+Element subtree:
+ →Application, 0x117e28500, pid: 18958, label: 'Arc Tracker'
+    Window (Main), 0x117e29cc0, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x117e29e00, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x117e29f40, {{0.0, 0.0}, {390.0, 844.0}}
+          WebView, 0x117e28000, {{0.0, 0.0}, {390.0, 844.0}}
+            WebView, 0x117e28b40, {{0.0, 0.0}, {390.0, 844.0}}
+              WebView, 0x117e28c80, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x117e28a00, {{0.0, 0.0}, {390.0, 844.0}}
+                  Other, 0x117e28f00, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x117e297c0, {{0.0, 0.0}, {390.0, 844.0}}
+                      Other, 0x117e29900, {{0.0, 0.0}, {390.0, 844.0}}, label: 'Arc Tracker | Kaminari', Focused
+                        Other, 0x117e29b80, {{0.0, 0.0}, {390.0, 8.0}}, label: 'main', Focused
+              Other, 0x117e29180, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                Other, 0x117e29040, {{384.0, 792.0}, {3.0, 7.0}}
+              Other, 0x117e2a080, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 3 pages', value: 0%
+                Other, 0x117e2a1c0, {{338.3, 838.0}, {7.0, 3.0}}
+              Other, 0x117e2a300, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                Other, 0x117e2a440, {{384.0, 792.0}, {3.0, 7.0}}
+              Other, 0x117e29a40, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 3 pages', value: 0%
+                Other, 0x117e2a580, {{338.3, 838.0}, {7.0, 3.0}}
+    Window, 0x117e2a6c0, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x117e2a800, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x117e2a940, {{0.0, 0.0}, {390.0, 844.0}}
+Path to element:
+ →Application, 0x117e28500, pid: 18958, label: 'Arc Tracker'
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  Output: {
+    Application, 0x117e2aa80, pid: 18958, label: 'Arc Tracker'
+  }
+)
