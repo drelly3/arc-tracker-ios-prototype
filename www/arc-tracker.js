@@ -194,13 +194,17 @@ let syncStatus = 'idle', syncTimer = null, syncBusy = false, syncAgain = false, 
 const blankProfile = ()=>({name:'',archetypeKey:''});
 const blankHabits = ()=>({h1:{cue:'',habit:''},h2:{cue:'',habit:''},h3:{cue:'',habit:''},sc:{cue:'',habit:''}});
 function licenceKey(){ try{ return localStorage.getItem('arc_license')||''; }catch(e){ return ''; } }
+// The preview "Skip the key" button stores this shared public sample key so the app opens. It must never
+// reach the backup, photo or push services, so those use backendKey(), which is empty for the sample key.
+const SAMPLE_PREVIEW_KEY = 'ARC7-K2MQ-9XTD-4HPL';
+function backendKey(){ const k = licenceKey(); return k.trim().toUpperCase()===SAMPLE_PREVIEW_KEY ? '' : k; }
 function scheduleSync(){
   clearTimeout(syncTimer);
   syncTimer = setTimeout(()=>{ syncTimer=null; syncNow(); }, SYNC_DELAY);
 }
 async function syncNow(opts){
   opts = opts || {};
-  const key = licenceKey();
+  const key = backendKey();
   if(!key) return;
   // a different key on this device means the local arc is someone else's: start from their backup instead
   if(sync.owner && sync.owner !== key){
@@ -1388,11 +1392,11 @@ const photoUrlId = id => id.replace(':','_');
 function photoApi(path, opts){
   opts = opts || {};
   return fetch('/api/arc-photos'+path, {method:opts.method||'GET', body:opts.body,
-    headers:Object.assign({'X-Arc-Key':licenceKey()}, opts.headers||{})});
+    headers:Object.assign({'X-Arc-Key':backendKey()}, opts.headers||{})});
 }
 function goneAt(id){ const g = proofGone.find(x=>x.id===id); return g ? g.t : -1; }
 async function syncPhotos(){
-  if(!proofDb || !licenceKey()) return;
+  if(!proofDb || !backendKey()) return;
   if(photoBusy){ photoAgain = true; return; }
   photoBusy = true;
   let changedHere = false;
@@ -2799,7 +2803,7 @@ async function currentSub(){
 // (re)register this device with the current reminder time, time zone and today's status
 async function pushSync(){
   const sub=await currentSub(); if(!sub) return {ok:false};
-  let key=''; try{ key=localStorage.getItem('arc_license')||''; }catch(e){}
+  const key = backendKey();
   return pushApi('subscribe',{key, endpoint:sub.endpoint, subscription:sub.toJSON(), time:reminder.time||'08:00', archetype:profile.archetypeKey||'',
     tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC', clearedToday:clearedToday(),
     reminders: [...habitReminders(), ...myReminders.filter(r=>!r.deleted && r.on!==false).map(r=>({id:r.id, label:r.label, note:r.note, time:r.time, days:r.days}))]});
