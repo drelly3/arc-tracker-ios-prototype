@@ -1,0 +1,129 @@
+counts staticTexts=27 buttons=29 textFields=6 any=112
+
+Optional(Attributes: Application, 0x117b06800, pid: 42965, label: 'Arc Tracker'
+Element subtree:
+ →Application, 0x117b06800, pid: 42965, label: 'Arc Tracker'
+    Window (Main), 0x117b05b80, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x117b066c0, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x117b061c0, {{0.0, 0.0}, {390.0, 844.0}}
+          WebView, 0x117b05680, {{0.0, 0.0}, {390.0, 844.0}}
+            WebView, 0x117b05900, {{0.0, 0.0}, {390.0, 844.0}}
+              WebView, 0x117b05a40, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x117b05cc0, {{0.0, 0.0}, {390.0, 845.0}}
+                  Other, 0x11791a080, {{0.0, 0.0}, {390.0, 845.0}}
+                    Other, 0x117b0be80, {{0.0, -689.0}, {390.0, 845.0}}
+                      Other, 0x117b0b980, {{0.0, -689.0}, {390.0, 2311.0}}, label: 'Arc Tracker | Kaminari'
+                        Other, 0x117b08000, {{0.0, -689.0}, {390.0, 2311.0}}, label: 'main'
+                          Other, 0x117b0a940, {{16.0, -689.0}, {358.0, 114.0}}, label: 'section header'
+                            StaticText, 0x117b09400, {{40.0, -622.0}, {130.0, 26.0}}, label: 'ARC TRACKER', value: ARC TRACKER
+                            StaticText, 0x117b08140, {{259.0, -618.0}, {50.0, 18.0}}, label: 'Reactor', value: Reactor
+                            StaticText, 0x117b0a800, {{316.0, -618.0}, {12.0, 18.0}}, label: '·', value:  · 
+                            StaticText, 0x117b0aa80, {{335.0, -617.0}, {26.0, 18.0}}, label: '🔥4', value: 🔥4
+                          Other, 0x117b09e00, {{16.0, -556.0}, {358.0, 27.0}}, label: 'Setup', value: 2
+                            StaticText, 0x117b0ae40, {{16.0, -556.0}, {58.0, 27.0}}, label: 'Setup', value: Setup
+                          Other, 0x117b0ad00, {{35.0, -507.0}, {320.0, 18.0}}, label: 'Your name'
+                            StaticText, 0x117b0a1c0, {{35.0, -507.0}, {65.0, 18.0}}, label: 'Your name', value: Your name
+                          TextField, 0x117b0a300, {{35.0, -485.0}, {320.0, 43.0}}, label: 'Your name', placeholderValue: 'Who’s running this arc?', value: Native CI Test
+                          Other, 0x117b0b340, {{16.0, -391.0}, {358.0, 22.0}}, label: 'Your habits', value: 2
+                            StaticText, 0x117b0a440, {{16.0, -391.0}, {88.0, 22.0}}, label: 'Your habits', value: Your habits
+                          Other, 0x117b0a080, {{16.0, -366.0}, {358.0, 24.0}}
+                            Button, 0x117b0a6c0, {{16.0, -366.0}, {358.0, 24.0}}, label: '💡 Need ideas?, 💡 Need ideas?'
+                              Button, 0x117b09f40, {{16.0, -362.0}, {98.0, 18.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?
+                          Other, 0x117b0b200, {{33.0, -318.0}, {324.0, 16.0}}, label: 'NON-NEGOTIABLE · EVERY DAY'
+                            StaticText, 0x117b0abc0, {{33.0, -318.0}, {200.0, 16.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', value: NON-NEGOTIABLE · E...
+                          TextField, 0x117b0b5c0, {{33.0, -297.0}, {324.0, 43.0}}, label: 'I will…', placeholderValue: 'Ex. Read one page', value: Meditate for 10 mi...
+                          Other, 0x117b0b0c0, {{33.0, -235.0}, {95.0, 48.0}}, label: 'Reminder time (optional)'
+                          Other, 0x117b0b480, {{33.0, -148.0}, {324.0, 16.0}}, label: 'HABIT 2'
+                            StaticText, 0x117b0af80, {{33.0, -148.0}, {52.0, 16.0}}, label: 'HABIT 2', value: HABIT 2
+                          TextField, 0x117b08780, {{33.0, -127.0}, {324.0, 43.0}}, label: 'I will…', placeholderValue: 'Ex. Plan tomorrow’s top 3', value: Ex. Plan tomorrow’...
+                          Other, 0x117b0a580, {{33.0, -61.0}, {221.0, 40.0}}, label: 'How often', value: Every day
+                          Other, 0x117b08a00, {{262.0, -65.0}, {95.0, 48.0}}, label: 'Reminder time (optional)'
+                          Other, 0x117b08280, {{33.0, 22.0}, {324.0, 16.0}}, label: 'HABIT 3'
+                            StaticText, 0x117b088c0, {{33.0, 22.0}, {52.0, 16.0}}, label: 'HABIT 3', value: HABIT 3
+                          TextField, 0x117b08640, {{33.0, 43.0}, {324.0, 43.0}}, label: 'I will…', placeholderValue: 'Ex. 10 push-ups', value: Ex. 10 push-ups
+                          Other, 0x117b08500, {{33.0, 109.0}, {221.0, 40.0}}, label: 'How often', value: Every day
+                          Other, 0x117b0bac0, {{262.0, 105.0}, {95.0, 48.0}}, label: 'Reminder time (optional)'
+                          Other, 0x117b0b700, {{16.0, -556.0}, {359.0, 11.0}}
+                          Button, 0x117b0b840, {{16.0, 177.0}, {121.0, 41.0}}, label: '+ Add a habit'
+                          Other, 0x117b0bd40, {{16.0, 223.0}, {358.0, 19.0}}
+                            StaticText, 0x117b0bc00, {{16.0, 223.0}, {259.0, 18.0}}, label: 'Up to 6 habits besides your non-negotiable.', value: Up to 6 habits bes...
+                          Other, 0x117935180, {{16.0, 266.0}, {358.0, 22.0}}, label: 'Your weakness', value: 2
+                            StaticText, 0x117934a00, {{16.0, 266.0}, {115.0, 22.0}}, label: 'Your weakness', value: Your weakness
+                          Other, 0x1179348c0, {{33.0, 306.0}, {324.0, 52.0}}
+                            StaticText, 0x117934b40, {{33.0, 306.0}, {154.0, 18.0}}, label: 'What you’re overcoming:', value: What you’re overco...
+                            StaticText, 0x117934c80, {{33.0, 306.0}, {309.0, 52.0}}, label: 'Manipulation & paralysis. Overthinks, never commits. Pick one small thing that fights it.', value:  Manipulation & pa...
+                          Other, 0x117934dc0, {{33.0, 367.0}, {324.0, 24.0}}
+                            Button, 0x117935a40, {{33.0, 367.0}, {324.0, 24.0}}, label: '💡 Need ideas?, 💡 Need ideas?'
+                              Button, 0x117934000, {{33.0, 371.0}, {98.0, 18.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?
+                          TextField, 0x117934500, {{33.0, 400.0}, {324.0, 43.0}}, label: 'I will…', placeholderValue: 'Ex. Make one decision today with the info you already have, no more research', value: Ex. Make one decis...
+                          Other, 0x117934280, {{33.0, 462.0}, {95.0, 48.0}}, label: 'Reminder time (optional)'
+                          Button, 0x117934f00, {{16.0, 540.0}, {188.0, 41.0}}, label: 'Save character & habits'
+                          Other, 0x117936a80, {{16.0, 590.0}, {358.0, 67.0}}
+                            Button, 0x117935f40, {{17.0, 591.0}, {356.0, 65.0}}, label: '🔔 Reminders Daily nudge, your own reminders, calendar ›'
+                              Button, 0x117934140, {{33.0, 610.0}, {23.0, 27.0}}, label: '🔔', value: 🔔
+                              Button, 0x117935900, {{68.0, 605.0}, {79.0, 20.0}}, label: 'Reminders', value: Reminders
+                              Button, 0x1179352c0, {{68.0, 626.0}, {244.0, 16.0}}, label: 'Daily nudge, your own reminders, calendar', value: Daily nudge, your ...
+                              Button, 0x117935400, {{348.0, 609.0}, {9.0, 29.0}}, label: '›'
+                          Other, 0x117935cc0, {{16.0, 666.0}, {358.0, 67.0}}
+                            Button, 0x117935040, {{17.0, 667.0}, {356.0, 65.0}}, label: '🔁 Start a new arc Change your archetype or go back to Week 1 ›'
+                              Button, 0x117935540, {{33.0, 686.0}, {23.0, 27.0}}, label: '🔁', value: 🔁
+                              Button, 0x117935b80, {{68.0, 681.0}, {110.0, 20.0}}, label: 'Start a new arc', value: Start a new arc
+                              Button, 0x1179343c0, {{68.0, 702.0}, {256.0, 16.0}}, label: 'Change your archetype or go back to Week 1', value: Change your archet...
+                              Button, 0x117936080, {{348.0, 685.0}, {9.0, 29.0}}, label: '›'
+                          Other, 0x117934780, {{16.0, 742.0}, {359.0, 740.0}}
+                            Button, 0x117934640, {{17.0, 743.0}, {358.0, 65.0}}, label: '⚙️ More Bring over past progress, erase everything ›', Focused
+                              Button, 0x1179357c0, {{33.0, 762.0}, {23.0, 27.0}}, label: '⚙️', value: ⚙️, Focused
+                              Button, 0x117935e00, {{68.0, 757.0}, {38.0, 20.0}}, label: 'More', value: More, Focused
+                              Button, 0x117935680, {{68.0, 778.0}, {242.0, 16.0}}, label: 'Bring over past progress, erase everything', value: Bring over past pr..., Focused
+                              Button, 0x117906940, {{338.0, 770.0}, {29.0, 11.0}}, label: '›', Focused
+                            Other, 0x117907840, {{33.0, 828.0}, {324.0, 22.0}}, label: 'Bring over past progress', value: 2
+                              StaticText, 0x117b0f700, {{33.0, 828.0}, {191.0, 22.0}}, label: 'Bring over past progress', value: Bring over past pr...
+                            Other, 0x117b0ef80, {{33.0, 853.0}, {324.0, 55.0}}
+                              StaticText, 0x117b0d680, {{33.0, 853.0}, {318.0, 55.0}}, label: 'Coming from another habit tracker? Don’t start from zero. Days you bring over count toward your streak, full clears and rank.', value: Coming from anothe...
+                            Other, 0x117b0ebc0, {{52.0, 944.0}, {286.0, 35.0}}, label: 'Upload an export from your old tracker (CSV file)'
+                              StaticText, 0x117b0d540, {{52.0, 944.0}, {268.0, 35.0}}, label: 'Upload an export from your old tracker (CSV file)', value: Upload an export f...
+                            Button, 0x117b0f5c0, {{52.0, 983.0}, {286.0, 36.0}}, label: 'Upload an export from your old tracker (CSV file)', value: no file selected
+                            Other, 0x117ae3d40, {{52.0, 1026.0}, {286.0, 61.0}}
+                              StaticText, 0x117ae1f40, {{52.0, 1026.0}, {161.0, 16.0}}, label: 'Most habit trackers have an', value: Most habit tracker...
+                              StaticText, 0x117ae1a40, {{212.0, 1026.0}, {40.0, 16.0}}, label: 'Export', value: Export
+                              StaticText, 0x117ae1cc0, {{52.0, 1026.0}, {281.0, 61.0}}, label: 'option in their settings. The file needs a date and your habits: one row per day, or one row per completed habit. You can bring over up to', value:  option in their s...
+                              StaticText, 0x117ae3840, {{194.0, 1071.0}, {52.0, 16.0}}, label: 'one year', value: one year
+                              StaticText, 0x117ae2080, {{245.0, 1071.0}, {61.0, 16.0}}, label: 'of history.', value:  of history.
+                            Other, 0x117ae3e80, {{52.0, 1121.0}, {286.0, 18.0}}, label: 'No file? Enter the streak you’re carrying over'
+                              StaticText, 0x117ae2300, {{52.0, 1121.0}, {270.0, 18.0}}, label: 'No file? Enter the streak you’re carrying over', value: No file? Enter the...
+                            TextField, 0x117ae3340, {{52.0, 1143.0}, {143.0, 43.0}}, label: 'No file? Enter the streak you’re carrying over', placeholderValue: 'Days in a row (up to 90)', value: Days in a row (up ...
+                            Button, 0x117ae21c0, {{202.0, 1144.0}, {136.0, 41.0}}, label: 'Add these days'
+                            Other, 0x117ae2f80, {{52.0, 1193.0}, {286.0, 31.0}}
+                              StaticText, 0x117ae1b80, {{52.0, 1193.0}, {276.0, 31.0}}, label: 'Adds that many days, ending yesterday, with all three habits done. Be honest with it: it’s your arc.', value: Adds that many day...
+                            Other, 0x117ae1900, {{33.0, 1263.0}, {324.0, 22.0}}, label: 'Erase everything', value: 2
+                              StaticText, 0x117ae2440, {{33.0, 1263.0}, {131.0, 22.0}}, label: 'Erase everything', value: Erase everything
+                            Other, 0x117ae3200, {{52.0, 1307.0}, {286.0, 73.0}}
+                              StaticText, 0x117ae1680, {{52.0, 1307.0}, {283.0, 73.0}}, label: 'Clears your log, habits, character, quests, notes and proof on this phone. To keep your habits and just go back to Week 1, use Start a new arc instead.', value: Clears your log, h...
+                            Button, 0x117ae1400, {{52.0, 1391.0}, {118.0, 41.0}}, label: 'Reset my arc'
+                          Other, 0x117ae17c0, {{0.0, 755.0}, {390.0, 90.0}}, label: 'Arc Tracker, navigation'
+                            Button, 0x117ae2800, {{6.0, 756.0}, {76.0, 55.0}}, label: 'Today'
+                            Button, 0x117ae3700, {{81.0, 756.0}, {77.0, 55.0}}, label: 'Progress'
+                            Button, 0x117ae30c0, {{157.0, 756.0}, {76.0, 55.0}}, label: 'Archetypes'
+                            Button, 0x117ae3ac0, {{232.0, 756.0}, {77.0, 55.0}}, label: 'Setup'
+                            Button, 0x117ae3980, {{308.0, 756.0}, {77.0, 55.0}}, label: 'Start Here'
+                        Other, 0x117ae1e00, {{0.0, 796.0}, {390.0, 49.0}}
+                          StaticText, 0x117ae26c0, {{0.0, 797.0}, {389.0, 47.0}}, label: 'ZZNET 9 fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET', value: ZZNET 9 fetch loca...
+              Other, 0x117ae3480, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 47%
+                Other, 0x117ae2940, {{384.0, 363.0}, {3.0, 383.3}}
+              Other, 0x117ae2a80, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x117ae2d00, {{50.3, 838.0}, {289.3, 3.0}}
+              Other, 0x117ae2580, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 47%
+                Other, 0x117ae2bc0, {{384.0, 363.0}, {3.0, 383.3}}
+              Other, 0x117ae2e40, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x117ae35c0, {{50.3, 838.0}, {289.3, 3.0}}
+    Window, 0x117ae3c00, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x11793f700, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x11793f200, {{0.0, 0.0}, {390.0, 844.0}}
+Path to element:
+ →Application, 0x117b06800, pid: 42965, label: 'Arc Tracker'
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  Output: {
+    Application, 0x11793db80, pid: 42965, label: 'Arc Tracker'
+  }
+)

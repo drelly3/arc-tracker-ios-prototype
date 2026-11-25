@@ -1,0 +1,253 @@
+counts staticTexts=32 buttons=35 textFields=6 any=230
+
+Optional(Attributes: Application, 0x118888500, pid: 42965, label: 'Arc Tracker'
+Element subtree:
+ →Application, 0x118888500, pid: 42965, label: 'Arc Tracker'
+    Window (Main), 0x118883980, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x118890c80, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x118891900, {{0.0, 0.0}, {390.0, 844.0}}
+          Other, 0x118891a40, {{-390.0, -844.0}, {1170.0, 2532.0}}
+          WebView, 0x118891040, {{0.0, 0.0}, {390.0, 844.0}}
+            WebView, 0x118890f00, {{0.0, 0.0}, {390.0, 844.0}}
+              WebView, 0x1188912c0, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x118891400, {{0.0, 0.0}, {390.0, 844.0}}
+                  Other, 0x118891540, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x118891680, {{0.0, -1033.0}, {390.0, 844.0}}
+                      Other, 0x118890dc0, {{0.0, -1033.0}, {390.0, 2310.0}}, label: 'Arc Tracker | Kaminari', Focused
+                        Other, 0x118891180, {{0.0, -1033.0}, {390.0, 2310.0}}, label: 'main', Focused
+                          Other, 0x1188917c0, {{16.0, -1033.0}, {358.0, 113.0}}, label: 'section header', Focused
+                            StaticText, 0x11885c000, {{40.0, -966.0}, {130.0, 25.0}}, label: 'ARC TRACKER', value: ARC TRACKER, Focused
+                            StaticText, 0x11885c140, {{259.0, -962.0}, {50.0, 17.0}}, label: 'Reactor', value: Reactor, Focused
+                            StaticText, 0x11885c280, {{316.0, -962.0}, {12.0, 17.0}}, label: '·', value:  · , Focused
+                            StaticText, 0x11885c3c0, {{335.0, -961.0}, {26.0, 17.0}}, label: '🔥4', value: 🔥4, Focused
+                          Other, 0x11885c500, {{16.0, -900.0}, {358.0, 26.0}}, label: 'Setup', value: 2, Focused
+                            StaticText, 0x11885c640, {{16.0, -900.0}, {58.0, 26.0}}, label: 'Setup', value: Setup, Focused
+                          Other, 0x11885c780, {{35.0, -851.0}, {320.0, 17.0}}, label: 'Your name', Focused
+                            StaticText, 0x11885c8c0, {{35.0, -851.0}, {65.0, 17.0}}, label: 'Your name', value: Your name, Focused
+                          TextField, 0x11885ca00, {{35.0, -829.0}, {320.0, 42.0}}, label: 'Your name', placeholderValue: 'Who’s running this arc?', value: Native CI Test, Focused
+                          Other, 0x11885cb40, {{16.0, -735.0}, {358.0, 21.0}}, label: 'Your habits', value: 2, Focused
+                            StaticText, 0x11885cc80, {{16.0, -735.0}, {88.0, 21.0}}, label: 'Your habits', value: Your habits, Focused
+                          Other, 0x11885cdc0, {{16.0, -710.0}, {358.0, 23.0}}, Focused
+                            Button, 0x11885cf00, {{16.0, -710.0}, {358.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?', Focused
+                              Button, 0x11885d040, {{16.0, -706.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?, Focused
+                          Other, 0x11885d180, {{33.0, -662.0}, {324.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', Focused
+                            StaticText, 0x11885d2c0, {{33.0, -662.0}, {200.0, 15.0}}, label: 'NON-NEGOTIABLE · EVERY DAY', value: NON-NEGOTIABLE · E..., Focused
+                          TextField, 0x11885d400, {{33.0, -641.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Read one page', value: Meditate for 10 mi..., Focused
+                          Other, 0x11885d540, {{33.0, -579.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Other, 0x11885d680, {{33.0, -492.0}, {324.0, 15.0}}, label: 'HABIT 2', Focused
+                            StaticText, 0x11885d7c0, {{33.0, -492.0}, {52.0, 15.0}}, label: 'HABIT 2', value: HABIT 2, Focused
+                          TextField, 0x11885d900, {{33.0, -471.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Plan tomorrow’s top 3', value: Ex. Plan tomorrow’..., Focused
+                          Other, 0x11885da40, {{33.0, -405.0}, {221.0, 39.0}}, label: 'How often', value: Every day, Focused
+                          Other, 0x11885db80, {{262.0, -409.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Other, 0x11885dcc0, {{33.0, -322.0}, {324.0, 15.0}}, label: 'HABIT 3', Focused
+                            StaticText, 0x11885de00, {{33.0, -322.0}, {52.0, 15.0}}, label: 'HABIT 3', value: HABIT 3, Focused
+                          TextField, 0x11885df40, {{33.0, -301.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. 10 push-ups', value: Ex. 10 push-ups, Focused
+                          Other, 0x11885e080, {{33.0, -235.0}, {221.0, 39.0}}, label: 'How often', value: Every day, Focused
+                          Other, 0x11885e1c0, {{262.0, -239.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Other, 0x11885e300, {{16.0, -900.0}, {359.0, 10.0}}, Focused
+                          Button, 0x11885e440, {{16.0, -167.0}, {121.0, 40.0}}, label: '+ Add a habit', Focused
+                          Other, 0x11885e580, {{16.0, -121.0}, {358.0, 18.0}}, Focused
+                            StaticText, 0x11885e6c0, {{16.0, -121.0}, {259.0, 17.0}}, label: 'Up to 6 habits besides your non-negotiable.', value: Up to 6 habits bes..., Focused
+                          Other, 0x11885e800, {{16.0, -78.0}, {358.0, 21.0}}, label: 'Your weakness', value: 2, Focused
+                            StaticText, 0x11885e940, {{16.0, -78.0}, {115.0, 21.0}}, label: 'Your weakness', value: Your weakness, Focused
+                          Other, 0x11885ea80, {{33.0, -38.0}, {324.0, 51.0}}, Focused
+                            StaticText, 0x11885ebc0, {{33.0, -38.0}, {154.0, 17.0}}, label: 'What you’re overcoming:', value: What you’re overco..., Focused
+                            StaticText, 0x11885ed00, {{33.0, -38.0}, {309.0, 51.0}}, label: 'Manipulation & paralysis. Overthinks, never commits. Pick one small thing that fights it.', value:  Manipulation & pa..., Focused
+                          Other, 0x11885ee40, {{33.0, 23.0}, {324.0, 23.0}}, Focused
+                            Button, 0x11885ef80, {{33.0, 23.0}, {324.0, 23.0}}, label: '💡 Need ideas?, 💡 Need ideas?', Focused
+                              Button, 0x11885f0c0, {{33.0, 27.0}, {98.0, 17.0}}, label: '💡 Need ideas?', value: 💡 Need ideas?, Focused
+                          TextField, 0x11885f200, {{33.0, 56.0}, {324.0, 42.0}}, label: 'I will…', placeholderValue: 'Ex. Make one decision today with the info you already have, no more research', value: Ex. Make one decis..., Focused
+                          Other, 0x11885f340, {{33.0, 118.0}, {95.0, 47.0}}, label: 'Reminder time (optional)', Focused
+                          Button, 0x11885f480, {{16.0, 196.0}, {188.0, 40.0}}, label: 'Save character & habits', Focused
+                          Other, 0x11885f5c0, {{16.0, 246.0}, {358.0, 66.0}}, Focused
+                            Button, 0x11885f700, {{17.0, 247.0}, {356.0, 64.0}}, label: '🔔 Reminders Daily nudge, your own reminders, calendar ›', Focused
+                              Button, 0x11885f840, {{33.0, 266.0}, {23.0, 26.0}}, label: '🔔', value: 🔔, Focused
+                              Button, 0x11885f980, {{68.0, 261.0}, {79.0, 19.0}}, label: 'Reminders', value: Reminders, Focused
+                              Button, 0x11885fac0, {{68.0, 282.0}, {244.0, 15.0}}, label: 'Daily nudge, your own reminders, calendar', value: Daily nudge, your ..., Focused
+                              Button, 0x11885fc00, {{348.0, 265.0}, {9.0, 28.0}}, label: '›', Focused
+                          Other, 0x11885fd40, {{16.0, 322.0}, {358.0, 66.0}}, Focused
+                            Button, 0x11885fe80, {{17.0, 323.0}, {356.0, 64.0}}, label: '🔁 Start a new arc Change your archetype or go back to Week 1 ›', Focused
+                              Button, 0x118ca0000, {{33.0, 342.0}, {23.0, 26.0}}, label: '🔁', value: 🔁, Focused
+                              Button, 0x118ca0140, {{68.0, 337.0}, {110.0, 19.0}}, label: 'Start a new arc', value: Start a new arc, Focused
+                              Button, 0x118ca0280, {{68.0, 358.0}, {256.0, 15.0}}, label: 'Change your archetype or go back to Week 1', value: Change your archet..., Focused
+                              Button, 0x118ca03c0, {{348.0, 341.0}, {9.0, 28.0}}, label: '›', Focused
+                          Other, 0x118ca0500, {{16.0, 398.0}, {359.0, 739.0}}, Focused
+                            Button, 0x118ca0640, {{17.0, 399.0}, {358.0, 64.0}}, label: '⚙️ More Bring over past progress, erase everything ›', Focused
+                              Button, 0x118ca0780, {{33.0, 418.0}, {23.0, 26.0}}, label: '⚙️', value: ⚙️, Focused
+                              Button, 0x118ca08c0, {{68.0, 413.0}, {38.0, 19.0}}, label: 'More', value: More, Focused
+                              Button, 0x118ca0a00, {{68.0, 434.0}, {242.0, 15.0}}, label: 'Bring over past progress, erase everything', value: Bring over past pr..., Focused
+                              Button, 0x118ca0b40, {{338.0, 426.0}, {29.0, 10.0}}, label: '›', Focused
+                            Other, 0x118ca0c80, {{33.0, 484.0}, {324.0, 21.0}}, label: 'Bring over past progress', value: 2, Focused
+                              StaticText, 0x118ca0dc0, {{33.0, 484.0}, {191.0, 21.0}}, label: 'Bring over past progress', value: Bring over past pr..., Focused
+                            Other, 0x118ca0f00, {{33.0, 509.0}, {324.0, 54.0}}, Focused
+                              StaticText, 0x118ca1040, {{33.0, 509.0}, {318.0, 54.0}}, label: 'Coming from another habit tracker? Don’t start from zero. Days you bring over count toward your streak, full clears and rank.', value: Coming from anothe..., Focused
+                            Other, 0x118ca1180, {{52.0, 600.0}, {286.0, 34.0}}, label: 'Upload an export from your old tracker (CSV file)', Focused
+                              StaticText, 0x118ca12c0, {{52.0, 600.0}, {268.0, 34.0}}, label: 'Upload an export from your old tracker (CSV file)', value: Upload an export f..., Focused
+                            Button, 0x118ca1400, {{52.0, 639.0}, {286.0, 35.0}}, label: 'Upload an export from your old tracker (CSV file)', value: no file selected, Focused
+                            Other, 0x118ca1540, {{52.0, 682.0}, {286.0, 60.0}}, Focused
+                              StaticText, 0x118ca1680, {{52.0, 682.0}, {161.0, 15.0}}, label: 'Most habit trackers have an', value: Most habit tracker..., Focused
+                              StaticText, 0x118ca17c0, {{212.0, 682.0}, {40.0, 15.0}}, label: 'Export', value: Export, Focused
+                              StaticText, 0x118ca1900, {{52.0, 682.0}, {281.0, 60.0}}, label: 'option in their settings. The file needs a date and your habits: one row per day, or one row per completed habit. You can bring over up to', value:  option in their s..., Focused
+                              StaticText, 0x118ca1a40, {{194.0, 727.0}, {52.0, 15.0}}, label: 'one year', value: one year, Focused
+                              StaticText, 0x118ca1b80, {{245.0, 727.0}, {61.0, 15.0}}, label: 'of history.', value:  of history., Focused
+                            Other, 0x118ca1cc0, {{52.0, 777.0}, {286.0, 17.0}}, label: 'No file? Enter the streak you’re carrying over', Focused
+                              StaticText, 0x118ca1e00, {{52.0, 777.0}, {270.0, 17.0}}, label: 'No file? Enter the streak you’re carrying over', value: No file? Enter the..., Focused
+                            TextField, 0x118ca1f40, {{52.0, 799.0}, {143.0, 42.0}}, label: 'No file? Enter the streak you’re carrying over', placeholderValue: 'Days in a row (up to 90)', value: Days in a row (up ..., Focused
+                            Button, 0x118ca2080, {{202.0, 800.0}, {136.0, 40.0}}, label: 'Add these days', Focused
+                            Other, 0x118ca21c0, {{52.0, 849.0}, {286.0, 30.0}}, Focused
+                              StaticText, 0x118ca2300, {{52.0, 849.0}, {276.0, 30.0}}, label: 'Adds that many days, ending yesterday, with all three habits done. Be honest with it: it’s your arc.', value: Adds that many day..., Focused
+                            Other, 0x118ca2440, {{33.0, 919.0}, {324.0, 21.0}}, label: 'Erase everything', value: 2, Focused
+                              StaticText, 0x118ca2580, {{33.0, 919.0}, {131.0, 21.0}}, label: 'Erase everything', value: Erase everything, Focused
+                            Other, 0x118ca26c0, {{52.0, 963.0}, {286.0, 72.0}}, Focused
+                              StaticText, 0x118ca2800, {{52.0, 963.0}, {283.0, 72.0}}, label: 'Clears your log, habits, character, quests, notes and proof on this phone. To keep your habits and just go back to Week 1, use Start a new arc instead.', value: Clears your log, h..., Focused
+                            Button, 0x118ca2940, {{52.0, 1047.0}, {118.0, 40.0}}, label: 'Reset my arc', Focused
+                          Other, 0x118ca2a80, {{0.0, 755.0}, {390.0, 89.0}}, label: 'Arc Tracker, navigation', Focused
+                            Button, 0x118ca2bc0, {{6.0, 756.0}, {76.0, 54.0}}, label: 'Today', Focused
+                            Button, 0x118ca2d00, {{81.0, 756.0}, {77.0, 54.0}}, label: 'Progress', Focused
+                            Button, 0x118ca2e40, {{157.0, 756.0}, {76.0, 54.0}}, label: 'Archetypes', Focused
+                            Button, 0x118ca2f80, {{232.0, 756.0}, {77.0, 54.0}}, label: 'Setup', Focused
+                            Button, 0x118ca30c0, {{308.0, 756.0}, {77.0, 54.0}}, label: 'Start Here', Focused
+                        Other, 0x118ca3200, {{0.0, 796.0}, {390.0, 48.0}}, Focused
+                          StaticText, 0x118ca3340, {{0.0, 797.0}, {389.0, 46.0}}, label: 'ZZNET 9 fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET ;; fetch localhost/zz-positive-control GET', value: ZZNET 9 fetch loca..., Focused
+              Other, 0x118ca3480, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 70%
+                Other, 0x118ca35c0, {{384.0, 382.7}, {3.0, 271.7}}
+              Other, 0x118ca3700, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x118ca3840, {{50.3, 838.0}, {289.3, 3.0}}
+              Other, 0x118ca3980, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 70%
+                Other, 0x118ca3ac0, {{384.0, 382.7}, {3.0, 271.7}}
+              Other, 0x118ca3c00, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                Other, 0x118ca3d40, {{50.3, 838.0}, {289.3, 3.0}}
+      Other, 0x118ca3e80, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x1188a4000, {{-390.0, -844.0}, {1170.0, 2532.0}}
+        Other, 0x1188a4140, {{0.0, 0.0}, {390.0, 844.0}}
+          Other, 0x1188a4280, {{0.0, 0.0}, {390.0, 844.0}}
+            Other, 0x1188a43c0, {{0.0, 0.0}, {390.0, 844.0}}
+              Other, 0x1188a4500, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x1188a4640, {{0.0, 0.0}, {390.0, 844.0}}
+                  Other, 0x1188a4780, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x1188a48c0, {{279.3, 77.0}, {36.7, 36.0}}, label: 'Cancel'
+                  Other, 0x1188a4a00, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x1188a4b40, {{0.0, 0.0}, {390.0, 844.0}}
+                      Other, 0x1188a4c80, {{0.0, 0.0}, {390.0, 844.0}}
+                        Other, 0x1188a4dc0, {{0.0, 0.0}, {390.0, 844.0}}
+                          Other, 0x1188a4f00, {{0.0, 0.0}, {390.0, 844.0}}
+                            Other, 0x1188a5040, {{0.0, 0.0}, {390.0, 844.0}}
+                              Other, 0x1188a5180, {{0.0, 57.0}, {390.0, 787.0}}
+                                Image, 0x1188a52c0, {{-150.0, -93.0}, {690.0, 1087.0}}
+                                Other, 0x1188a5400, {{0.0, 57.0}, {390.0, 787.0}}
+                                  Other, 0x1188a5540, {{0.0, 57.0}, {390.0, 787.0}}
+                                    Other, 0x1188a5680, {{0.0, 57.0}, {390.0, 787.0}}
+                                      Other, 0x1188a57c0, {{0.0, 57.0}, {390.0, 787.0}}
+                                        Other, 0x1188a5900, {{0.0, 57.0}, {390.0, 787.0}}
+                                          Other, 0x1188a5a40, {{0.0, 57.0}, {390.0, 787.0}}
+                                          Other, 0x1188a5b80, {{0.0, 57.0}, {390.0, 787.0}}
+                                            Other, 0x1188a5cc0, {{0.0, 57.0}, {390.0, 787.0}}
+                                              Other, 0x1188a5e00, {{0.0, 57.0}, {390.0, 787.0}}
+                                                Other, 0x1188a5f40, {{0.0, 57.0}, {390.0, 787.0}}, identifier: 'Browse View (Picker)'
+                                                  Other, 0x1188a6080, {{0.0, 57.0}, {390.0, 787.0}}
+                                                    Other, 0x1188a61c0, {{0.0, 57.0}, {390.0, 787.0}}
+                                                      Other, 0x1188a6300, {{0.0, 57.0}, {390.0, 787.0}}
+                                                        Other, 0x1188a6440, {{0.0, 57.0}, {390.0, 787.0}}
+                                                        Other, 0x1188a6580, {{0.0, 57.0}, {390.0, 787.0}}, identifier: 'DOC.browsingRoot Source: com.apple.FileProvider.LocalStorage, Title: On My iPhone'
+                                                          NavigationBar, 0x1188a66c0, {{0.0, 73.0}, {390.0, 114.0}}, identifier: 'FullDocumentManagerViewControllerNavigationBar'
+                                                            Button, 0x1188a6800, {{16.0, 73.0}, {44.0, 44.0}}, identifier: 'BackButton', label: 'Browse'
+                                                            StaticText, 0x1188a6940, {{140.0, 84.7}, {109.7, 20.7}}, label: 'On My iPhone'
+                                                            Button, 0x1188a6a80, {{279.3, 77.0}, {36.7, 36.0}}, label: 'Cancel'
+                                                            Button, 0x1188a6bc0, {{332.0, 77.0}, {38.0, 36.0}}, identifier: 'OverflowBarButtonItem', label: 'More'
+                                                            SearchField, 0x1188a6d00, {{16.0, 128.0}, {358.0, 44.0}}, label: 'Search', placeholderValue: 'Search'
+                                                              Image, 0x1188a6e40, {{28.0, 140.0}, {20.7, 19.3}}, identifier: 'magnifyingglass', label: 'Search'
+                                                          Other, 0x1188a6f80, {{0.0, 57.0}, {390.0, 787.0}}
+                                                            Other, 0x1188a70c0, {{0.0, 57.0}, {390.0, 787.0}}
+                                                              Other, 0x1188a7200, {{0.0, 57.0}, {390.0, 787.0}}
+                                                                Other, 0x1188a7340, {{0.0, 57.0}, {390.0, 787.0}}
+                                                                  ScrollView, 0x1188a7480, {{0.0, 57.0}, {390.0, 787.0}}
+                                                                    Other, 0x1188a75c0, {{0.0, 57.0}, {390.0, 787.0}}
+                                                                      Other, 0x1188a7700, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                      Other, 0x1188a7840, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                    Other, 0x1188a7980, {{0.0, 57.0}, {390.0, 787.0}}
+                                                                      Other, 0x1188a7ac0, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                        Image, 0x1188a7c00, {{-120.0, -118.0}, {630.0, 350.0}}, identifier: 'AdditionalDimmingOverlay'
+                                                                        Other, 0x1188a7d40, {{0.0, 57.0}, {390.0, 115.0}}
+                                                                        Other, 0x1188a7e80, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                          Other, 0x11887c000, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                        Other, 0x11887c140, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                          Other, 0x11887c280, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                        Other, 0x11887c3c0, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                          Other, 0x11887c500, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                          Other, 0x11887c640, {{0.0, 57.0}, {390.0, 179.8}}
+                                                                      Other, 0x11887c780, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                        Image, 0x11887c8c0, {{-120.0, 701.0}, {630.0, 286.0}}, identifier: 'AdditionalDimmingOverlay'
+                                                                        Other, 0x11887ca00, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                          Other, 0x11887cb40, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                        Other, 0x11887cc80, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                          Other, 0x11887cdc0, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                          Other, 0x11887cf00, {{0.0, 696.2}, {390.0, 147.8}}
+                                                                    CollectionView, 0x11887d040, {{0.0, 57.0}, {390.0, 787.0}}, identifier: 'File View', value: Icon Mode
+                                                                      Cell, 0x11887d180, {{10.0, 197.0}, {118.0, 189.7}}, identifier: 'arcimport, csv', label: 'arcimport, csv, 11:15 AM, 87 bytes'
+                                                                        Other, 0x11887d2c0, {{10.0, 197.0}, {118.0, 189.7}}
+                                                                        Other, 0x11887d400, {{10.0, 197.0}, {118.0, 189.7}}
+                                                                          Other, 0x11887d540, {{27.0, 201.0}, {84.0, 84.0}}
+                                                                            Image, 0x11887d680, {{27.0, 201.0}, {84.0, 84.0}}
+                                                                          Other, 0x11887d7c0, {{13.0, 290.0}, {112.0, 55.7}}
+                                                                            StaticText, 0x11887d900, {{13.0, 290.0}, {112.0, 20.0}}, label: 'arcimport'
+                                                                            StaticText, 0x11887da40, {{13.0, 313.0}, {112.0, 14.3}}, label: '11:15 AM'
+                                                                            StaticText, 0x11887db80, {{13.0, 331.3}, {112.0, 14.3}}, label: '87 bytes'
+                                                                      Other, 0x11887dcc0, {{0.0, 723.0}, {390.0, 38.0}}
+                                                                        Other, 0x11887de00, {{0.0, 723.0}, {390.0, 38.0}}, identifier: 'DOCItemCollectionViewFooterViewIdentifier'
+                                                                          StaticText, 0x11887df40, {{173.3, 723.0}, {43.7, 18.0}}, label: '1 item'
+                                                                      Other, 0x11887e080, {{357.0, 187.0}, {30.0, 574.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                        Other, 0x11887e1c0, {{384.0, 720.0}, {3.0, 38.0}}
+                                                                      Other, 0x11887e300, {{357.0, 187.0}, {30.0, 574.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                        Other, 0x11887e440, {{384.0, 720.0}, {3.0, 38.0}}
+                                                                    Other, 0x11887e580, {{357.0, 187.0}, {30.0, 574.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                      Other, 0x11887e6c0, {{384.0, 751.0}, {3.0, 7.0}}
+                                                                    Other, 0x11887e800, {{41.3, 728.0}, {307.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                                                      Other, 0x11887e940, {{338.3, 755.0}, {7.0, 3.0}}
+                                                                    Other, 0x11887ea80, {{357.0, 187.0}, {30.0, 574.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                      Other, 0x11887ebc0, {{384.0, 751.0}, {3.0, 7.0}}
+                                                                    Other, 0x11887ed00, {{41.3, 728.0}, {307.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                                                      Other, 0x11887ee40, {{338.3, 755.0}, {7.0, 3.0}}
+                                                          Other, 0x11887ef80, {{0.0, 57.0}, {390.0, 787.0}}
+                                                            Other, 0x11887f0c0, {{0.0, 57.0}, {390.0, 787.0}}
+                                                  Other, 0x11887f200, {{0.0, 57.0}, {390.0, 787.0}}
+                                                    Other, 0x11887f340, {{0.0, 57.0}, {390.0, 787.0}}
+                                            Other, 0x11887f480, {{0.0, 761.0}, {390.0, 83.0}}
+                                              Other, 0x11887f5c0, {{0.0, 57.0}, {390.0, 787.0}}
+                                                TabBar, 0x11887f700, {{0.0, 761.0}, {390.0, 83.0}}, identifier: 'DOC.browsingModeTabBar', label: 'Tab Bar'
+                                                  Other, 0x11887f840, {{58.0, 761.0}, {274.0, 62.0}}
+                                                    Other, 0x11887f980, {{58.0, 761.0}, {94.0, 54.0}}
+                                                    Other, 0x11887fac0, {{58.0, 761.0}, {274.0, 62.0}}
+                                                      Button, 0x11887fc00, {{62.0, 765.0}, {94.0, 54.0}}, label: 'Recents'
+                                                        Image, 0x11887fd40, {{95.0, 771.3}, {27.3, 27.3}}, identifier: 'clock.fill', label: 'clock'
+                                                      Button, 0x11887fe80, {{148.0, 765.0}, {94.0, 54.0}}, label: 'Shared'
+                                                        Image, 0x1188ac000, {{179.0, 770.3}, {35.0, 27.0}}, identifier: 'folder.fill.badge.person.crop', label: 'Shared Folder'
+                                                      Button, 0x1188ac140, {{234.0, 765.0}, {94.0, 54.0}}, label: 'Browse', Selected
+                                                        Image, 0x1188ac280, {{265.0, 772.3}, {32.0, 25.0}}, identifier: 'folder.fill', label: 'move'
+                                                    Other, 0x1188ac3c0, {{234.0, 765.0}, {94.0, 54.0}}
+                                                      Other, 0x1188ac500, {{234.0, 765.0}, {94.0, 54.0}}
+                                                        Other, 0x1188ac640, {{234.0, 765.0}, {94.0, 54.0}}
+                                                        Other, 0x1188ac780, {{234.0, 765.0}, {94.0, 54.0}}
+                                                          Other, 0x1188ac8c0, {{234.0, 765.0}, {94.0, 54.0}}
+                                                            Other, 0x1188aca00, {{234.0, 765.0}, {94.0, 54.0}}
+                                                              Other, 0x1188acb40, {{234.0, 765.0}, {94.0, 54.0}}
+                                                            Other, 0x1188acc80, {{234.0, 765.0}, {94.0, 54.0}}
+                                                          Other, 0x1188acdc0, {{234.0, 765.0}, {94.0, 54.0}}
+                                              Other, 0x1188acf00, {{0.0, 761.0}, {390.0, 83.0}}
+                                                Other, 0x1188ad040, {{0.0, 761.0}, {390.0, 83.0}}
+                                                  Other, 0x1188ad180, {{0.0, 761.0}, {390.0, 83.0}}
+                                                    Other, 0x1188ad2c0, {{0.0, 761.0}, {390.0, 83.0}}
+                                                      Other, 0x1188ad400, {{0.0, 761.0}, {390.0, 83.0}}
+                                                        Other, 0x1188ad540, {{0.0, 761.0}, {390.0, 83.0}}
+                                                    Other, 0x1188ad680, {{0.0, 761.0}, {390.0, 83.0}}
+                                                      Other, 0x1188ad7c0, {{0.0, 761.0}, {390.0, 83.0}}
+    Window, 0x1188ad900, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x1188ada40, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x1188adb80, {{0.0, 0.0}, {390.0, 844.0}}
+Path to element:
+ →Application, 0x118888500, pid: 42965, label: 'Arc Tracker'
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  Output: {
+    Application, 0x1188adcc0, pid: 42965, label: 'Arc Tracker'
+  }
+)
