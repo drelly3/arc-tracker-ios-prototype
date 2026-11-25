@@ -218,17 +218,24 @@ jobs:
                   shot("09-guide")
                   XCTAssertTrue(textExists("Get started"), "guide tab renders")
 
-                  // On-phone reminders (local notifications): turn on, allow, read the scheduled line
-                  tapNav("Setup")
-                  let remGroup = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "\u{1F514} Reminders")).firstMatch
-                  _ = remGroup.waitForExistence(timeout: 10)
-                  _ = scrollUntilHittable(remGroup, 12)
-                  let turnOn = app.buttons["Turn on notifications"]
-                  for _ in 0..<3 {
-                      if turnOn.exists { break }
-                      if remGroup.isHittable { remGroup.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.5)).tap() }
-                      sleep(2)
+                  // On-phone reminders (local notifications)
+                  func openReminders() {
+                      let g = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "\u{1F514} Reminders")).firstMatch
+                      _ = g.waitForExistence(timeout: 10)
+                      _ = scrollUntilHittable(g, 12)
+                      for _ in 0..<3 {
+                          if app.buttons["Turn on notifications"].exists || app.buttons["Turn off"].exists { break }
+                          if g.isHittable { g.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.5)).tap() }
+                          sleep(2)
+                      }
                   }
+                  func remLabel() -> String {
+                      let l = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Scheduled")).firstMatch
+                      return l.waitForExistence(timeout: 15) ? l.label : "none"
+                  }
+                  tapNav("Setup")
+                  openReminders()
+                  let turnOn = app.buttons["Turn on notifications"]
                   _ = turnOn.waitForExistence(timeout: 10)
                   _ = scrollUntilHittable(turnOn, 10)
                   shot("R1-reminders-before")
@@ -241,12 +248,60 @@ jobs:
                   print("REMINDER-DIAG permissionAlert=\(alertSeen)")
                   shot("R2-permission-alert")
                   if alertSeen { allowBtn.tap() }
-                  let sched = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Scheduled")).firstMatch
-                  let schedOk = sched.waitForExistence(timeout: 20)
-                  print("REMINDER-DIAG scheduledLabel=\(schedOk ? sched.label : "none")")
+                  let scheduledOn = remLabel()
+                  print("REMINDER-DIAG scheduledAfterOn=\(scheduledOn)")
                   shot("R3-reminders-on")
-                  if !schedOk { dumpHierarchy("dump-R3-reminders") }
-                  XCTAssertTrue(schedOk, "reminders scheduled line appears after allowing notifications")
+                  if scheduledOn == "none" { dumpHierarchy("dump-R3-reminders") }
+                  XCTAssertTrue(scheduledOn != "none", "reminders scheduled line appears after allowing notifications")
+
+                  // One-off test notification: scheduled by the app, delivered by iOS while the app is closed, tap opens the quote reveal
+                  let testBtn = app.buttons["Send a test"]
+                  _ = scrollUntilHittable(testBtn, 8)
+                  XCTAssertTrue(testBtn.isHittable, "Send a test button")
+                  testBtn.tap()
+                  sleep(2)
+                  print("REMINDER-DIAG scheduledAfterTestSent=\(remLabel())")
+                  shot("R4-test-sent")
+                  app.terminate()
+                  XCUIDevice.shared.press(.home)
+                  let banner = springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Your new arc quote just dropped")).firstMatch
+                  let bannerSeen = banner.waitForExistence(timeout: 45)
+                  print("REMINDER-DIAG bannerSeenWhileAppClosed=\(bannerSeen)")
+                  shot("R5-banner")
+                  if bannerSeen { banner.tap() }
+                  app.activate()
+                  _ = app.wait(for: .runningForeground, timeout: 30)
+                  let skipB = app.buttons["Skip the key and open the tracker"]
+                  if skipB.waitForExistence(timeout: 40) { skipB.tap(); sleep(2) }
+                  let pickerB = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerB.waitForExistence(timeout: 8) { let sB = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sB.waitForExistence(timeout: 10) { sB.tap(); sleep(2) } }
+                  let routed = textExists("Inspired by", 25)
+                  print("REMINDER-DIAG tapOpenedQuoteReveal=\(routed)")
+                  shot("R6-quote-from-tap")
+                  if !routed { dumpHierarchy("dump-R6-no-reveal") }
+                  XCTAssertTrue(bannerSeen, "iOS delivered the test notification while the app was closed")
+                  XCTAssertTrue(routed, "tapping the notification opens the quote reveal")
+                  if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
+
+                  // Turn off must empty the OS queue; turning on again must refill it
+                  tapNav("Setup")
+                  openReminders()
+                  let offBtn = app.buttons["Turn off"]
+                  _ = scrollUntilHittable(offBtn, 8)
+                  XCTAssertTrue(offBtn.isHittable, "Turn off button")
+                  offBtn.tap()
+                  let offNote = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "still scheduled on this phone")).firstMatch
+                  let offOk = offNote.waitForExistence(timeout: 15)
+                  print("REMINDER-DIAG afterTurnOff=\(offOk ? offNote.label : "none")")
+                  shot("R7-turned-off")
+                  XCTAssertTrue(offOk && offNote.label.contains("0 still scheduled"), "turn off leaves nothing scheduled")
+                  let turnOn2 = app.buttons["Turn on notifications"]
+                  _ = scrollUntilHittable(turnOn2, 8)
+                  if turnOn2.isHittable { turnOn2.tap() }
+                  let scheduledAgain = remLabel()
+                  print("REMINDER-DIAG scheduledAfterReenable=\(scheduledAgain)")
+                  shot("R8-turned-on-again")
+                  XCTAssertTrue(scheduledAgain != "none", "turning on again schedules again")
 
                   // Relaunch persistence: the saved character and habit must survive
                   // an app restart (local storage inside the Capacitor shell).
@@ -337,6 +392,10 @@ jobs:
                   XCTAssertTrue(proofKept, "proof still shown after relaunch")
                   XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
                   XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  tapNav("Setup")
+                  openReminders()
+                  print("REMINDER-DIAG afterClearAndRelaunch=\(remLabel())")
+                  shot("R9-reminders-after-clear-relaunch")
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
