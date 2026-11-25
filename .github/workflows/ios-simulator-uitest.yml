@@ -459,7 +459,7 @@ jobs:
                       if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
                       if app.buttons["Later"].exists { app.buttons["Later"].tap(); sleep(1) }
                   }
-                  coldTap("review", "Send a test review", "Your Weekly Arc Review is ready", "Reflect and adjust")
+                  coldTap("review", "Send a test review", "Your Weekly Arc Review is ready", "WEEKLY ARC REVIEW")
                   coldTap("quote2", "Send a test", "Your new arc quote just dropped", "Inspired by")
                   // Scrolled views: status-bar area must stay clear
                   tapNav("Today")
