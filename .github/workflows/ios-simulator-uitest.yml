@@ -527,17 +527,20 @@ jobs:
                   print("NETLOG-FINAL exists=\(netlogF.exists) " + netlogF.label)
                   shot("N1-netlog")
                   // CSV picker attempt
+                  app.terminate(); app.launch(); sleep(4)
                   tapNav("Setup")
                   let moreC = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
                   _ = scrollUntilHittable(moreC, 8)
                   if moreC.isHittable { moreC.tap(); sleep(1) }
                   dumpHierarchy("dump-csv-more")
-                  let chooseBtn = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "Choose File", "no file")).firstMatch
+                  let chooseBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Upload an export")).firstMatch
                   _ = scrollUntilHittable(chooseBtn, 10)
                   print("CSV-DIAG chooseButton=\(chooseBtn.exists)")
                   if chooseBtn.exists && chooseBtn.isHittable {
-                      chooseBtn.tap(); sleep(2)
+                      chooseBtn.tap(); sleep(3)
                       shot("I2-picker-sheet")
+                      dumpHierarchy("dump-I2-picker")
+                      print("CSV-DIAG appState=\(app.state.rawValue) sheetButtons=\(app.buttons.allElementsBoundByIndex.prefix(40).map{$0.label}.joined(separator: " | "))")
                       let cf = app.buttons["Choose File"].exists ? app.buttons["Choose File"] : app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Choose File")).element(boundBy: 1)
                       if cf.exists { cf.tap(); sleep(3) }
                       shot("I3-files-browser")
@@ -556,6 +559,34 @@ jobs:
                           print("CSV-DIAG streakAfterCsv=\(s2)")
                           shot("I5-after-csv")
                       }
+                  }
+                  // CALENDAR-DIAG: what the two calendar buttons do in the iPhone shell
+                  app.terminate(); app.launch(); sleep(4)
+                  tapNav("Setup")
+                  openReminders()
+                  let gcal = app.links["Add to Google Calendar"].exists ? app.links["Add to Google Calendar"] : app.staticTexts["Add to Google Calendar"]
+                  _ = scrollUntilHittable(gcal, 10)
+                  print("CALENDAR-DIAG googleExists=\(gcal.exists) hittable=\(gcal.isHittable)")
+                  shot("C0-calendar-card")
+                  if gcal.isHittable {
+                      gcal.tap(); sleep(5)
+                      let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+                      print("CALENDAR-DIAG afterGoogleTap appState=\(app.state.rawValue) safariState=\(safari.state.rawValue)")
+                      shot("C1-after-google-tap")
+                      dumpHierarchy("dump-C1")
+                  }
+                  app.terminate(); app.launch(); sleep(4)
+                  tapNav("Setup")
+                  openReminders()
+                  let icsBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", ".ics")).firstMatch
+                  _ = scrollUntilHittable(icsBtn, 10)
+                  print("CALENDAR-DIAG icsExists=\(icsBtn.exists) hittable=\(icsBtn.isHittable)")
+                  if icsBtn.isHittable {
+                      icsBtn.tap(); sleep(4)
+                      let sb2 = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+                      print("CALENDAR-DIAG afterIcsTap appState=\(app.state.rawValue) alerts=\(app.alerts.count) sheets=\(app.sheets.count) sbAlerts=\(sb2.alerts.count)")
+                      shot("C2-after-ics-tap")
+                      dumpHierarchy("dump-C2")
                   }
                   return
 
