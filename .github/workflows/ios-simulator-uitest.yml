@@ -39,7 +39,7 @@ jobs:
           cat >> www/api-shim.js <<'JSEOF'
           (()=>{const KEY='zz_netlog',f=window.fetch;
           function rd(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return []}}
-          function draw(){let d=document.getElementById('zznet');if(!d){if(!document.body)return;d=document.createElement('div');d.id='zznet';d.style.cssText='position:fixed;left:0;bottom:0;font-size:8px;opacity:.03;pointer-events:none;z-index:2147483647;max-width:100%;word-break:break-all';document.body.appendChild(d);}const a=rd();d.textContent='ZZNET '+a.length+' '+JSON.stringify(a).slice(0,6000);}
+          function draw(){let d=document.getElementById('zznet');if(!d){if(!document.body)return;d=document.createElement('div');d.id='zznet';d.style.cssText='position:fixed;left:0;bottom:0;font-size:8px;opacity:.03;pointer-events:none;z-index:2147483647;max-width:100%;word-break:break-all';document.body.appendChild(d);}const a=rd();d.textContent='ZZNET '+a.length+' '+a.map(e=>String(e.u).replace('/api/','')+' '+e.m+' '+(e.len==null?'':e.len)+' '+(e.keys?e.keys.join('|'):'')).map(x=>x.slice(0,110)).join(' ;; ').slice(0,900);}
           function rec(e){const a=rd();a.push(e);try{localStorage.setItem(KEY,JSON.stringify(a))}catch(_){}draw();}
           window.fetch=function(i,init){try{const u=typeof i==='string'?i:((i&&i.url)||'');const b=init&&init.body;let keys=null,len=null,bt=typeof b;if(typeof b==='string'){len=b.length;try{const o=JSON.parse(b);keys=Object.keys(o);if(o.state)keys.push('state:'+Object.keys(o.state).join(','));if(o.key)keys.push('key='+o.key);}catch(_){}}else if(b&&b.size!=null){bt='blob';len=b.size;}const h=init&&init.headers?Object.keys(init.headers).join(','):'';rec({t:Date.now()%1000000,u,m:(init&&init.method)||'GET',bt,len,keys,h});}catch(_){}return f.apply(this,arguments)};
           document.addEventListener('DOMContentLoaded',draw);})();
@@ -220,6 +220,9 @@ jobs:
                   tapNav("Today")
                   shot("07-today-configured")
                   XCTAssertTrue(textExists("Meditate for 10 minutes"), "saved habit renders on Today")
+                  sleep(4)
+                  let netlogA = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "ZZNET")).firstMatch
+                  print("NETLOG-MID exists=\(netlogA.exists) " + netlogA.label)
 
                   // Progress and Start Here tabs render natively
                   tapNav("Progress")
