@@ -912,3 +912,5 @@ html.arc-intro-lock,html.arc-intro-lock body{overflow:hidden;}
 .arc-root .newarc button.btn.na-go:disabled{background:transparent;color:var(--text-faint);}
 .arc-root input[type=time]{box-sizing:border-box;max-width:100%;}
 .arc-root #r_time{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;}
+/* Keep scrolled content from drawing under the iOS status bar (clock, battery) */
+.arc-root::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:200;pointer-events:none;}
