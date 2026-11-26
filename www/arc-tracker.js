@@ -825,6 +825,10 @@ function maybeShowWeekReview(force){
 
 /* ---------------- Tabs ---------------- */
 function showTab(name){
+  // typed habit changes only stick after Save, so offer to save before leaving Setup
+  if(setupDirty && name!=='setup' && document.getElementById('tab-setup').classList.contains('active')){
+    if(confirm('You have habit changes that are not saved yet. Save them now?')){ const sb=document.getElementById('saveHabitsBtn'); if(sb) sb.click(); }
+  }
   document.querySelectorAll('nav.tabs button').forEach(b=>{
     const on = b.dataset.tab===name;
     b.classList.toggle('active', on);
@@ -2137,6 +2141,7 @@ function playEmblemDemo(arche){
 /* ---------------- Setup tab ---------------- */
 let reminderTimer=null;
 const setupOpen = new Set(); // which folded Setup groups are open, kept across redraws
+let setupDirty = false; // habit fields typed in Setup but not saved yet
 function renderSetup(){
   const el=document.getElementById('tab-setup');
   let html = '<h2 class="section-title">Setup</h2>';
@@ -2172,6 +2177,7 @@ function renderSetup(){
     html += '<div class="banner info" style="margin-top:20px;">Pick an archetype in the Archetypes tab to see your weakness and ideas to fight it.</div>';
   }
 
+  html += '<p class="card-note" id="saveHint" hidden style="margin-top:10px;color:var(--accent);">Not saved yet. Tap Save character & habits to keep these changes.</p>';
   html += '<button class="btn" id="saveHabitsBtn" style="margin-top:6px;">Save character & habits</button>';
 
   // everything past the habits folds away, so a new member sees a short page
@@ -2292,6 +2298,12 @@ function renderSetup(){
     });
   });
 
+  setupDirty = false;
+  const markSetupDirty = e=>{
+    const id = (e.target && e.target.id) || '';
+    if(id==='p_name' || /_(habit|every|n|remind)$/.test(id)){ setupDirty = true; const h=document.getElementById('saveHint'); if(h) h.hidden=false; }
+  };
+  el.oninput = markSetupDirty; el.onchange = markSetupDirty;
   document.getElementById('saveHabitsBtn').addEventListener('click',()=>{
     profile.name = document.getElementById('p_name').value.trim();
     const remindOf = key=>{ const x=document.getElementById(key+'_remind'); return x ? x.value : ''; };
