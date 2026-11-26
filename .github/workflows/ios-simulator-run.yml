@@ -186,7 +186,7 @@ jobs:
                   // Leave again, OK saves and continues to Today
                   tapNav("Today")
                   let alert2 = app.alerts.firstMatch
-                  if alert2.waitForExistence(timeout: 8) { alert2.buttons["OK"].tap() }
+                  if alert2.waitForExistence(timeout: 8) { alert2.buttons.matching(NSPredicate(format: "label ==[c] %@", "ok")).firstMatch.tap() }
                   sleep(3)
                   let onToday = textExists("Read one page", 10)
                   print("AFTER-OK-HABIT-ON-TODAY=\(onToday)")
