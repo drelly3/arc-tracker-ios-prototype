@@ -1,0 +1,107 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "457AF5E5-6AAB-4C30-B901-373CE9E458DA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "store-5-setup_0_6AB5DD06-AD23-4AC9-8435-CC56E4E3F67A.png",
+        "timestamp" : 1795670880.715
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "02404FFD-FFFC-48BC-89B8-F0A4B3144A37.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "store-4-start-here_0_72CA3446-3075-45E5-98F8-CB4E909AF3A2.png",
+        "timestamp" : 1795670875.93
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "D40C7D8C-3A3A-412B-A540-B5C2AA2D9CE2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "store-3-archetypes_0_60E0ED4D-5524-4A2E-8E24-9B08F135B0AB.png",
+        "timestamp" : 1795670871.068
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "3D628CDF-E4B2-4CB6-8A58-CFA4E2892D2B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "store-2-progress_0_5E1CAFFE-3B21-4F17-8B1B-7A27138C2EB9.png",
+        "timestamp" : 1795670865.907
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "03CAAAAE-606F-41EF-8080-804E2883AB7C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "store-1-today_0_FB17DD9A-07D1-45BC-A0AF-90667A426E28.png",
+        "timestamp" : 1795670861.012
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "EFD73ED7-64A3-448A-8626-4D9DB7659A6A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06-today-after-ok_0_04A89D68-B845-4555-9897-079C4438DA5E.png",
+        "timestamp" : 1795670860.79
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "FCCAC9B6-7829-4E9C-B994-4924039AE87F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05-after-cancel_0_14FDEB8B-DE0D-42F0-9524-30500D13F85D.png",
+        "timestamp" : 1795670850.1
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "8DD44F14-3CC6-40DE-B060-F1876CB65F13.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04-unsaved-warning_0_5D196C44-16D3-4388-8D94-7AF40E442015.png",
+        "timestamp" : 1795670844.707
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "3D5CF792-F14E-4711-889B-E8DFCA61FB7D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-setup-unsaved-hint_0_FD1507BF-F516-4EB4-8F01-A07F19749741.png",
+        "timestamp" : 1795670839.512
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "CDF7C40E-07C5-4DAD-ABB0-DF75AA7BCA65.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-start-here_0_DEE6ED9D-1CFA-4381-82E1-83647B023AFA.png",
+        "timestamp" : 1795670804.765
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174D150C-D105-4F47-BF37-8EC7B29681F9",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "6FC29CF4-8E94-4656-A3F5-F1007B6AAE80.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-archetype-picker_0_EA38A61A-73A8-4152-9835-7D19C219E655.png",
+        "timestamp" : 1795670792.088
+      }
+    ],
+    "testIdentifier" : "AppUITests/testStoreScreens()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testStoreScreens"
+  }
+]
