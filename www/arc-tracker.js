@@ -2835,7 +2835,7 @@ const LOCAL_REM = window.ArcLocalReminders && window.ArcLocalReminders.available
 async function pushSync(){
   if(LOCAL_REM) return LOCAL_REM.sync({time:reminder.time||'08:00', archetype:profile.archetypeKey||'', clearedToday:clearedToday(),
     reminders: [...habitReminders(), ...myReminders.filter(r=>!r.deleted && r.on!==false).map(r=>({id:r.id, label:r.label, note:r.note, time:r.time, days:r.days}))]});
-  const sub=await currentSub(); if(!sub) return {ok:false};
+  if(isLocalOnly()) return {ok:false}; const sub=await currentSub(); if(!sub) return {ok:false};
   const key = backendKey();
   return pushApi('subscribe',{key, endpoint:sub.endpoint, subscription:sub.toJSON(), time:reminder.time||'08:00', archetype:profile.archetypeKey||'',
     tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC', clearedToday:clearedToday(),
@@ -2859,7 +2859,7 @@ async function pushInit(){
     if(pushState==='on') pushSync().then(()=>refreshPushBox()).catch(()=>{});
     return;
   }
-  if(!PUSH_OK){ pushState=(IS_IOS && !IS_STANDALONE)?'ios-install':'unsupported'; return refreshPushBox(); }
+  if(isLocalOnly()){ pushState='native-unavailable'; return refreshPushBox(); } if(!PUSH_OK){ pushState=(IS_IOS && !IS_STANDALONE)?'ios-install':'unsupported'; return refreshPushBox(); }
   if(Notification.permission==='denied'){ pushState='blocked'; return refreshPushBox(); }
   try{ const sub=await currentSub(); pushState=(sub && Notification.permission==='granted')?'on':'off'; }catch(e){ pushState='off'; }
   refreshPushBox();
@@ -2876,7 +2876,7 @@ async function pushEnable(){
     pushState='on'; return refreshPushBox();
   }
   try{
-    const perm=await Notification.requestPermission();
+    if(isLocalOnly()){ pushState='native-unavailable'; return refreshPushBox(); } const perm=await Notification.requestPermission();
     if(perm!=='granted'){ pushState=perm==='denied'?'blocked':'off'; return refreshPushBox(); }
     await navigator.serviceWorker.register('/arc-sw.js',{scope:'/arc-tracker/'});
     const reg=await navigator.serviceWorker.ready;
@@ -2897,7 +2897,7 @@ async function pushEnable(){
 async function pushDisable(){
   if(LOCAL_REM) await LOCAL_REM.disable();
   try{
-    const sub=LOCAL_REM ? null : await currentSub();
+    const sub=(LOCAL_REM||isLocalOnly()) ? null : await currentSub();
     if(sub){ await pushApi('unsubscribe',{endpoint:sub.endpoint}).catch(()=>{}); await sub.unsubscribe(); }
   }catch(e){}
   pushState='off'; pushNote=LOCAL_REM?('Reminders are off. '+(await LOCAL_REM.pendingCount())+' still scheduled on this phone.'):''; reminder.enabled=false; persist(LS.reminder, reminder);
@@ -2915,7 +2915,7 @@ async function pushSetTime(){
 async function pushTest(kind){
   if(typeof kind!=='string') kind='quote';
   if(LOCAL_REM){ pushNote=kind==='report'?'Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to open your weekly review.':'Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to see how a new quote opens.'; refreshPushBox(); await LOCAL_REM.test(10,kind).catch(()=>{}); return; }
-  const sub=await currentSub(); if(!sub) return;
+  if(isLocalOnly()) return; const sub=await currentSub(); if(!sub) return;
   pushNote='Sending\u2026'; refreshPushBox();
   const r=await pushApi('test',{endpoint:sub.endpoint}).catch(()=>({ok:false}));
   pushNote=r.ok?'Sent. It should arrive within a few seconds.':'Couldn\u2019t send a test right now.';
@@ -2925,7 +2925,7 @@ async function pushTest(kind){
 function pushReportCleared(){
   if(pushState!=='on') return;
   if(LOCAL_REM){ pushSync().then(()=>refreshPushBox()).catch(()=>{}); return; }
-  currentSub().then(s=>s && pushApi('cleared',{endpoint:s.endpoint, cleared:clearedToday()})).catch(()=>{});
+  if(isLocalOnly()) return; currentSub().then(s=>s && pushApi('cleared',{endpoint:s.endpoint, cleared:clearedToday()})).catch(()=>{});
 }
 function pushBoxHtml(){
   const note=pushNote?'<div class="helptext" style="margin:10px 0 0;">'+escapeHtml(pushNote)+'</div>':'';
@@ -2935,7 +2935,7 @@ function pushBoxHtml(){
     '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note;
   if(pushState==='busy') return '<button class="btn" disabled>Turning on\u2026</button>';
   if(pushState==='blocked') return '<div class="banner warn" style="margin:0;"><div>'+(LOCAL_REM?'Notifications are off for Arc Tracker. Allow them in the iPhone Settings app under Notifications, then come back.':'Notifications are blocked for this site in your browser settings. Allow them there, then reload this page.')+'</div></div>';
-  if(pushState==='ios-install') return '<div class="banner info" style="margin:0;"><div><b>On iPhone and iPad, add Arc Tracker to your Home Screen first.</b> Tap the Share button, choose <b>Add to Home Screen</b>, then open Arc Tracker from the new icon and turn notifications on here.</div></div>';
+  if(pushState==='native-unavailable') return '<div class="banner warn" style="margin:0;"><div>Reminders are not available in this version of the app.</div></div>'; if(pushState==='ios-install') return '<div class="banner info" style="margin:0;"><div><b>On iPhone and iPad, add Arc Tracker to your Home Screen first.</b> Tap the Share button, choose <b>Add to Home Screen</b>, then open Arc Tracker from the new icon and turn notifications on here.</div></div>';
   if(pushState==='unsupported') return '<div class="banner warn" style="margin:0;"><div>This browser doesn\u2019t support notifications. Use the calendar option below.</div></div>';
   return '<button class="btn" id="pushOnBtn">Turn on notifications</button>'+note;
 }
