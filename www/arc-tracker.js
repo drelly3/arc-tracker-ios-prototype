@@ -825,10 +825,6 @@ function maybeShowWeekReview(force){
 
 /* ---------------- Tabs ---------------- */
 function showTab(name){
-  // typed habit changes only stick after Save, so offer to save before leaving Setup
-  if(setupDirty && name!=='setup' && document.getElementById('tab-setup').classList.contains('active')){
-    if(confirm('You have habit changes that are not saved yet. Save them now?')){ const sb=document.getElementById('saveHabitsBtn'); if(sb) sb.click(); }
-  }
   document.querySelectorAll('nav.tabs button').forEach(b=>{
     const on = b.dataset.tab===name;
     b.classList.toggle('active', on);
@@ -837,9 +833,19 @@ function showTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.id==='tab-'+name));
   window.scrollTo(0,0);
 }
-document.querySelectorAll('nav.tabs button').forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab)));
+// Typed habit changes only stick after Save. When the user taps to another tab with unsaved edits,
+// OK saves and continues (only if the save worked); Cancel keeps them in Setup with their edits.
+function leaveSetupOk(name){
+  if(!setupDirty || name==='setup') return true;
+  const st = document.getElementById('tab-setup');
+  if(!st || !st.classList.contains('active')) return true;
+  if(!confirm('You have habit changes that are not saved yet.\n\nOK: save them and continue.\nCancel: stay here and keep editing.')) return false;
+  const sb = document.getElementById('saveHabitsBtn'); if(sb) sb.click();
+  return !setupDirty;
+}
+document.querySelectorAll('nav.tabs button').forEach(btn=>btn.addEventListener('click',()=>{ if(leaveSetupOk(btn.dataset.tab)) showTab(btn.dataset.tab); }));
 // buttons inside a tab that jump to another one, like "Open Setup" in the guide
-document.addEventListener('click',(e)=>{ const b=e.target.closest && e.target.closest('[data-goto]'); if(b) showTab(b.dataset.goto); });
+document.addEventListener('click',(e)=>{ const b=e.target.closest && e.target.closest('[data-goto]'); if(b && leaveSetupOk(b.dataset.goto)) showTab(b.dataset.goto); });
 
 /* ---------------- Header ---------------- */
 function renderHeader(){
