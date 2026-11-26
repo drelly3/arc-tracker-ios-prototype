@@ -1,150 +1,435 @@
-name: iOS simulator run (native screenshots)
-
-# Manual trigger only. Builds the unsigned simulator app (same as the compile check),
-# boots an iPhone Simulator on the free macos runner, installs and launches the app,
-# and captures native-runtime screenshots. No signing, no secrets, no paid services.
-# Synthetic sample key only; the app's own preview path keeps this off the live backend
-# (the backend has no cross-origin allowance, so app API calls never leave the device).
+name: iOS store screenshots (native size)
 on:
   workflow_dispatch:
 
+# Only the sim-test job below may write (it pushes screenshots to a scratch branch).
 permissions: {}
 
+env:
+  PROJECT_DIR: ios/App/App.xcodeproj
+  SCHEME: App
+  DERIVED: build/DerivedData
+
 jobs:
-  simulator-run:
+  sim-test:
     runs-on: macos-latest
     permissions:
-      contents: write # push the screenshots scratch branch only; ephemeral token dies with the run
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Add the iOS platform and sync web assets
+      - name: Block production API egress for the test
         run: |
-          npx cap add ios
-          npx cap sync ios
+          set -e
+          echo '127.0.0.1 animemindset.com' | sudo tee -a /etc/hosts
+          echo '127.0.0.1 www.animemindset.com' | sudo tee -a /etc/hosts
+          grep animemindset /etc/hosts
+          if curl -sS -m 5 https://animemindset.com/api/arc-verify -o /dev/null 2>/tmp/curlerr; then
+            echo 'ERROR: production API host still reachable'; exit 1
+          else
+            echo "production API host blocked as intended: $(cat /tmp/curlerr)"
+          fi
 
-      - name: Compile (unsigned iOS Simulator build)
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate the iOS project
+        run: npx cap add ios
+
+      - name: Sync web assets into the iOS project
+        run: npx cap sync ios
+
+      - name: Build the iOS app
         run: |
-          xcodebuild \
-            -project ios/App/App.xcodeproj \
-            -scheme App \
+          xcodebuild -project "$PROJECT_DIR" \
+            -scheme "$SCHEME" \
             -configuration Debug \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$DERIVED" \
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Boot an iPhone simulator
+      - name: Add UI test target and shared scheme
         run: |
           set -e
-          # Prefer a modern pre-created simulator; otherwise create one from a recent device type.
-          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | test("^iPhone 1[5-9]"))] | .[-1].udid')
-          if [ -z "$UDID" ] || [ "$UDID" = "null" ]; then
-            RUNTIME=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform=="iOS" and .isAvailable)] | .[-1].identifier')
-            DEVTYPE=$(xcrun simctl list devicetypes -j | jq -r '([.devicetypes[] | select(.name | test("^iPhone 17"))] | .[0].identifier) // ([.devicetypes[] | select(.name | test("^iPhone 16"))] | .[0].identifier) // ([.devicetypes[] | select(.name | test("^iPhone 15"))] | .[0].identifier)')
-            echo "runtime=$RUNTIME devicetype=$DEVTYPE"
-            UDID=$(xcrun simctl create arc-proto-test "$DEVTYPE" "$RUNTIME")
-          fi
+          mkdir -p ios/App/AppUITests
+          cat > ios/App/AppUITests/AppUITests.swift <<'SWIFT'
+          import XCTest
+
+          final class AppUITests: XCTestCase {
+
+              var app: XCUIApplication!
+
+              override func setUpWithError() throws {
+                  continueAfterFailure = true
+                  app = XCUIApplication()
+                  app.launch()
+                  addUIInterruptionMonitor(withDescription: "system-prompts") { alert in
+                      for label in ["Not Now", "OK", "Allow", "Dismiss", "Maybe Later"] {
+                          if alert.buttons[label].exists { alert.buttons[label].tap(); return true }
+                      }
+                      return false
+                  }
+              }
+
+              func shot(_ name: String) {
+                  let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+                  attachment.name = name
+                  attachment.lifetime = .keepAlways
+                  add(attachment)
+              }
+
+              // Read-only diagnostics: hierarchy dump captured as a kept attachment.
+              // Does not change any assertion or selector.
+              func dumpHierarchy(_ name: String) {
+                  let counts = "counts staticTexts=\(app.staticTexts.count) buttons=\(app.buttons.count) textFields=\(app.textFields.count) any=\(app.descendants(matching: .any).count)"
+                  print("DUMP[\(name)] \(counts)")
+                  let att = XCTAttachment(string: counts + "\n\n" + app.debugDescription)
+                  att.name = name
+                  att.lifetime = .keepAlways
+                  add(att)
+              }
+
+              func textExists(_ fragment: String, _ timeout: Double = 10) -> Bool {
+                  let pred = NSPredicate(format: "label CONTAINS[c] %@", fragment)
+                  return app.staticTexts.matching(pred).firstMatch.waitForExistence(timeout: timeout)
+              }
+
+              func tapNav(_ label: String) {
+                  let b = app.buttons[label]
+                  if b.waitForExistence(timeout: 10) { b.tap() }
+                  sleep(2)
+              }
+
+              // Press-drag scroll: app.swipeUp() did not move the Capacitor
+              // WKWebView content in run 45325695949 (vertical scroll bar stayed
+              // at 0%), leaving below-fold elements unhittable under the fixed nav.
+              func dragScroll(_ times: Int = 1) {
+                  let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+                  let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.30))
+                  for _ in 0..<times {
+                      start.press(forDuration: 0.15, thenDragTo: end)
+                      usleep(400000)
+                  }
+              }
+
+              // Scroll until the element is actually hittable (on screen and
+              // clear of the fixed bottom nav), not just present in the AX tree.
+              @discardableResult
+              func scrollUntilHittable(_ el: XCUIElement, _ maxDrags: Int = 10) -> Bool {
+                  var n = 0
+                  while !el.isHittable && n < maxDrags {
+                      dragScroll()
+                      n += 1
+                  }
+                  return el.isHittable
+              }
+
+              func testStoreScreens() throws {
+                  let pickerHeading = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  XCTAssertTrue(pickerHeading.waitForExistence(timeout: 40), "first-run archetype picker appears")
+                  sleep(2)
+                  shot("01-archetype-picker")
+
+                  let strat = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
+                  XCTAssertTrue(strat.waitForExistence(timeout: 10), "strategist card")
+                  strat.tap()
+                  var tries = 1
+                  while !pickerHeading.waitForNonExistence(timeout: 8) && tries < 3 { tries += 1; if strat.exists && strat.isHittable { strat.tap() } }
+                  XCTAssertTrue(pickerHeading.waitForNonExistence(timeout: 15), "picker dismissed")
+                  sleep(2)
+
+                  // Start Here: the web-only Home Screen step must be gone in the iPhone app
+                  tapNav("Start Here")
+                  sleep(1)
+                  shot("02-start-here")
+                  let homeStep = textExists("Add it to your Home Screen", 3)
+                  print("HOMESCREEN-STEP-PRESENT=\(homeStep)")
+                  XCTAssertFalse(homeStep, "Home Screen install step hidden in the iPhone app")
+
+                  // Setup: type habits, do NOT save
+                  tapNav("Setup")
+                  XCTAssertTrue(textExists("Your habits"), "habits section on Setup")
+                  let nameField = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] %@", "running this arc")).firstMatch
+                  if nameField.waitForExistence(timeout: 10) { nameField.tap(); app.typeText("Alex") }
+                  let h1Field = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Ex. Read one page")).firstMatch
+                  if h1Field.waitForExistence(timeout: 10) { h1Field.tap(); app.typeText("Read one page") }
+                  let h2Field = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] %@", "top 3")).firstMatch
+                  if h2Field.waitForExistence(timeout: 5) { h2Field.tap(); app.typeText("Plan the next day") }
+                  let h3Field = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Ex. 10 push-ups")).firstMatch
+                  if h3Field.waitForExistence(timeout: 5) { h3Field.tap(); app.typeText("10 push-ups") }
+                  for _ in 0..<3 { app.swipeUp(); usleep(300000) }
+                  let hint = textExists("Not saved yet", 5)
+                  print("UNSAVED-HINT-VISIBLE=\(hint)")
+                  shot("03-setup-unsaved-hint")
+                  XCTAssertTrue(hint, "Not saved yet line appears after typing")
+
+                  // Leave Setup with unsaved edits: warning, then Cancel must stay in Setup with edits intact
+                  tapNav("Today")
+                  let alert = app.alerts.firstMatch
+                  let alertShown = alert.waitForExistence(timeout: 8)
+                  print("UNSAVED-ALERT-SHOWN=\(alertShown)")
+                  shot("04-unsaved-warning")
+                  XCTAssertTrue(alertShown, "unsaved-changes warning appears")
+                  if alertShown { alert.buttons["Cancel"].tap() }
+                  sleep(2)
+                  let stillSetup = textExists("Your habits", 5)
+                  print("AFTER-CANCEL-STILL-IN-SETUP=\(stillSetup) h1Value=\(h1Field.value as? String ?? "nil")")
+                  shot("05-after-cancel")
+                  XCTAssertTrue(stillSetup, "Cancel keeps the user in Setup")
+                  XCTAssertEqual(h1Field.value as? String, "Read one page", "typed text kept after Cancel")
+
+                  // Leave again, OK saves and continues to Today
+                  tapNav("Today")
+                  let alert2 = app.alerts.firstMatch
+                  if alert2.waitForExistence(timeout: 8) { alert2.buttons["OK"].tap() }
+                  sleep(3)
+                  let onToday = textExists("Read one page", 10)
+                  print("AFTER-OK-HABIT-ON-TODAY=\(onToday)")
+                  shot("06-today-after-ok")
+                  XCTAssertTrue(onToday, "OK saved the habits and moved to Today")
+
+                  // Clean store-style captures
+                  shot("store-1-today")
+                  tapNav("Progress")
+                  sleep(1)
+                  shot("store-2-progress")
+                  tapNav("Archetypes")
+                  sleep(1)
+                  shot("store-3-archetypes")
+                  tapNav("Start Here")
+                  sleep(1)
+                  shot("store-4-start-here")
+                  tapNav("Setup")
+                  sleep(1)
+                  shot("store-5-setup")
+              }
+          }
+          SWIFT
+
+          cat > /tmp/inject.rb <<'RUBY'
+          require 'xcodeproj'
+          proj = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+          app = proj.targets.find { |t| t.name == 'App' } or abort 'App target not found'
+          abort 'AppUITests already exists' if proj.targets.any? { |t| t.name == 'AppUITests' }
+          uitest = proj.new_target(:ui_test_bundle, 'AppUITests', :ios, '15.0', nil, :swift)
+          grp = proj.main_group.new_group('AppUITests', 'AppUITests')
+          ref = grp.new_file('AppUITests.swift')
+          uitest.source_build_phase.add_file_reference(ref)
+          uitest.add_dependency(app)
+          uitest.build_configurations.each do |c|
+            c.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.animemindset.arctracker.uitests'
+            c.build_settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
+            c.build_settings['TEST_TARGET_NAME'] = 'App'
+            c.build_settings['SWIFT_VERSION'] = '5.0'
+            c.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
+            c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+            c.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+            c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+            c.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+          end
+          proj.save
+          puts "APP_UUID=#{app.uuid}"
+          puts "UITEST_UUID=#{uitest.uuid}"
+          RUBY
+
+          RUBY_BIN=$(head -1 "$(command -v pod)" | sed 's/^#!//')
+          "$RUBY_BIN" /tmp/inject.rb | tee /tmp/uuids.txt
+          APP_UUID=$(grep '^APP_UUID=' /tmp/uuids.txt | cut -d= -f2)
+          UITEST_UUID=$(grep '^UITEST_UUID=' /tmp/uuids.txt | cut -d= -f2)
+          [ -n "$APP_UUID" ] && [ -n "$UITEST_UUID" ] || { echo 'uuid capture failed'; exit 1; }
+
+          cat > /tmp/scheme.tpl <<'SCHEME'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Scheme
+             LastUpgradeVersion = "2600"
+             version = "1.7">
+             <BuildAction
+                parallelizeBuildables = "YES"
+                buildImplicitDependencies = "YES"
+                buildArchitectures = "Automatic">
+                <BuildActionEntries>
+                   <BuildActionEntry
+                      buildForTesting = "YES"
+                      buildForRunning = "YES"
+                      buildForProfiling = "YES"
+                      buildForArchiving = "YES"
+                      buildForAnalyzing = "YES">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "__APP_UUID__"
+                         BuildableName = "App.app"
+                         BlueprintName = "App"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </BuildActionEntry>
+                </BuildActionEntries>
+             </BuildAction>
+             <TestAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                shouldUseLaunchSchemeArgsEnv = "YES">
+                <Testables>
+                   <TestableReference
+                      skipped = "NO"
+                      parallelizable = "NO">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "__UITEST_UUID__"
+                         BuildableName = "AppUITests.xctest"
+                         BlueprintName = "AppUITests"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </TestableReference>
+                </Testables>
+             </TestAction>
+             <LaunchAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                launchStyle = "0"
+                useCustomWorkingDirectory = "NO"
+                ignoresPersistentStateOnLaunch = "NO"
+                debugDocumentVersioning = "YES"
+                debugServiceExtension = "internal"
+                allowLocationSimulation = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "__APP_UUID__"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </LaunchAction>
+             <ProfileAction
+                buildConfiguration = "Release"
+                shouldUseLaunchSchemeArgsEnv = "YES"
+                savedToolIdentifier = ""
+                useCustomWorkingDirectory = "NO"
+                debugDocumentVersioning = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "__APP_UUID__"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </ProfileAction>
+             <AnalyzeAction
+                buildConfiguration = "Debug">
+             </AnalyzeAction>
+             <ArchiveAction
+                buildConfiguration = "Release"
+                revealArchiveInOrganizer = "YES">
+             </ArchiveAction>
+          </Scheme>
+          SCHEME
+
+          mkdir -p "$PROJECT_DIR/xcshareddata/xcschemes"
+          sed -e "s/__APP_UUID__/$APP_UUID/g" -e "s/__UITEST_UUID__/$UITEST_UUID/g" \
+            /tmp/scheme.tpl > "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+          echo 'shared scheme written:'
+          grep -c 'BuildableReference' "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+
+      - name: Show UI test target build settings
+        run: |
+          xcodebuild -project "$PROJECT_DIR" -list
+          xcodebuild -project "$PROJECT_DIR" -target AppUITests -configuration Debug -sdk iphonesimulator -showBuildSettings | grep -E ' (PRODUCT_NAME|FULL_PRODUCT_NAME|WRAPPER_NAME|PRODUCT_BUNDLE_IDENTIFIER|TEST_TARGET_NAME) = '
+
+
+      - name: Boot a 6.9-inch iPhone simulator with a clean status bar
+        run: |
+          set -e
+          TYPE=$(xcrun simctl list devicetypes -j | python3 -c '
+          import json,sys,re
+          d=json.load(sys.stdin)
+          ids=[t["identifier"] for t in d["devicetypes"] if re.search(r"iPhone-1[6-9]-Pro-Max", t["identifier"])]
+          print(sorted(ids)[-1] if ids else "")')
+          echo "device type: $TYPE"
+          [ -n "$TYPE" ] || { echo 'no Pro Max device type'; exit 1; }
+          UDID=$(xcrun simctl create arctracker "$TYPE")
           echo "UDID=$UDID" >> "$GITHUB_ENV"
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
+          sleep 5
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularMode active --cellularBars 4 --wifiBars 3 || true
 
-      - name: Install and launch the app, capture the native gate screen
+      - name: Run the XCUITest tracker flow
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT_DIR" \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -resultBundlePath /tmp/arcrest.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee /tmp/xcodebuild-test.log
+        timeout-minutes: 45
+
+
+      - name: Export the test screenshots
+        if: always()
         run: |
           set -e
           mkdir -p shots
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name 'App.app' -path '*Debug-iphonesimulator*' | head -1)
-          echo "app=$APP_PATH"
-          test -n "$APP_PATH"
-          xcrun simctl install "$UDID" "$APP_PATH"
-          xcrun simctl listapps "$UDID" | grep -i arctracker || true
-          xcrun simctl launch "$UDID" com.animemindset.arctracker
-          sleep 12
-          xcrun simctl io "$UDID" screenshot shots/native-01-gate.png
-          # app still alive = no crash on launch
-          xcrun simctl spawn "$UDID" launchctl list | grep -i animemindset || true
+          xcrun xcresulttool export attachments --path /tmp/arcrest.xcresult --output-path shots
+          ls -la shots
+          rm -f shots/*.mp4
+          for f in shots/*_*.png; do
+            [ -e "$f" ] || continue
+            base=$(basename "$f")
+            new=$(echo "$base" | sed -E 's/_[A-F0-9a-f-]{36}\.png$/.png/')
+            mv "$f" "shots/$new"
+          done
+          ls -la shots
 
-      - name: Best-effort interaction via accessibility bridge (idb)
-        run: |
-          set +e
-          python3 -m venv /tmp/idbenv
-          /tmp/idbenv/bin/pip install --quiet fb-idb || python3 -m pip install --user --break-system-packages --quiet fb-idb
-          if [ -x /tmp/idbenv/bin/idb ]; then IDB=/tmp/idbenv/bin/idb; else IDB="$(python3 -c 'import site,os; print(os.path.join(site.getuserbase(),"bin","idb"))')"; fi
-          "$IDB" list-targets || true
-          # helper: find an element centre by label substring
-          cat > /tmp/find_el.py <<'PYEOF'
-          import json,sys
-          data=json.load(sys.stdin)
-          needle=sys.argv[1].lower()
-          def walk(n):
-              if isinstance(n,dict):
-                  yield n
-                  for v in n.values(): yield from walk(v)
-              elif isinstance(n,list):
-                  for v in n: yield from walk(v)
-          for n in walk(data):
-              label=str(n.get('label') or n.get('AXLabel') or '').lower()
-              f=n.get('frame') or {}
-              if needle in label and f:
-                  print(int(f['x']+f['width']/2), int(f['y']+f['height']/2))
-                  sys.exit(0)
-          sys.exit(1)
-          PYEOF
-          "$IDB" ui describe-all --udid "$UDID" > /tmp/ax1.json 2>/dev/null || true
-          # primary path: the preview "skip" button opens the tracker with the sample key, no typing needed
-          SXY=$(python3 /tmp/find_el.py "skip the key" < /tmp/ax1.json || true)
-          if [ -n "$SXY" ]; then
-            "$IDB" ui tap $SXY --udid "$UDID" || true
-          else
-            # fallback: type the sample key into the licence field and tap Unlock
-            KXY=$(python3 /tmp/find_el.py "licence key" < /tmp/ax1.json || true)
-            if [ -n "$KXY" ]; then
-              "$IDB" ui tap $KXY --udid "$UDID" || true
-              sleep 1
-              ("$IDB" ui input "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID" || "$IDB" ui text "ARC7-K2MQ-9XTD-4HPL" --udid "$UDID") || true
-              sleep 1
-              "$IDB" ui describe-all --udid "$UDID" > /tmp/ax2.json 2>/dev/null || true
-              UXY=$(python3 /tmp/find_el.py "unlock" < /tmp/ax2.json || true)
-              [ -n "$UXY" ] && "$IDB" ui tap $UXY --udid "$UDID" || true
-            fi
-          fi
-          sleep 8
-          xcrun simctl io "$UDID" screenshot shots/native-02-after-unlock.png || true
-          # first-run intro: tap centre to advance, then pick the first archetype card
-          "$IDB" ui tap 195 400 --udid "$UDID" || true
-          sleep 3
-          xcrun simctl io "$UDID" screenshot shots/native-03-intro.png || true
-          "$IDB" ui tap 130 360 --udid "$UDID" || true
-          sleep 4
-          xcrun simctl io "$UDID" screenshot shots/native-04-app.png || true
-          # state dump for verification
-          "$IDB" ui describe-all --udid "$UDID" > shots/native-ax-final.json 2>/dev/null || true
-          exit 0
-
-      - name: Resize screenshots for review
-        run: |
-          for f in shots/*.png; do sips -Z 780 "$f" >/dev/null 2>&1 || true; done
-          ls -la shots/
-
-      - uses: actions/upload-artifact@v4
+      - name: Upload simulator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: native-simulator-screenshots
-          path: shots/
-          retention-days: 14
+          name: store-shots-${{ github.run_id }}
+          path: shots/*
 
-      - name: Push screenshots to a scratch branch (removed after review)
+
+      - name: Push screenshots to a scratch branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "native-run-$GITHUB_RUN_ID"
-          git add shots/
-          git commit -m "Native simulator screenshots, run $GITHUB_RUN_ID (scratch, to be removed)"
-          git push origin "native-run-$GITHUB_RUN_ID"
+          set -e
+          git config user.email "ci@localhost"
+          git config user.name "ci"
+          BR="native-store-${{ github.run_id }}"
+          echo "BRANCH=$BR" >> "$GITHUB_ENV"
+          rm -rf /tmp/shotpush && mkdir -p /tmp/shotpush
+          cd /tmp/shotpush
+          git init -q
+          git checkout -q -b "$BR"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          cp "$GITHUB_WORKSPACE"/shots/* . 2>/dev/null || true
+          cat > RUN.md <<EOF2
+          # Native-size simulator screenshots (one bounded capture run)
+
+          Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          XCUITest drive of the Capacitor shell on a 6.9-inch iPhone simulator with a clean status bar.
+          Files named store-* are candidate store screenshots; 01 to 06 are evidence for the unsaved-changes
+          warning (Cancel stays in Setup, OK saves) and for the hidden Home Screen step on Start Here.
+          Sample data only ("Alex", "Read one page", "Plan the next day", "10 push-ups"). The production API
+          host was pinned to 127.0.0.1 on the runner for this run. Not tested: real devices, reminders delivery,
+          CSV file selection, camera.
+          EOF2
+          git add .
+          git commit -q -m "Native UI test screenshots for run ${{ github.run_id }}"
+          git push -q origin "$BR"
+          echo "Pushed screenshots to branch $BR"
