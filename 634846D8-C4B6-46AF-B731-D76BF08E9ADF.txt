@@ -1,0 +1,61 @@
+Application, 0x117b00780, pid: 6544, label: 'Arc Tracker' <App element pid: 6544>
+  Window (Main), 0x117b01040, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4368566272.5>
+    Other, 0x117b02800, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4417316864.7>
+      Other, 0x117b00640, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4418372864.9>
+        WebView, 0x117b00dc0, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4418682880.11>
+          WebView, 0x117b01540, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4368072704.12>
+            WebView, 0x117b00280, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4369006592.3>
+            Other, 0x117b01400, {{407.0, 62.0}, {30.0, 832.0}}, label: 'Vertical scroll bar, 2 pages', value: 71% <AX element pid: 6544, elementOrHash.elementID: 5188685312.17>
+              Other, 0x117b017c0, {{434.0, 313.3}, {3.0, 477.7}} <AX element pid: 6544, elementOrHash.elementID: 4416733632.19>
+            Other, 0x117b01e00, {{62.0, 923.0}, {316.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 5188684800.18>
+              Other, 0x117b00f00, {{65.0, 950.0}, {310.0, 3.0}} <AX element pid: 6544, elementOrHash.elementID: 4416716096.20>
+            Other, 0x117b00a00, {{407.0, 62.0}, {30.0, 832.0}}, label: 'Vertical scroll bar, 2 pages', value: 71% <AX element pid: 6544, elementOrHash.elementID: 5188685312.17>
+              Other, 0x117b01a40, {{434.0, 313.3}, {3.0, 477.7}} <AX element pid: 6544, elementOrHash.elementID: 4416733632.19>
+            Other, 0x117b00c80, {{62.0, 923.0}, {316.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 5188684800.18>
+              Other, 0x117b02300, {{65.0, 950.0}, {310.0, 3.0}} <AX element pid: 6544, elementOrHash.elementID: 4416716096.20>
+    Other, 0x117b02e40, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 5188693504.266>
+      Other, 0x117b008c0, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4416821376.267>
+      Other, 0x117b02580, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4417161408.268>
+      Alert, 0x117b03840, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 5969617664.269>
+        Other, 0x117b026c0, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 4417160960.270>
+          Other, 0x117b00140, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 6036559104.272>
+            Other, 0x117b02080, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 4417163648.274>
+            Other, 0x117b012c0, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 4417160064.275>
+              ScrollView, 0x117b02440, {{60.0, 374.0}, {320.0, 156.0}} <AX element pid: 6544, elementOrHash.elementID: 5191668736.277>
+                Other, 0x117bafac0, {{60.0, 374.0}, {320.0, 156.0}} <AX element pid: 6544, elementOrHash.elementID: 4417169472.281>
+                  StaticText, 0x117baf340, {{90.0, 395.7}, {260.0, 130.3}}, label: 'You have habit changes that are not saved yet.
+
+OK: save them and continue. Cancel: stay here and keep editing.' <AX element pid: 6544, elementOrHash.elementID: 5970250368.290>
+                Other, 0x117bafe80, {{60.0, 528.0}, {320.0, 2.0}} <AX element pid: 6544, elementOrHash.elementID: 4416825408.282>
+                Other, 0x117bafd40, {{347.0, 374.0}, {30.0, 156.0}}, label: 'Vertical scroll bar, 2 pages', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037863424.283>
+                  Other, 0x117ab0280, {{374.0, 335.0}, {3.0, 36.0}} <AX element pid: 6544, elementOrHash.elementID: 4417174400.291>
+                Other, 0x10a4408c0, {{60.0, 497.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037862400.284>
+                  Other, 0x10a441cc0, {{21.0, 524.0}, {36.0, 3.0}} <AX element pid: 6544, elementOrHash.elementID: 4417166784.292>
+                Other, 0x10a441180, {{347.0, 374.0}, {30.0, 156.0}}, label: 'Vertical scroll bar, 2 pages', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037863424.283>
+                  Other, 0x10a441b80, {{374.0, 335.0}, {3.0, 36.0}} <AX element pid: 6544, elementOrHash.elementID: 4417174400.291>
+                Other, 0x10a442bc0, {{60.0, 497.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037862400.284>
+                  Other, 0x10a440f00, {{21.0, 524.0}, {36.0, 3.0}} <AX element pid: 6544, elementOrHash.elementID: 4417166784.292>
+              ScrollView, 0x10a441680, {{60.0, 530.0}, {320.0, 80.0}} <AX element pid: 6544, elementOrHash.elementID: 5191663616.278>
+                Other, 0x10a443200, {{60.0, 530.0}, {320.0, 80.0}} <AX element pid: 6544, elementOrHash.elementID: 5192268800.285>
+                  Other, 0x10a442a80, {{76.0, 546.0}, {288.0, 48.0}} <AX element pid: 6544, elementOrHash.elementID: 4417162752.293>
+                    Button, 0x10a441900, {{76.0, 546.0}, {140.0, 48.0}}, label: 'Cancel' <AX element pid: 6544, elementOrHash.elementID: 6037854208.297>
+                    Button, 0x10a440dc0, {{224.0, 546.0}, {140.0, 48.0}}, label: 'Ok' <AX element pid: 6544, elementOrHash.elementID: 6037852160.298>
+                Other, 0x10a442940, {{347.0, 530.0}, {30.0, 80.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037861376.286>
+                  Other, 0x10a442440, {{374.0, 620.0}, {3.0, 7.0}} <AX element pid: 6544, elementOrHash.elementID: 4416817792.294>
+                Other, 0x10a441400, {{60.0, 577.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037862912.287>
+                  Other, 0x10a441a40, {{150.0, 604.0}, {7.0, 3.0}} <AX element pid: 6544, elementOrHash.elementID: 4416816896.295>
+                Other, 0x10a441540, {{347.0, 530.0}, {30.0, 80.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037861376.286>
+                  Other, 0x10a440c80, {{374.0, 620.0}, {3.0, 7.0}} <AX element pid: 6544, elementOrHash.elementID: 4416817792.294>
+                Other, 0x10a4412c0, {{60.0, 577.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 6544, elementOrHash.elementID: 6037862912.287>
+                  Other, 0x10a4417c0, {{150.0, 604.0}, {7.0, 3.0}} <AX element pid: 6544, elementOrHash.elementID: 4416816896.295>
+        Other, 0x10a440280, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 6037859328.271>
+          Other, 0x10a440b40, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 5970248576.273>
+            Other, 0x10a441040, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 4416815104.276>
+              Other, 0x10a440640, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 4416820480.279>
+                Other, 0x10a4403c0, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 6037858816.288>
+                  Other, 0x10a440780, {{60.0, 374.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4416823168.296>
+              Other, 0x10a440a00, {{60.0, 374.0}, {320.0, 236.0}} <AX element pid: 6544, elementOrHash.elementID: 6037854720.280>
+                Other, 0x10a440500, {{60.0, 374.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4416819584.289>
+  Window, 0x10a440140, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4368491264.6>
+    Other, 0x10a442f80, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4417276096.8>
+      Other, 0x10a440000, {{0.0, 0.0}, {440.0, 956.0}} <AX element pid: 6544, elementOrHash.elementID: 4417277440.10>

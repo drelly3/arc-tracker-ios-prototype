@@ -1,0 +1,12 @@
+Failed to tap "OK" Button: No matches found for Elements matching predicate '"OK" IN identifiers' from input {(
+    Button, label: 'Cancel',
+    Button, label: 'Ok'
+)}
+Possibly caused by runtime issues:
+Automation type mismatch: computed Alert from legacy attributes vs Sheet from modern attribute. Input attributes and values: {
+    "XC_kAXXCAttributeAutomationType" = 3;
+    "XC_kAXXCAttributeElementBaseType" = "_UIAlertControllerPhoneTVMacView";
+    "XC_kAXXCAttributeElementType" = "_UIAlertControllerPhoneTVMacView";
+    "XC_kAXXCAttributeTraits" = 72057602627862528;
+}
+See test report attachments for more detail.
