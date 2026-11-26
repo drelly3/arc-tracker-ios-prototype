@@ -2973,7 +2973,7 @@ function renderGuide(){
     step(quests.some(q=>!q.deleted),'Set your Main Quest','The big goal you’re working toward, with a few milestones. Tap <b>Set a Main Quest</b> on <b>Today</b>.', quests.some(q=>!q.deleted)?'':go('today','Set your quest'))+
     step(named>=2,'Name your habits','In <b>Setup</b>: one daily non-negotiable plus a couple more. Keep each one tiny, like “open the book.”', named>=2?'':go('setup','Open Setup'))+
     step(!!(habits.sc && habits.sc.habit),'Pick your weakness habit','In <b>Setup</b>. One small thing that fights your archetype’s weak spot.')+
-    step(IS_STANDALONE,'Add it to your Home Screen','iPhone: Share, then <b>Add to Home Screen</b>. Android: the browser menu, then <b>Install app</b>.')+
+    (isLocalOnly()?'':step(IS_STANDALONE,'Add it to your Home Screen','iPhone: Share, then <b>Add to Home Screen</b>. Android: the browser menu, then <b>Install app</b>.'))+
     step(pushState==='on','Turn on reminders','In <b>Setup</b>, under <b>Reminders</b>.')+
   `</ol>
 
