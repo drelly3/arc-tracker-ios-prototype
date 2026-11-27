@@ -847,14 +847,16 @@ function coachPrompt(inp){
 function coachCardHtml(){
   refreshAiStatus();
   if(aiStatus!=='available') return '';
-  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return '';
+  const disc = coachDisclosureHtml();
+  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return disc;
   const key = JSON.stringify(inp), c = load(COACH_KEY,null), fresh = c && c.key===key && c.text;
-  return '<div class="card coach-note"><div class="card-kicker">Coach note</div>'+
+  return disc+'<div class="card coach-note"><div class="card-kicker">Coach note</div>'+
     (fresh ? '<p class="ai-text">'+escapeHtml(c.text)+'</p><p class="card-note">Written on this phone by Apple\u2019s on-device AI from your habits'+(inp.quests.length?' and Main Quests':'')+'. It can be wrong and isn\u2019t advice.</p><button type="button" class="btn ghost" id="coachBtn">New suggestion</button>'
            : '<p class="card-note" style="margin-top:0;">A suggestion based on your habits'+(inp.quests.length?' and Main Quests':'. Set a Main Quest and it can connect to your goal')+'. Runs on this phone, nothing is sent anywhere.</p><button type="button" class="btn ghost" id="coachBtn">'+(coachFail?'Couldn\u2019t write one. Try again':'Get a coach note')+'</button>')+
     '</div>';
 }
 function wireCoach(el){
+  wireCoachDisclosure(el);
   coachPrepare();
   const b = el.querySelector('#coachBtn'); if(!b) return;
   b.addEventListener('click', ()=>{
@@ -864,55 +866,81 @@ function wireCoach(el){
     p.coachNote({summary: coachPrompt(inp)})
       .then(r=>{ const x = String((r && r.text) || '').trim().slice(0,700); if(x) persist(COACH_KEY, {key, text:x, day:todayStr()}); else coachFail = true; })
       .catch(()=>{ coachFail = true; })
-      .finally(()=>{ coachBusy = false; coachSchedule(); renderProgress(); });
+      .finally(()=>{ coachBusy = false; renderProgress(); });
   });
 }
-// Coach check-ins: a separate opt-in with its own permission check. It never reads or changes the habit-reminder
-// setting, and uses its own notification id (9101, outside the range the reminder sync clears).
-// Text is written on the phone when the app is open and scheduled for a later day; it cannot react to later events.
-const COACH_NID = 9101;
+// Coach check-ins: own opt-out switch and own permission check. It never reads or changes the habit-reminder
+// setting, and uses its own notification ids 9101-9103. The reminder sync and disable only clear ids below 9000,
+// and the test notification uses 9001, so none of them can touch these. Cancelled by: the switch, a frequency
+// change, a changed goal set (at the next open), and "Reset your whole arc".
+// This is a finite queue written while the app is open (weekly: 1 note, a few per week: up to 3, at most about 5 days
+// ahead). Slots are fixed once queued, so opening the app never pushes them later. If the app is not opened the queue
+// runs out and nothing more is sent: the phone does not think in the background.
+const COACH_IDS = [9101, 9102, 9103], COACH_Q = 'arc_coach_q', COACH_SEEN = 'arc_coach_seen';
+const COACH_LOCK = 'generic'; // 'generic' shows "Your coach has a suggestion" on the lock screen; 'full' shows the first sentence
 const coachLN = ()=>{ const c = window.Capacitor; return c && c.Plugins && c.Plugins.LocalNotifications; };
 async function coachPerm(){ const ln = coachLN(); if(!ln) return 'unsupported'; try{ return (await ln.checkPermissions()).display; }catch(e){ return 'unsupported'; } }
 async function coachAsk(){ const cur = await coachPerm(); if(cur==='granted' || cur==='denied' || cur==='unsupported') return cur; try{ return (await coachLN().requestPermissions()).display; }catch(e){ return 'unsupported'; } }
-async function coachCancel(){ const ln = coachLN(); if(!ln) return; try{ await ln.cancel({notifications:[{id:COACH_NID}]}); }catch(e){} }
-function coachBody(t){ const s = String(t||'').replace(/\s+/g,' ').trim(), m = s.match(/^.{20,160}?[.!?](\s|$)/); return (m ? m[0].trim() : s.slice(0,150)); }
-function coachWhen(freq){ const d = new Date(); d.setDate(d.getDate() + (freq==='few' ? 2 : 4)); d.setHours(10,0,0,0); return d; }
-async function coachSchedule(){
+async function coachCancelAll(){ const ln = coachLN(); if(ln){ try{ await ln.cancel({notifications:COACH_IDS.map(id=>({id}))}); }catch(e){} } const q = load(COACH_Q,{}); persist(COACH_Q, {lastAt:q.lastAt||'', items:[]}); }
+function coachBody(t){ if(COACH_LOCK!=='full') return 'Your coach has a suggestion.'; const s = String(t||'').replace(/\s+/g,' ').trim(), m = s.match(/^.{20,160}?[.!?](\s|$)/); return (m ? m[0].trim() : s.slice(0,150)); }
+function coachDue(base, days){ const d = new Date(base); d.setDate(d.getDate()+days); d.setHours(10,0,0,0); return d; }
+function coachPlan(freq){ return freq==='few' ? {n:3, gap:2} : {n:1, gap:7}; }
+async function coachGen(prev){
+  const pl = aiPlugin(); if(!pl || !pl.coachNote) return '';
+  let s = coachPrompt(coachInput()); if(prev.length) s += 'Suggestions already queued, do not repeat them or their angle:\n'+prev.map(x=>'- '+x.text).join('\n')+'\n';
+  try{ const r = await pl.coachNote({summary:s}); return String((r && r.text) || '').trim().slice(0,700); }catch(e){ return ''; }
+}
+// Bring the queue up to date. Runs only when the app is open.
+async function coachSync(){
   const p = coachPref(); if(!p.on) return {ok:false, reason:'off'};
+  if(!load(COACH_SEEN,false)) return {ok:false, reason:'unseen'};
   const perm = await coachPerm(); if(perm!=='granted') return {ok:false, reason:perm};
-  const c = load(COACH_KEY,null); if(!c || !c.text || c.key!==JSON.stringify(coachInput())) return {ok:false, reason:'nonote'};
-  const at = coachWhen(p.freq);
+  refreshAiStatus(); if(aiStatus!=='available') return {ok:false, reason:'noai'};
+  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return {ok:false, reason:'nodata'};
+  if(coachBusy) return {ok:false, reason:'busy'};
+  coachBusy = true;
   try{
-    await coachCancel();
-    await coachLN().schedule({notifications:[{id:COACH_NID, title:'Arc Tracker coach', body:coachBody(c.text), schedule:{at}, extra:{kind:'coach'}}]});
-    persist(COACH_KEY, {...c, sched:at.toISOString()});
-    return {ok:true, at};
+    const now = Date.now(), gk = JSON.stringify(inp.quests), q = load(COACH_Q,{items:[]}), plan = coachPlan(p.freq);
+    let items = q.items||[], lastAt = q.lastAt||'';
+    items.filter(i=>new Date(i.at)<=now).forEach(i=>{ if(i.at>lastAt) lastAt = i.at; });
+    if(q.freq!==p.freq || q.gk!==gk){ items = []; await coachCancelAll(); }
+    else items = items.filter(i=>new Date(i.at)>now);
+    while(items.length<plan.n){
+      const text = await coachGen(items); if(!text) break;
+      const used = items.map(i=>i.id), id = COACH_IDS.find(x=>!used.includes(x)); if(!id) break;
+      let at = items.length ? coachDue(items[items.length-1].at, plan.gap) : coachDue(now, 1);
+      if(!items.length && lastAt){ const min = coachDue(lastAt, plan.gap); if(min>at) at = min; }
+      items.push({id, at:at.toISOString(), text});
+    }
+    const ln = coachLN();
+    await ln.cancel({notifications:COACH_IDS.map(id=>({id}))});
+    if(items.length) await ln.schedule({notifications:items.map(i=>({id:i.id, title:'Arc Tracker coach', body:coachBody(i.text), schedule:{at:new Date(i.at)}, extra:{kind:'coach'}}))});
+    persist(COACH_Q, {freq:p.freq, gk, lastAt, items});
+    return {ok:true, count:items.length};
   }catch(e){ return {ok:false, reason:'error'}; }
+  finally{ coachBusy = false; }
 }
-// Called when the app is open: write a note if there is no current one, then (re)schedule the next check-in.
-async function coachPrepare(){
-  const p = coachPref(); if(!p.on || coachBusy) return;
-  refreshAiStatus(); if(aiStatus!=='available') return;
-  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return;
-  const key = JSON.stringify(inp), c = load(COACH_KEY,null), pl = aiPlugin();
-  if(!(c && c.key===key && c.text)){
-    if(!pl || !pl.coachNote) return;
-    coachBusy = true;
-    try{ const r = await pl.coachNote({summary: coachPrompt(inp)}), x = String((r && r.text) || '').trim().slice(0,700); if(x) persist(COACH_KEY, {key, text:x, day:todayStr()}); }catch(e){ coachFail = true; }
-    coachBusy = false;
-  }
-  await coachSchedule();
-}
+function coachPrepare(){ return coachSync(); }
 async function coachStatusText(){
   const p = coachPref(); if(!p.on) return 'Off. No check-ins are scheduled.';
+  if(!load(COACH_SEEN,false)) return 'On. Nothing is scheduled until you confirm below.';
   const perm = await coachPerm();
   if(perm==='denied') return 'Notifications are turned off for Arc Tracker in iOS Settings. Turn them on there to get check-ins.';
   if(perm==='unsupported') return 'Notifications aren\u2019t available here.';
   if(perm!=='granted') return 'On, but iOS hasn\u2019t allowed notifications for Arc Tracker yet. Tap \u201cAllow notifications\u201d to get check-ins.';
-  const c = load(COACH_KEY,null);
-  return c && c.sched ? 'Next check-in around '+new Date(c.sched).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+', 10:00. Refreshed each time you open the app.' : 'On. The first check-in is scheduled the next time you open the app.';
+  const q = load(COACH_Q,{items:[]}), n = (q.items||[]).filter(i=>new Date(i.at)>Date.now()).length;
+  return n ? n+' check-in'+(n>1?'s':'')+' queued, next around '+new Date(q.items[0].at).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+', 10:00. More are written when you open the app; if you don\u2019t, they stop after these.' : 'On. Check-ins are written the next time you open the app.';
 }
-// Proposed controls for review.
+function coachDisclosureHtml(){
+  if(load(COACH_SEEN,false) || !coachPref().on) return '';
+  return '<div class="card"><div class="card-kicker">Coach check-ins are on</div><p class="card-note" style="margin-top:0;">The app can send you short suggestions about your habits and Main Quests, written on this phone and sent as notifications. Nothing leaves the phone. They are written when you open the app, so they can\u2019t react to things that happen later. iPhone will ask before anything is sent. You can turn this off any time in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Keep on</button><button type="button" class="btn ghost" id="coachOffNow">Turn off</button></div></div>';
+}
+function wireCoachDisclosure(el){
+  const k = el.querySelector('#coachKeep'), o = el.querySelector('#coachOffNow');
+  if(k) k.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); await coachAsk(); await coachSync(); renderProgress(); });
+  if(o) o.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); persist(COACH_PREF,{on:false,freq:coachPref().freq}); await coachCancelAll(); renderProgress(); });
+}
+// Controls for review.
 function coachSetupHtml(group){
   refreshAiStatus();
   if(aiStatus!=='available') return '';
@@ -925,20 +953,16 @@ function coachSetupHtml(group){
     '<div class="helptext">Separate from your habit reminders: works even if those are off, and turning one off does not change the other. Written when you open the app and sent later, so a check-in can\u2019t react to something that happens after it was written.</div></div></div></details>';
 }
 function wireCoachSetup(el){
-  const on = el.querySelector('#coachOn'), fq = el.querySelector('#coachFreq'), st = el.querySelector('#coachStatus'); if(!on || !fq) return;
-  const al = el.querySelector('#coachAllow');
-  const show = ()=>Promise.all([coachStatusText(), coachPerm()]).then(([t,perm])=>{ if(st) st.textContent = t; if(al) al.style.display = (on.checked && (perm==='prompt' || perm==='prompt-with-rationale')) ? '' : 'none'; });
-  if(al) al.addEventListener('click', async ()=>{ const r = await coachAsk(); if(r==='granted') await coachPrepare(); show(); });
+  const on = el.querySelector('#coachOn'), fq = el.querySelector('#coachFreq'), st = el.querySelector('#coachStatus'), al = el.querySelector('#coachAllow'); if(!on || !fq) return;
+  const show = ()=>Promise.all([coachStatusText(), coachPerm()]).then(([t,perm])=>{ if(st) st.textContent = t; if(al) al.style.display = (on.checked && load(COACH_SEEN,false) && (perm==='prompt' || perm==='prompt-with-rationale')) ? '' : 'none'; });
   const save = ()=>persist(COACH_PREF, {on:on.checked, freq:fq.value});
+  if(al) al.addEventListener('click', async ()=>{ const r = await coachAsk(); if(r==='granted') await coachSync(); show(); });
   on.addEventListener('change', async ()=>{
-    if(on.checked){
-      const perm = await coachAsk();
-      if(perm!=='granted'){ await show(); return; }
-      fq.disabled = false; save(); await coachPrepare();
-    } else { fq.disabled = true; save(); await coachCancel(); }
+    save(); fq.disabled = !on.checked; persist(COACH_SEEN,true);
+    if(on.checked){ const perm = await coachAsk(); if(perm==='granted') await coachSync(); } else await coachCancelAll();
     show();
   });
-  fq.addEventListener('change', async ()=>{ save(); if(on.checked) await coachSchedule(); show(); });
+  fq.addEventListener('change', async ()=>{ save(); if(on.checked) await coachSync(); show(); });
   show();
 }
 let reviewWeek = 'this';
@@ -2614,6 +2638,7 @@ function renderSetup(){
     secondWinds=[]; proofGone=[]; challenges=[]; notes=[]; noteFolders=[]; myReminders=[]; quests=[];
     persist(LS.proofGone,proofGone); persist(LS.challenges,challenges); persist(LS.notes,notes); persist(LS.noteFolders,noteFolders); persist(LS.reminders,myReminders); persist(LS.quests,quests);
     persist(LS.profile,profile); persist(LS.habits,habits); persist(LS.log,log); persist(LS.weekly,weekly); persist(LS.secondWinds,secondWinds);
+    coachCancelAll();
     renderAll();
     syncNow({reset:true});
   });
