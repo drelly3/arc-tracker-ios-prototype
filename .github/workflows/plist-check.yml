@@ -1,0 +1,61 @@
+name: Plist readback (unsigned, no secrets)
+
+# Push-triggered only on the plist-check branch. No secrets, no environment, no upload.
+# Builds the same app config unsigned and prints only selected Info.plist keys.
+on:
+  push:
+    branches: [plist-check]
+
+permissions:
+  contents: read
+
+jobs:
+  readback:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add the iOS platform and sync web assets
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Configure app (icon, iPhone-only, encryption flag, permission text)
+        run: |
+          set -euo pipefail
+          test -f release/1-AppIcon-1024.png   # stop here rather than ship the placeholder icon
+          ICONSET=ios/App/App/Assets.xcassets/AppIcon.appiconset
+          cp release/1-AppIcon-1024.png "$ICONSET/AppIcon-512@2x.png"
+          PL=ios/App/App/Info.plist
+          PB=/usr/libexec/PlistBuddy
+          $PB -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PL"
+          $PB -c "Add :NSCameraUsageDescription string Arc Tracker uses your camera only when you choose to take a photo or video as proof of a habit." "$PL"
+          $PB -c "Add :NSMicrophoneUsageDescription string Arc Tracker uses the microphone only if you record a video as proof of a habit." "$PL"
+          $PB -c "Delete :UISupportedInterfaceOrientations~ipad" "$PL" || true
+
+      - name: Unsigned build and read back settings
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            TARGETED_DEVICE_FAMILY=1 PRODUCT_BUNDLE_IDENTIFIER=com.animemindset.arctracker
+          APP=$(find "$RUNNER_TEMP/dd" -name App.app -maxdepth 6 | head -1)
+          PL="$APP/Info.plist"
+          for k in ITSAppUsesNonExemptEncryption NSCameraUsageDescription NSMicrophoneUsageDescription UIDeviceFamily CFBundleDisplayName MinimumOSVersion; do
+            echo "$k = $(/usr/libexec/PlistBuddy -c "Print :$k" "$PL" 2>&1)"
+          done
+          echo "iPad orientations key: $(/usr/libexec/PlistBuddy -c 'Print :UISupportedInterfaceOrientations~ipad' "$PL" 2>&1)"
+          ls "$APP/Assets.car" >/dev/null && echo "Assets.car present"
