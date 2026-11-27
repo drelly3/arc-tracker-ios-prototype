@@ -1,0 +1,10 @@
+variant=stub
+Xcode 26.6
+Build version 17F113
+app bundle: /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app
+error: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app/App (No such file or directory)
+no FoundationModels link line
+Frameworks
+--- runtime log lines from the plugin ---
+getpwuid_r did not find a match for uid 501
+2026-11-27 19:16:06.460 Df log[18969:0] [com.apple.log:] log run noninteractively, parent: 3872 (launchd_sim), args: 'log' 'show' '--last' '30m' '--style' 'compact' '--predicate' 'eventMessage CONTAINS "ArcInsight"'
