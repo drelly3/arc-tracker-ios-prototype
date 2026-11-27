@@ -14,23 +14,34 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "weeklyInsight", returnType: CAPPluginReturnPromise)
     ]
 
+    private func report(_ status: String, _ call: CAPPluginCall) {
+        NSLog("ArcInsight availability=%@ canImportFoundationModels=%@", status, Self.compiledWithFoundationModels ? "yes" : "no")
+        call.resolve(["status": status])
+    }
+
+    #if canImport(FoundationModels)
+    static let compiledWithFoundationModels = true
+    #else
+    static let compiledWithFoundationModels = false
+    #endif
+
     @objc func availability(_ call: CAPPluginCall) {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
             switch SystemLanguageModel.default.availability {
             case .available:
-                call.resolve(["status": "available"])
+                report("available", call)
             case .unavailable(.deviceNotEligible):
-                call.resolve(["status": "deviceNotEligible"])
+                report("deviceNotEligible", call)
             case .unavailable(.modelNotReady):
-                call.resolve(["status": "modelNotReady"])
+                report("modelNotReady", call)
             case .unavailable:
-                call.resolve(["status": "unavailable"])
+                report("unavailable", call)
             }
             return
         }
         #endif
-        call.resolve(["status": "unsupported"])
+        report("unsupported", call)
     }
 
     @objc func weeklyInsight(_ call: CAPPluginCall) {
@@ -60,5 +71,12 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         #endif
         call.reject("unsupported")
+    }
+}
+
+// Registers the plugin with the bridge (the app has no other native code).
+class ArcBridgeViewController: CAPBridgeViewController {
+    override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(ArcInsightPlugin())
     }
 }
