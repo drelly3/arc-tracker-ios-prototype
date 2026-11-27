@@ -68,9 +68,22 @@ jobs:
             localStorage.setItem('arc_habits', JSON.stringify({h1:{cue:'After coffee',habit:'Read one page'},h2:{cue:'After dinner',habit:'Plan the next day'},h3:{cue:'Before bed',habit:'10 push-ups'},sc:{cue:'',habit:''}}));
             var log=[]; for(var i=5;i>=0;i--){ log.push({date:day(i),h1:i!==2,h2:i%2===0,h3:i<3,sc:false,note:'',t:Date.now()-i*86400000}); }
             localStorage.setItem('arc_log', JSON.stringify(log));
+            localStorage.setItem('arc_week_seen', JSON.stringify(day(0)));
           }catch(e){} })();
           JS
           cat /tmp/seed.js "$F" > /tmp/patched.js
+          cat > /tmp/diag.py <<'PYD'
+          p='/tmp/patched.js'
+          s=open(p).read()
+          old="p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported';"
+          assert s.count(old)==1
+          s=s.replace(old, "p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; try{ var dg=document.getElementById('aidiag')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'aidiag'})); dg.textContent='AI-STATUS='+aiStatus; dg.style.cssText='position:fixed;top:60px;left:0;z-index:99999;color:#0f0;background:#000;font-size:14px;padding:2px'; }catch(x){}")
+          old3="}).catch(()=>{ aiStatus = 'unsupported'; });"
+          assert s.count(old3)==1
+          s=s.replace(old3, "}).catch((err)=>{ aiStatus = 'unsupported'; try{ var dg=document.getElementById('aidiag')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'aidiag'})); dg.textContent='AI-STATUS=ERR '+String(err&&(err.message||err.code||err)); dg.style.cssText='position:fixed;top:60px;left:0;z-index:99999;color:#f55;background:#000;font-size:14px;padding:2px'; }catch(x){} });")
+          open(p,'w').write(s)
+          PYD
+          python3 /tmp/diag.py
           if [ "$VARIANT" = "stub" ]; then
             cat > /tmp/stub.py <<'PYX'
           p='/tmp/patched.js'
@@ -182,6 +195,8 @@ jobs:
                   _ = scrollUntilHittable(card, 8)
                   sleep(1)
                   shot("02-progress-weekly-review")
+                  let diag = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "AI-STATUS=")).firstMatch
+                  if diag.waitForExistence(timeout: 8) { print("AI-STATUS-LABEL=\(diag.label)") } else { print("AI-STATUS-LABEL=none") }
                   let btn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Get an AI insight")).firstMatch
                   let present = btn.waitForExistence(timeout: 6)
                   print("AI-BUTTON-PRESENT=\(present)")
@@ -374,11 +389,17 @@ jobs:
             APP=$(find ~/Library/Developer/Xcode/DerivedData -name App.app -path '*Debug-iphonesimulator*' | head -1)
             echo "app bundle: $APP"
             otool -L "$APP/App" | grep -i -E "FoundationModels" || echo "no FoundationModels link line"
-            echo "ArcInsightPlugin symbols: $(nm "$APP/App" 2>/dev/null | grep -c ArcInsightPlugin)"
-            echo "LanguageModelSession mentions: $(strings "$APP/App" | grep -c LanguageModelSession)"
+            for B in "$APP/App" "$APP/App.debug.dylib"; do
+              [ -e "$B" ] || continue
+              echo "== $B"
+              otool -L "$B" | grep -i FoundationModels || echo "no FoundationModels link line"
+              echo "ArcInsightPlugin symbols: $(nm "$B" 2>/dev/null | grep -c ArcInsightPlugin)"
+              echo "LanguageModelSession mentions: $(strings "$B" | grep -c LanguageModelSession)"
+            done
+            ls "$APP" | head -20
             echo "--- runtime log lines from the plugin ---"
             xcrun simctl spawn "$UDID" log show --last 30m --style compact --predicate 'eventMessage CONTAINS "ArcInsight"' | grep -i arcinsight | head -20 || true
-            grep -E "AI-BUTTON-PRESENT|AI-RESULT-SHOWN" /tmp/xcodebuild-test.log || true
+            grep -E "AI-BUTTON-PRESENT|AI-RESULT-SHOWN|AI-STATUS-LABEL" /tmp/xcodebuild-test.log || true
           } > shots/evidence.txt 2>&1
           cat shots/evidence.txt
 
