@@ -1,0 +1,12 @@
+variant=real
+no inject info
+Xcode 26.6
+Build version 17F113
+find: /Users/runner/Library/Developer/Xcode/DerivedData: No such file or directory
+app bundle: 
+error: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /App (No such file or directory)
+no FoundationModels link line
+ls: : No such file or directory
+--- runtime log lines from the plugin ---
+Invalid device: 
+grep: /tmp/xcodebuild-test.log: No such file or directory
