@@ -11,7 +11,8 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "ArcInsight"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "availability", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "weeklyInsight", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "weeklyInsight", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "coachNote", returnType: CAPPluginReturnPromise)
     ]
 
     private func report(_ status: String, _ call: CAPPluginCall) {
@@ -44,7 +45,23 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
         report("unsupported", call)
     }
 
-    @objc func weeklyInsight(_ call: CAPPluginCall) {
+    private static let weeklyInstructions = """
+    You write a short, kind weekly habit insight (max 3 sentences) using only the habit summary given. \
+    Do not give medical, health, financial or other factual advice. Do not invent data.
+    """
+
+    private static let coachInstructions = """
+    You are a supportive habit coach. From the habits and goals given, write at most 3 short sentences: \
+    one specific, practical suggestion the person may not have thought of, tied to one named goal or habit from the data. \
+    Use only the data given. Do not give medical, health, financial or other factual advice. Do not invent data or numbers. \
+    Never shame the person. If there are no goals, suggest one small adjustment to a habit.
+    """
+
+    @objc func weeklyInsight(_ call: CAPPluginCall) { generate(call, Self.weeklyInstructions) }
+
+    @objc func coachNote(_ call: CAPPluginCall) { generate(call, Self.coachInstructions) }
+
+    private func generate(_ call: CAPPluginCall, _ instructions: String) {
         guard let summary = call.getString("summary"), !summary.isEmpty else {
             call.reject("summary required")
             return
@@ -57,10 +74,7 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             Task {
                 do {
-                    let session = LanguageModelSession(instructions: """
-                    You write a short, kind weekly habit insight (max 3 sentences) using only the habit summary given. \
-                    Do not give medical, health, financial or other factual advice. Do not invent data.
-                    """)
+                    let session = LanguageModelSession(instructions: instructions)
                     let response = try await session.respond(to: summary)
                     call.resolve(["text": response.content])
                 } catch {
