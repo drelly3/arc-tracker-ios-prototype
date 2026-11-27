@@ -1,0 +1,44 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "2CDB4708-4CD9-40B0-9B8D-71F62E9A0160",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "8DC2C64B-41D2-4FE3-BA6E-3D205C71DB9B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04-ai-result_0_D12765C2-EF37-4544-B616-BD0C2DA519A2.png",
+        "timestamp" : 1795806688.798
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "2CDB4708-4CD9-40B0-9B8D-71F62E9A0160",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "C0315278-4DBD-423A-8B77-5A714E5B1642.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-ai-button_0_0A02005B-CBBC-45D4-8F75-B8DA6D012D74.png",
+        "timestamp" : 1795806685.743
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "2CDB4708-4CD9-40B0-9B8D-71F62E9A0160",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "896AEBB5-5D2A-471C-969C-FAC23723DAFD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-progress-weekly-review_0_72083EC7-3926-4462-8EA2-321D23709916.png",
+        "timestamp" : 1795806682.701
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "2CDB4708-4CD9-40B0-9B8D-71F62E9A0160",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "8776B7EE-3227-4212-892D-69BA488C3373.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-today_0_0BADF2EA-AEF7-4F3B-9577-B78CD1478473.png",
+        "timestamp" : 1795806664.917
+      }
+    ],
+    "testIdentifier" : "AppUITests/testInsightScreens()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testInsightScreens"
+  }
+]
