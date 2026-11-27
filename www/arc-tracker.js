@@ -948,7 +948,7 @@ function coachDisclosureHtml(){
 function wireCoachDisclosure(el){
   const k = el.querySelector('#coachKeep'), o = el.querySelector('#coachOffNow'), td = el.querySelector('#coachTapDone');
   if(td) td.addEventListener('click', ()=>{ persist(COACH_TAP,null); renderProgress(); });
-  if(k) k.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); await coachAsk(); await coachSync(); renderProgress(); });
+  if(k) k.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); renderProgress(); });
   if(o) o.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); persist(COACH_PREF,{on:false,freq:coachPref().freq}); await coachCancelAll(); renderProgress(); });
 }
 // Controls for review.
