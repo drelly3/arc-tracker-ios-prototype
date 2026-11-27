@@ -784,14 +784,15 @@ function weekReviewLines(w){
 let aiStatus = '', aiCur = null, aiBusy = false, aiFail = false, aiProxy = null; const aiText = {};
 function aiPlugin(){
   if(aiProxy) return aiProxy;
-  try{ if(isLocalOnly() && window.Capacitor && window.Capacitor.registerPlugin) aiProxy = window.Capacitor.registerPlugin('ArcInsight'); }catch(e){ aiProxy = null; }
+  // This app has no bundler: the Capacitor global in the iOS web view has no registerPlugin (seen in the simulator run), so use the native-registered plugin from Capacitor.Plugins, as the reminders code does.
+  try{ const C = window.Capacitor; if(isLocalOnly() && C){ if(C.registerPlugin) aiProxy = C.registerPlugin('ArcInsight'); else if(C.Plugins && C.Plugins.ArcInsight) aiProxy = C.Plugins.ArcInsight; } }catch(e){ aiProxy = null; }
   return aiProxy;
 }
 function refreshAiStatus(){
   if(aiStatus) return;
   const p = aiPlugin(); if(!p){ aiStatus = 'none'; return; }
   aiStatus = 'checking';
-  p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; if(aiStatus==='available') renderProgress(); }).catch(()=>{ aiStatus = 'unsupported'; });
+  p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; if(aiStatus==='available'){ renderProgress(); try{ const st = document.getElementById('tab-setup'); if(!(st && st.classList.contains('active'))) renderSetup(); }catch(e){} } }).catch(()=>{ aiStatus = 'unsupported'; });
 }
 function aiSummary(w){
   return 'Week '+w.no+' of the person\u2019s habit arc: '+w.done+' of '+w.possible+' missions completed ('+w.pct+'%). '+
@@ -827,7 +828,7 @@ function wireAiInsight(el){
 const COACH_KEY = 'arc_coach', COACH_PREF = 'arc_coach_pref';
 let coachBusy = false, coachFail = false;
 // Default is ON (owner's decision), but nothing is scheduled until iOS notification permission is granted; the user can switch it off in Setup.
-function coachPref(){ const p = load(COACH_PREF,{}); return {on:p.on!==false, freq:(p.freq==='few'?'few':'weekly')}; }
+function coachPref(){ const p = load(COACH_PREF,{}); return {on:p.on!==false, freq:(p.freq==='weekly'?'weekly':'few')}; }
 function coachInput(){
   const t = todayStr(), from = shiftDay(t,-13), by = Object.fromEntries(log.map(e=>[e.date,e]));
   const days = []; for(let d = from; d <= t; d = shiftDay(d,1)) days.push(d);
@@ -884,7 +885,8 @@ async function coachAsk(){ const cur = await coachPerm(); if(cur==='granted' || 
 async function coachCancelAll(){ const ln = coachLN(); if(ln){ try{ await ln.cancel({notifications:COACH_IDS.map(id=>({id}))}); }catch(e){} } const q = load(COACH_Q,{}); persist(COACH_Q, {lastAt:q.lastAt||'', items:[]}); }
 function coachBody(t){ if(COACH_LOCK!=='full') return 'Your coach has a suggestion.'; const s = String(t||'').replace(/\s+/g,' ').trim(), m = s.match(/^.{20,160}?[.!?](\s|$)/); return (m ? m[0].trim() : s.slice(0,150)); }
 function coachDue(base, days){ const d = new Date(base); d.setDate(d.getDate()+days); d.setHours(10,0,0,0); return d; }
-function coachPlan(freq){ return freq==='few' ? {n:3, gap:2} : {n:1, gap:7}; }
+// Default: twice a week (owner's choice): two queued slots 3 days apart, then at least 4 days after the last one sent (3.5 days on average). Weekly: one slot, 7 days.
+function coachPlan(freq){ return freq==='weekly' ? {n:1, gap:7, rest:7} : {n:2, gap:3, rest:4}; }
 async function coachGen(prev){
   const pl = aiPlugin(); if(!pl || !pl.coachNote) return '';
   let s = coachPrompt(coachInput()); if(prev.length) s += 'Suggestions already queued, do not repeat them or their angle:\n'+prev.map(x=>'- '+x.text).join('\n')+'\n';
@@ -916,7 +918,7 @@ async function coachSync(){
       const text = await coachGen(items); if(!text) break;
       const used = items.map(i=>i.id), id = COACH_IDS.find(x=>!used.includes(x)); if(!id) break;
       let at = items.length ? coachDue(items[items.length-1].at, plan.gap) : coachDue(now, 1);
-      if(!items.length && lastAt){ const min = coachDue(lastAt, plan.gap); if(min>at) at = min; }
+      if(!items.length && lastAt){ const min = coachDue(lastAt, plan.rest); if(min>at) at = min; }
       items.push({id, at:at.toISOString(), text});
     }
     const ln = coachLN();
@@ -959,7 +961,7 @@ function coachSetupHtml(group){
   return group('coach','\uD83E\uDDED','Coach check-ins','On by default, you can turn it off')+
     '<p class="section-sub" style="margin-top:4px;">Suggestions written on this phone from your habits and Main Quests. Nothing leaves the phone.</p>'+
     '<div class="card"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="coachOn"'+(p.on?' checked':'')+' style="width:auto;"> Send me coach check-ins</label>'+
-    '<label for="coachFreq">How often</label><select id="coachFreq"'+(p.on?'':' disabled')+'><option value="weekly"'+(p.freq==='weekly'?' selected':'')+'>About once a week</option><option value="few"'+(p.freq==='few'?' selected':'')+'>A few times a week</option></select>'+
+    '<label for="coachFreq">How often</label><select id="coachFreq"'+(p.on?'':' disabled')+'><option value="few"'+(p.freq==='few'?' selected':'')+'>Twice a week</option><option value="weekly"'+(p.freq==='weekly'?' selected':'')+'>Once a week</option></select>'+
     '<div class="helptext" id="coachStatus">&nbsp;</div><button type="button" class="btn ghost" id="coachAllow" style="display:none;">Allow notifications</button>'+
     '<div class="helptext">Separate from your habit reminders: works even if those are off, and turning one off does not change the other. Written when you open the app and sent later, so a check-in can\u2019t react to something that happens after it was written.</div></div></div></details>';
 }
