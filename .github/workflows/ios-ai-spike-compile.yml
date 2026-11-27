@@ -1,0 +1,56 @@
+name: iOS AI insight spike (compile only)
+
+# Manual trigger only. Compile proof of the on-device AI plugin on the iOS 26 SDK.
+# Does not run the model. Real-device validation is separate.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  compile:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Add the iOS platform
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i ios
+          grep -m3 IPHONEOS_DEPLOYMENT_TARGET ios/App/App.xcodeproj/project.pbxproj || true
+
+      - name: Add the Swift plugin to the App target
+        run: |
+          cp native/ArcInsightPlugin.swift ios/App/App/ArcInsightPlugin.swift
+          ruby -e '
+          require "xcodeproj"
+          proj = Xcodeproj::Project.open("ios/App/App.xcodeproj")
+          target = proj.targets.find { |t| t.name == "App" }
+          group = proj.main_group.find_subpath("App", true)
+          ref = group.new_file("ArcInsightPlugin.swift")
+          target.add_file_references([ref])
+          proj.save
+          '
+
+      - name: Compile (unsigned iOS Simulator build, iOS 26 SDK)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
