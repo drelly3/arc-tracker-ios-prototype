@@ -38,6 +38,19 @@ jobs:
           npx cap add ios
           npx cap sync ios
 
+      - name: Configure app (icon, iPhone-only, encryption flag, permission text)
+        run: |
+          set -euo pipefail
+          test -f release/1-AppIcon-1024.png   # stop here rather than ship the placeholder icon
+          ICONSET=ios/App/App/Assets.xcassets/AppIcon.appiconset
+          cp release/1-AppIcon-1024.png "$ICONSET/AppIcon-512@2x.png"
+          PL=ios/App/App/Info.plist
+          PB=/usr/libexec/PlistBuddy
+          $PB -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PL"
+          $PB -c "Add :NSCameraUsageDescription string Arc Tracker uses your camera only when you choose to take a photo or video as proof of a habit." "$PL"
+          $PB -c "Add :NSMicrophoneUsageDescription string Arc Tracker uses the microphone only if you record a video as proof of a habit." "$PL"
+          $PB -c "Delete :UISupportedInterfaceOrientations~ipad" "$PL" || true
+
       - name: Install signing certificate and profile
         env:
           DIST_P12_B64: ${{ secrets.DIST_P12_B64 }}
@@ -78,6 +91,7 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
             PRODUCT_BUNDLE_IDENTIFIER=com.animemindset.arctracker \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            TARGETED_DEVICE_FAMILY=1 \
             MARKETING_VERSION=1.0
 
       - name: Export IPA
