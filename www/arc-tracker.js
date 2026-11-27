@@ -157,7 +157,7 @@ function iconSVG(arche, size){
 /* ---------------- Storage ---------------- */
 const LS = {profile:'arc_profile',habits:'arc_habits',log:'arc_log',weekly:'arc_weekly',reminder:'arc_reminder',secondWinds:'arc_second_winds',proofGone:'arc_proof_gone',challenges:'arc_challenges',notes:'arc_notes',noteFolders:'arc_note_folders',reminders:'arc_reminders',quests:'arc_quests'};
 function load(k,fb){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):fb; }catch(e){ return fb; } }
-function persist(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} if(SYNCED.includes(k) && !applyingSync){ editSeq++; scheduleSync(); } }
+function persist(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} try{ if((k===LS.quests || k===LS.habits) && typeof coachGoalsChanged==='function') coachGoalsChanged(); }catch(e){} if(SYNCED.includes(k) && !applyingSync){ editSeq++; scheduleSync(); } }
 
 // Testing aid for the local preview only: adding ?fresh to the address starts as a brand-new member
 // (no archetype, no log, and an emptied preview backup) so the first-visit screens can be replayed.
@@ -847,7 +847,7 @@ function coachPrompt(inp){
 function coachCardHtml(){
   refreshAiStatus();
   if(aiStatus!=='available') return '';
-  const disc = coachDisclosureHtml();
+  const disc = coachTapHtml()+coachDisclosureHtml();
   const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return disc;
   const key = JSON.stringify(inp), c = load(COACH_KEY,null), fresh = c && c.key===key && c.text;
   return disc+'<div class="card coach-note"><div class="card-kicker">Coach note</div>'+
@@ -890,17 +890,24 @@ async function coachGen(prev){
   let s = coachPrompt(coachInput()); if(prev.length) s += 'Suggestions already queued, do not repeat them or their angle:\n'+prev.map(x=>'- '+x.text).join('\n')+'\n';
   try{ const r = await pl.coachNote({summary:s}); return String((r && r.text) || '').trim().slice(0,700); }catch(e){ return ''; }
 }
+// Goals and habit names (not daily counts) decide when queued text is out of date.
+function coachGoalsKey(inp){ return JSON.stringify([inp.quests, inp.habits.map(h=>h.name)]); }
+// Called right after a goal or habit edit: drop the queue at once if what it was written from changed.
+function coachGoalsChanged(){ const q = load(COACH_Q,null); if(!q || !(q.items||[]).length) return; let k; try{ k = coachGoalsKey(coachInput()); }catch(e){ return; } if(q.gk!==k) coachCancelAll(); }
+// Tapping a check-in opens the suggestion that was sent (carried in the notification), not whatever is cached.
+const COACH_TAP = 'arc_coach_tap';
+function coachInitTap(){ const ln = coachLN(); if(ln && ln.addListener) ln.addListener('localNotificationActionPerformed', e=>{ const x = e && e.notification && e.notification.extra; if(x && x.kind==='coach' && x.text){ persist(COACH_TAP,{text:String(x.text).slice(0,700)}); try{ showTab('progress'); renderProgress(); }catch(err){} } }); }
+try{ coachInitTap(); }catch(e){}
 // Bring the queue up to date. Runs only when the app is open.
 async function coachSync(){
   const p = coachPref(); if(!p.on) return {ok:false, reason:'off'};
-  if(!load(COACH_SEEN,false)) return {ok:false, reason:'unseen'};
   const perm = await coachPerm(); if(perm!=='granted') return {ok:false, reason:perm};
   refreshAiStatus(); if(aiStatus!=='available') return {ok:false, reason:'noai'};
   const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return {ok:false, reason:'nodata'};
   if(coachBusy) return {ok:false, reason:'busy'};
   coachBusy = true;
   try{
-    const now = Date.now(), gk = JSON.stringify(inp.quests), q = load(COACH_Q,{items:[]}), plan = coachPlan(p.freq);
+    const now = Date.now(), gk = coachGoalsKey(inp), q = load(COACH_Q,{items:[]}), plan = coachPlan(p.freq);
     let items = q.items||[], lastAt = q.lastAt||'';
     items.filter(i=>new Date(i.at)<=now).forEach(i=>{ if(i.at>lastAt) lastAt = i.at; });
     if(q.freq!==p.freq || q.gk!==gk){ items = []; await coachCancelAll(); }
@@ -914,7 +921,7 @@ async function coachSync(){
     }
     const ln = coachLN();
     await ln.cancel({notifications:COACH_IDS.map(id=>({id}))});
-    if(items.length) await ln.schedule({notifications:items.map(i=>({id:i.id, title:'Arc Tracker coach', body:coachBody(i.text), schedule:{at:new Date(i.at)}, extra:{kind:'coach'}}))});
+    if(items.length) await ln.schedule({notifications:items.map(i=>({id:i.id, title:'Arc Tracker coach', body:coachBody(i.text), schedule:{at:new Date(i.at)}, extra:{kind:'coach', text:i.text}}))});
     persist(COACH_Q, {freq:p.freq, gk, lastAt, items});
     return {ok:true, count:items.length};
   }catch(e){ return {ok:false, reason:'error'}; }
@@ -923,7 +930,6 @@ async function coachSync(){
 function coachPrepare(){ return coachSync(); }
 async function coachStatusText(){
   const p = coachPref(); if(!p.on) return 'Off. No check-ins are scheduled.';
-  if(!load(COACH_SEEN,false)) return 'On. Nothing is scheduled until you confirm below.';
   const perm = await coachPerm();
   if(perm==='denied') return 'Notifications are turned off for Arc Tracker in iOS Settings. Turn them on there to get check-ins.';
   if(perm==='unsupported') return 'Notifications aren\u2019t available here.';
@@ -931,12 +937,17 @@ async function coachStatusText(){
   const q = load(COACH_Q,{items:[]}), n = (q.items||[]).filter(i=>new Date(i.at)>Date.now()).length;
   return n ? n+' check-in'+(n>1?'s':'')+' queued, next around '+new Date(q.items[0].at).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+', 10:00. More are written when you open the app; if you don\u2019t, they stop after these.' : 'On. Check-ins are written the next time you open the app.';
 }
+function coachTapHtml(){
+  const t = load(COACH_TAP,null); if(!t || !t.text) return '';
+  return '<div class="card coach-note"><div class="card-kicker">Your coach check-in</div><p class="ai-text">'+escapeHtml(t.text)+'</p><p class="card-note">Written on this phone by Apple\u2019s on-device AI when you last had the app open. It can be wrong and isn\u2019t advice.</p><button type="button" class="btn ghost" id="coachTapDone">Done</button></div>';
+}
 function coachDisclosureHtml(){
   if(load(COACH_SEEN,false) || !coachPref().on) return '';
-  return '<div class="card"><div class="card-kicker">Coach check-ins are on</div><p class="card-note" style="margin-top:0;">The app can send you short suggestions about your habits and Main Quests, written on this phone and sent as notifications. Nothing leaves the phone. They are written when you open the app, so they can\u2019t react to things that happen later. iPhone will ask before anything is sent. You can turn this off any time in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Keep on</button><button type="button" class="btn ghost" id="coachOffNow">Turn off</button></div></div>';
+  return '<div class="card"><div class="card-kicker">Coach check-ins are on</div><p class="card-note" style="margin-top:0;">The app can send you short suggestions about your habits and Main Quests, written on this phone and sent as notifications. Nothing leaves the phone. They are written when you open the app, so they can\u2019t react to things that happen later. iPhone has to allow notifications before anything is sent. You can turn this off any time in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Got it</button><button type="button" class="btn ghost" id="coachOffNow">Turn off</button></div></div>';
 }
 function wireCoachDisclosure(el){
-  const k = el.querySelector('#coachKeep'), o = el.querySelector('#coachOffNow');
+  const k = el.querySelector('#coachKeep'), o = el.querySelector('#coachOffNow'), td = el.querySelector('#coachTapDone');
+  if(td) td.addEventListener('click', ()=>{ persist(COACH_TAP,null); renderProgress(); });
   if(k) k.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); await coachAsk(); await coachSync(); renderProgress(); });
   if(o) o.addEventListener('click', async ()=>{ persist(COACH_SEEN,true); persist(COACH_PREF,{on:false,freq:coachPref().freq}); await coachCancelAll(); renderProgress(); });
 }
@@ -954,7 +965,7 @@ function coachSetupHtml(group){
 }
 function wireCoachSetup(el){
   const on = el.querySelector('#coachOn'), fq = el.querySelector('#coachFreq'), st = el.querySelector('#coachStatus'), al = el.querySelector('#coachAllow'); if(!on || !fq) return;
-  const show = ()=>Promise.all([coachStatusText(), coachPerm()]).then(([t,perm])=>{ if(st) st.textContent = t; if(al) al.style.display = (on.checked && load(COACH_SEEN,false) && (perm==='prompt' || perm==='prompt-with-rationale')) ? '' : 'none'; });
+  const show = ()=>Promise.all([coachStatusText(), coachPerm()]).then(([t,perm])=>{ if(st) st.textContent = t; if(al) al.style.display = (on.checked && (perm==='prompt' || perm==='prompt-with-rationale')) ? '' : 'none'; });
   const save = ()=>persist(COACH_PREF, {on:on.checked, freq:fq.value});
   if(al) al.addEventListener('click', async ()=>{ const r = await coachAsk(); if(r==='granted') await coachSync(); show(); });
   on.addEventListener('change', async ()=>{
