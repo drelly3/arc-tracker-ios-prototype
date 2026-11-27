@@ -932,6 +932,16 @@ async function coachSync(){
   finally{ coachBusy = false; }
 }
 function coachPrepare(){ return coachSync(); }
+// Validation aid for internal test builds: one manual check-in written now and delivered in 10 seconds. It does not touch the queue and never runs by itself.
+const COACH_TEST = true, COACH_TEST_ID = 9104;
+async function coachSendTest(){
+  const perm = await coachPerm(); if(perm!=='granted') return 'Allow notifications first.';
+  refreshAiStatus(); if(aiStatus!=='available') return 'The on-device model is not available on this phone.';
+  if(!coachInput().habits.length && !coachInput().quests.length) return 'Add a habit or Main Quest first.';
+  const text = await coachGen([]); if(!text) return 'The model could not write a check-in. Nothing was scheduled.';
+  try{ await coachLN().schedule({notifications:[{id:COACH_TEST_ID, title:'Arc Tracker coach', body:coachBody(text), schedule:{at:new Date(Date.now()+10000)}, extra:{kind:'coach', text}}]}); }catch(e){ return 'Could not schedule the test check-in.'; }
+  return 'Test check-in scheduled. Lock the phone or leave the app in 10 seconds.';
+}
 async function coachStatusText(){
   const p = coachPref(); if(!p.on) return 'Off. No check-ins are scheduled.';
   const perm = await coachPerm();
@@ -964,13 +974,14 @@ function coachSetupHtml(group){
     '<p class="section-sub" style="margin-top:4px;">Suggestions written on this phone from your habits and Main Quests. Nothing leaves the phone.</p>'+
     '<div class="card"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="coachOn"'+(p.on?' checked':'')+' style="width:auto;"> Send me coach check-ins</label>'+
     '<label for="coachFreq">How often</label><select id="coachFreq"'+(p.on?'':' disabled')+'><option value="few"'+(p.freq==='few'?' selected':'')+'>Twice a week</option><option value="weekly"'+(p.freq==='weekly'?' selected':'')+'>Once a week</option></select>'+
-    '<div class="helptext" id="coachStatus" style="margin-top:14px;">&nbsp;</div><button type="button" class="btn ghost" id="coachAllow" style="display:none;margin:10px 0 14px;">Allow notifications</button>'+
+    '<div class="helptext" id="coachStatus" style="margin-top:14px;">&nbsp;</div><button type="button" class="btn ghost" id="coachAllow" style="display:none;margin:10px 0 14px;">Allow notifications</button>'+(COACH_TEST?'<button type="button" class="btn ghost" id="coachTest" style="display:none;margin:10px 0 14px;">Send a test check-in in 10 seconds</button>':'')+
     '<div class="helptext">Separate from your habit reminders: works even if those are off, and turning one off does not change the other. Written when you open the app and sent later, so a check-in can\u2019t react to something that happens after it was written.</div></div></div></details>';
 }
 function wireCoachSetup(el){
-  const on = el.querySelector('#coachOn'), fq = el.querySelector('#coachFreq'), st = el.querySelector('#coachStatus'), al = el.querySelector('#coachAllow'); if(!on || !fq) return;
-  const show = ()=>Promise.all([coachStatusText(), coachPerm()]).then(([t,perm])=>{ if(st) st.textContent = t; if(al) al.style.display = (on.checked && (perm==='prompt' || perm==='prompt-with-rationale')) ? '' : 'none'; });
+  const on = el.querySelector('#coachOn'), fq = el.querySelector('#coachFreq'), st = el.querySelector('#coachStatus'), al = el.querySelector('#coachAllow'), tb = el.querySelector('#coachTest'); if(!on || !fq) return;
+  const show = ()=>Promise.all([coachStatusText(), coachPerm()]).then(([t,perm])=>{ if(st) st.textContent = t; if(al) al.style.display = (on.checked && (perm==='prompt' || perm==='prompt-with-rationale')) ? '' : 'none'; if(tb) tb.style.display = (on.checked && perm==='granted') ? '' : 'none'; });
   const save = ()=>persist(COACH_PREF, {on:on.checked, freq:fq.value});
+  if(tb) tb.addEventListener('click', async ()=>{ tb.disabled = true; if(st) st.textContent = 'Writing a test check-in on this phone...'; const m = await coachSendTest(); if(st) st.textContent = m; tb.disabled = false; });
   if(al) al.addEventListener('click', async ()=>{ const r = await coachAsk(); if(r==='granted') await coachSync(); show(); });
   on.addEventListener('change', async ()=>{
     save(); fq.disabled = !on.checked; persist(COACH_SEEN,true);
