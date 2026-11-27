@@ -69,6 +69,7 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
             guard case .available = SystemLanguageModel.default.availability else {
+                NSLog("ArcInsight generate rejected: model not available")
                 call.reject("model unavailable")
                 return
             }
@@ -78,6 +79,8 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
                     let response = try await session.respond(to: summary)
                     call.resolve(["text": response.content])
                 } catch {
+                    // Diagnostic only: error type and message, never the prompt or response.
+                    NSLog("ArcInsight generation error type=%@ message=%@", String(describing: type(of: error)), String(describing: error))
                     call.reject("generation failed")
                 }
             }
