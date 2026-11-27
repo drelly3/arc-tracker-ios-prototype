@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A4E3DCB4-D7DA-45EA-AF87-8C367A732B82",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "2CE1F253-D114-4DA3-9B8B-DCC9152AE958.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-progress-weekly-review_0_0E92FDB8-039B-4007-B039-8A78CCE6C4CF.png",
+        "timestamp" : 1795806959.57
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A4E3DCB4-D7DA-45EA-AF87-8C367A732B82",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "297070C5-7121-4186-B473-8B2CD6F0682D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-today_0_EDCDE803-5665-4F65-A141-340A7A33F51D.png",
+        "timestamp" : 1795806946.151
+      }
+    ],
+    "testIdentifier" : "AppUITests/testInsightScreens()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testInsightScreens"
+  }
+]
