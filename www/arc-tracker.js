@@ -1118,7 +1118,7 @@ function renderToday(){
     let row;
     if(p){
       const thumb = p.kind==='image' ? '<img class="proof-thumb" src="'+p.url+'" alt="Your proof">' : '<video class="proof-thumb" src="'+p.url+'" muted playsinline preload="metadata"></video>';
-      row = '<a href="'+p.url+'" target="_blank" rel="noopener" title="Open proof">'+thumb+'</a><span class="proof-ok">Proof +'+PROOF_XP+' XP</span>'+
+      row = '<button type="button" class="proof-open" data-proof-open="'+key+'" title="Open proof" aria-label="Open proof" style="background:none;border:0;padding:0;margin:0;cursor:pointer;">'+thumb+'</button><span class="proof-ok">Proof +'+PROOF_XP+' XP</span>'+
         '<label class="proof-link">Replace<input type="file" accept="image/*,video/*" data-proof="'+key+'" hidden></label>'+
         '<button type="button" class="proof-link" data-proof-remove="'+key+'">Remove</button>';
     } else {
@@ -1149,6 +1149,26 @@ function renderToday(){
     const row = el.querySelector('.checkline.nonneg .proof-add'); if(row){ row.classList.remove('nudge'); void row.offsetWidth; row.classList.add('nudge'); }
   });
   el.querySelectorAll('[data-proof]').forEach(inp=>inp.addEventListener('change',()=>{ if(inp.files && inp.files[0]) addProof(inp.dataset.proof, inp.files[0]); }));
+  // open proof inside the app: a blob: link with target=_blank does nothing in the iPhone shell
+  el.querySelectorAll('[data-proof-open]').forEach(b=>b.addEventListener('click',()=>{
+    const p = dayProof[b.dataset.proofOpen];
+    if(!p) return;
+    const ov = document.createElement('div');
+    ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Proof');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:56px 12px 24px;';
+    const media = document.createElement(p.kind==='image' ? 'img' : 'video');
+    media.src = p.url;
+    if(p.kind==='image'){ media.alt = 'Your proof'; } else { media.controls = true; media.playsInline = true; }
+    media.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;';
+    const close = document.createElement('button');
+    close.type = 'button'; close.textContent = 'Close'; close.setAttribute('aria-label','Close proof');
+    close.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;min-height:44px;padding:0 18px;border-radius:22px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;font:600 16px -apple-system,system-ui,sans-serif;';
+    const done = ()=>{ if(media.pause) media.pause(); ov.remove(); };
+    close.addEventListener('click', done);
+    ov.addEventListener('click', e=>{ if(e.target===ov) done(); });
+    ov.appendChild(media); ov.appendChild(close);
+    document.body.appendChild(ov);
+  }));
   el.querySelectorAll('[data-proof-remove]').forEach(b=>b.addEventListener('click',()=>removeProof(b.dataset.proofRemove)));
   el.querySelectorAll('[data-extra-add]').forEach(inp=>inp.addEventListener('change',()=>{ if(inp.files && inp.files.length) addExtras([...inp.files]); }));
   wireChallenges(el);
