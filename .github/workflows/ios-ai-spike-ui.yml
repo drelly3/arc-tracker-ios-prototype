@@ -90,6 +90,12 @@ jobs:
           assert s.count(old4)==1
           helper="window.__aidiag=window.__aidiag||function(t){ try{ var dg=document.getElementById('aidiag')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'aidiag'})); dg.textContent=t; dg.style.cssText='position:fixed;top:60px;left:0;z-index:99999;color:#ff0;background:#000;font-size:14px;padding:2px'; }catch(x){} };"
           s=s.replace(old4, helper+" const p = aiPlugin(); if(!p){ aiStatus = 'none'; window.__aidiag('AI-STATUS=noproxy'); return; }\n  aiStatus = 'checking'; setTimeout(()=>{ if(aiStatus==='checking') window.__aidiag('AI-STATUS=pending'); }, 5000);")
+          old5="}catch(e){ aiProxy = null; }"
+          assert s.count(old5)==1
+          s=s.replace(old5, "}catch(e){ aiProxy = null; window.__aierr = String(e && (e.message || e)); }")
+          old6="window.__aidiag('AI-STATUS=noproxy');"
+          assert s.count(old6)==1
+          s=s.replace(old6, "window.__aidiag('AI-STATUS=noproxy native='+String(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())+' hasCap='+String(!!window.Capacitor)+' reg='+typeof (window.Capacitor&&window.Capacitor.registerPlugin)+' err='+String(window.__aierr));")
           open(p,'w').write(s)
           PYD
           python3 /tmp/diag.py
