@@ -193,7 +193,9 @@ let editSeq = 0; // bumped on every local change, so a backup reply never overwr
 let syncStatus = 'idle', syncTimer = null, syncBusy = false, syncAgain = false, applyingSync = false, renderWhenIdle = false, syncRestored = false;
 const blankProfile = ()=>({name:'',archetypeKey:''});
 const blankHabits = ()=>({h1:{cue:'',habit:''},h2:{cue:'',habit:''},h3:{cue:'',habit:''},sc:{cue:'',habit:''}});
-function licenceKey(){ try{ return localStorage.getItem('arc_license')||''; }catch(e){ return ''; } }
+// The iOS app has no access key and no account, so nothing is sent to a backup service; progress stays on the phone.
+function isLocalOnly(){ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+function licenceKey(){ if(isLocalOnly()) return ''; try{ return localStorage.getItem('arc_license')||''; }catch(e){ return ''; } }
 // The preview "Skip the key" button stores this shared public sample key so the app opens. It must never
 // reach the backup, photo or push services, so those use backendKey(), which is empty for the sample key.
 const SAMPLE_PREVIEW_KEY = 'ARC7-K2MQ-9XTD-4HPL';
@@ -266,7 +268,7 @@ function applyBackup(st){
 document.addEventListener('focusout', ()=>{ if(renderWhenIdle){ setTimeout(()=>{ const a=document.activeElement; if(!(a && /^(INPUT|TEXTAREA)$/.test(a.tagName))){ renderWhenIdle=false; renderAll(); } }, 50); } });
 // leaving the app: send anything still waiting
 function flushSync(){ if(syncTimer){ clearTimeout(syncTimer); syncTimer=null; syncNow({keepalive:true}); } }
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSync(); else syncNow(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSync(); else { syncNow(); if(typeof LOCAL_REM!=='undefined' && LOCAL_REM && pushState==='on') pushSync().then(()=>refreshPushBox()).catch(()=>{}); } });
 window.addEventListener('pagehide', flushSync);
 window.addEventListener('online', ()=>syncNow());
 function setSyncStatus(st){ syncStatus = st; const el=document.getElementById('syncBox'); if(el){ el.innerHTML = syncBoxHtml(); wireSyncBox(); } }
@@ -831,9 +833,19 @@ function showTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.id==='tab-'+name));
   window.scrollTo(0,0);
 }
-document.querySelectorAll('nav.tabs button').forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab)));
+// Typed habit changes only stick after Save. When the user taps to another tab with unsaved edits,
+// OK saves and continues (only if the save worked); Cancel keeps them in Setup with their edits.
+function leaveSetupOk(name){
+  if(!setupDirty || name==='setup') return true;
+  const st = document.getElementById('tab-setup');
+  if(!st || !st.classList.contains('active')) return true;
+  if(!confirm('You have habit changes that are not saved yet.\n\nOK: save them and continue.\nCancel: stay here and keep editing.')) return false;
+  const sb = document.getElementById('saveHabitsBtn'); if(sb) sb.click();
+  return !setupDirty;
+}
+document.querySelectorAll('nav.tabs button').forEach(btn=>btn.addEventListener('click',()=>{ if(leaveSetupOk(btn.dataset.tab)) showTab(btn.dataset.tab); }));
 // buttons inside a tab that jump to another one, like "Open Setup" in the guide
-document.addEventListener('click',(e)=>{ const b=e.target.closest && e.target.closest('[data-goto]'); if(b) showTab(b.dataset.goto); });
+document.addEventListener('click',(e)=>{ const b=e.target.closest && e.target.closest('[data-goto]'); if(b && leaveSetupOk(b.dataset.goto)) showTab(b.dataset.goto); });
 
 /* ---------------- Header ---------------- */
 function renderHeader(){
@@ -1106,7 +1118,7 @@ function renderToday(){
     let row;
     if(p){
       const thumb = p.kind==='image' ? '<img class="proof-thumb" src="'+p.url+'" alt="Your proof">' : '<video class="proof-thumb" src="'+p.url+'" muted playsinline preload="metadata"></video>';
-      row = '<a href="'+p.url+'" target="_blank" rel="noopener" title="Open proof">'+thumb+'</a><span class="proof-ok">Proof +'+PROOF_XP+' XP</span>'+
+      row = '<button type="button" class="proof-open" data-proof-open="'+key+'" title="Open proof" aria-label="Open proof" style="background:none;border:0;padding:0;margin:0;cursor:pointer;">'+thumb+'</button><span class="proof-ok">Proof +'+PROOF_XP+' XP</span>'+
         '<label class="proof-link">Replace<input type="file" accept="image/*,video/*" data-proof="'+key+'" hidden></label>'+
         '<button type="button" class="proof-link" data-proof-remove="'+key+'">Remove</button>';
     } else {
@@ -1137,6 +1149,26 @@ function renderToday(){
     const row = el.querySelector('.checkline.nonneg .proof-add'); if(row){ row.classList.remove('nudge'); void row.offsetWidth; row.classList.add('nudge'); }
   });
   el.querySelectorAll('[data-proof]').forEach(inp=>inp.addEventListener('change',()=>{ if(inp.files && inp.files[0]) addProof(inp.dataset.proof, inp.files[0]); }));
+  // open proof inside the app: a blob: link with target=_blank does nothing in the iPhone shell
+  el.querySelectorAll('[data-proof-open]').forEach(b=>b.addEventListener('click',()=>{
+    const p = dayProof[b.dataset.proofOpen];
+    if(!p) return;
+    const ov = document.createElement('div');
+    ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Proof');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:56px 12px 24px;';
+    const media = document.createElement(p.kind==='image' ? 'img' : 'video');
+    media.src = p.url;
+    if(p.kind==='image'){ media.alt = 'Your proof'; } else { media.controls = true; media.playsInline = true; }
+    media.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;';
+    const close = document.createElement('button');
+    close.type = 'button'; close.textContent = 'Close'; close.setAttribute('aria-label','Close proof');
+    close.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;min-height:44px;padding:0 18px;border-radius:22px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;font:600 16px -apple-system,system-ui,sans-serif;';
+    const done = ()=>{ if(media.pause) media.pause(); ov.remove(); };
+    close.addEventListener('click', done);
+    ov.addEventListener('click', e=>{ if(e.target===ov) done(); });
+    ov.appendChild(media); ov.appendChild(close);
+    document.body.appendChild(ov);
+  }));
   el.querySelectorAll('[data-proof-remove]').forEach(b=>b.addEventListener('click',()=>removeProof(b.dataset.proofRemove)));
   el.querySelectorAll('[data-extra-add]').forEach(inp=>inp.addEventListener('change',()=>{ if(inp.files && inp.files.length) addExtras([...inp.files]); }));
   wireChallenges(el);
@@ -1649,7 +1681,7 @@ async function renderGallery(){
     '<img src="'+x.thumbUrl+'" alt="" loading="lazy">'+(x.rec.kind==='video'?'<span class="gal-play" aria-hidden="true">▶</span>':'')+
     '<span class="gal-date">'+fmtDate(x.date)+'</span>'+(x.extra?'<span class="gal-extra" aria-hidden="true">'+CAMERA_ICON+'</span>':'')+'</button>').join('')+'</div>';
   if(items.length>shown.length) html += '<button type="button" class="btn ghost" id="galMore" style="margin-top:10px;">Show all '+items.length+'</button>';
-  html += '<p class="card-note">Backed up with your key. Videos turn into a still after '+VIDEO_KEEP_DAYS+' days to save space, and back up as that still.</p>';
+  html += '<p class="card-note">'+(isLocalOnly()?'Saved on this phone. Videos turn into a still after '+VIDEO_KEEP_DAYS+' days to save space.':'Backed up with your key. Videos turn into a still after '+VIDEO_KEEP_DAYS+' days to save space, and back up as that still.')+'</p>';
   el.innerHTML = html;
   el.querySelectorAll('[data-gal]').forEach(b=>b.addEventListener('click',()=>openViewer(shown, +b.dataset.gal)));
   wireLookBack(el);
@@ -2135,6 +2167,7 @@ function playEmblemDemo(arche){
 /* ---------------- Setup tab ---------------- */
 let reminderTimer=null;
 const setupOpen = new Set(); // which folded Setup groups are open, kept across redraws
+let setupDirty = false; // habit fields typed in Setup but not saved yet
 function renderSetup(){
   const el=document.getElementById('tab-setup');
   let html = '<h2 class="section-title">Setup</h2>';
@@ -2170,12 +2203,13 @@ function renderSetup(){
     html += '<div class="banner info" style="margin-top:20px;">Pick an archetype in the Archetypes tab to see your weakness and ideas to fight it.</div>';
   }
 
+  html += '<p class="card-note" id="saveHint" hidden style="margin-top:10px;color:var(--accent);">Not saved yet. Tap Save character & habits to keep these changes.</p>';
   html += '<button class="btn" id="saveHabitsBtn" style="margin-top:6px;">Save character & habits</button>';
 
   // everything past the habits folds away, so a new member sees a short page
   const group = (key, icon, title, hint)=>'<details class="set-group" data-group="'+key+'"'+(setupOpen.has(key)?' open':'')+'><summary><span class="sg-icon">'+icon+'</span><span class="sg-title">'+title+'<small>'+hint+'</small></span></summary><div class="sg-body">';
   html += group('reminders','🔔','Reminders','Daily nudge, your own reminders, calendar');
-  html += '<h2 class="section-title" style="font-size:16px;margin-top:4px;">Daily reminder</h2><p class="section-sub">Get a notification if you haven\u2019t cleared today by this time, even when Arc Tracker is closed.</p>';
+  html += '<h2 class="section-title" style="font-size:16px;margin-top:4px;">Daily reminder</h2><p class="section-sub">'+(LOCAL_REM?'Get a daily reminder at this time, even when Arc Tracker is closed.':'Get a notification if you haven\u2019t cleared today by this time, even when Arc Tracker is closed.')+'</p>';
   html += '<div class="card"><label for="r_time">Reminder time</label><input type="time" id="r_time" value="'+(reminder.time||'08:00')+'">';
   html += '<div id="pushBox">'+pushBoxHtml()+'</div></div>';
   html += '<h2 class="section-title" style="font-size:16px;margin-top:22px;">Your reminders</h2>';
@@ -2185,11 +2219,13 @@ function renderSetup(){
   html += '<div class="row" style="gap:8px;"><a class="btn" id="calGoogleBtn" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add to Google Calendar</a>';
   html += '<button class="btn ghost" id="calFileBtn">Apple or Outlook (.ics file)</button></div></div>';
   html += '</div></details>';
+  if(!isLocalOnly()){
   html += group('backup','☁️','Backup','Your arc on every phone you sign in on');
   html += '<p class="section-sub" style="margin-top:4px;">Your arc is saved to your licence key. Sign in with the same key on a new phone and everything comes back: habits, log, streaks, XP, reviews and your proof photos. Videos are backed up as a still frame.</p>';
   html += '<div class="card" id="syncBox">'+syncBoxHtml()+'</div>';
 
   html += '</div></details>';
+  }
   html += group('newarc','🔁','Start a new arc','Change your archetype or go back to Week 1');
   html += '<p class="section-sub" style="margin-top:4px;">Want a clean slate, or a different archetype? Start a new arc and you\u2019re back at Week 1. Your streak, XP, rank, log, weekly reports, challenges and proof photos start over. Your name, habits, Main Quests, notes and reminders stay.</p>';
   html += '<button class="btn" id="newArcBtn">Start a new arc</button>';
@@ -2209,7 +2245,7 @@ function renderSetup(){
   html += '<div class="card" id="impBox">'+importBoxHtml()+'</div>';
 
   html += '<h2 class="section-title" style="font-size:16px;margin-top:22px;">Erase everything</h2>';
-  html += '<div class="card"><p class="section-sub" style="margin-bottom:12px;">Clears your log, habits, character, quests, notes and proof, here and in your backup. To keep your habits and just go back to Week 1, use Start a new arc instead.</p><button class="btn danger" id="resetBtn">Reset my arc</button></div>';
+  html += '<div class="card"><p class="section-sub" style="margin-bottom:12px;">Clears your log, habits, character, quests, notes and proof'+(isLocalOnly()?' on this phone':', here and in your backup')+'. To keep your habits and just go back to Week 1, use Start a new arc instead.</p><button class="btn danger" id="resetBtn">Reset my arc</button></div>';
   html += '</div></details>';
 
   el.innerHTML = html;
@@ -2288,6 +2324,12 @@ function renderSetup(){
     });
   });
 
+  setupDirty = false;
+  const markSetupDirty = e=>{
+    const id = (e.target && e.target.id) || '';
+    if(id==='p_name' || /_(habit|every|n|remind)$/.test(id)){ setupDirty = true; const h=document.getElementById('saveHint'); if(h) h.hidden=false; }
+  };
+  el.oninput = markSetupDirty; el.onchange = markSetupDirty;
   document.getElementById('saveHabitsBtn').addEventListener('click',()=>{
     profile.name = document.getElementById('p_name').value.trim();
     const remindOf = key=>{ const x=document.getElementById(key+'_remind'); return x ? x.value : ''; };
@@ -2338,8 +2380,10 @@ function renderSetup(){
     const p=n=>String(n).padStart(2,'0');
     // no time zone on purpose: the event sits at this clock time wherever the user is
     const local=x=>x.getFullYear()+p(x.getMonth()+1)+p(x.getDate())+'T'+p(x.getHours())+p(x.getMinutes())+'00';
-    const url=location.origin+'/arc-tracker/app';
-    return {start:local(d), end:local(end), title:'Log today’s arc', details:'Check off today’s habits in Arc Tracker: '+url, url:url};
+    // In the iPhone shell the page origin is capacitor://localhost, which is not a usable link in a calendar event.
+    const inShell=!/^https?:$/.test(location.protocol);
+    const url=inShell?'':location.origin+'/arc-tracker/app';
+    return {start:local(d), end:local(end), title:'Log today’s arc', details:'Check off today’s habits in Arc Tracker'+(url?': '+url:'.'), url:url};
   }
   const calG=document.getElementById('calGoogleBtn');
   function refreshCalendarLink(){
@@ -2354,9 +2398,14 @@ function renderSetup(){
     const stamp=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
     const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Kaminari//Arc Tracker//EN','BEGIN:VEVENT',
       'UID:arc-tracker-daily-reminder@joinkaminari.com','DTSTAMP:'+stamp,'DTSTART:'+ev.start,'DTEND:'+ev.end,
-      'RRULE:FREQ=DAILY','SUMMARY:Log today’s arc','DESCRIPTION:'+ev.details.replace(/,/g,'\\,'),'URL:'+ev.url,
+      'RRULE:FREQ=DAILY','SUMMARY:Log today’s arc','DESCRIPTION:'+ev.details.replace(/,/g,'\\,'),].concat(ev.url?['URL:'+ev.url]:[]).concat([
       'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Log today’s arc','TRIGGER:PT0M','END:VALARM',
-      'END:VEVENT','END:VCALENDAR'].join('\r\n');
+      'END:VEVENT','END:VCALENDAR']).join('\r\n');
+    // iPhone shell: a browser-style download shows nothing, so offer the iOS share sheet when the web view supports file sharing.
+    try{
+      const f=new File([ics],'arc-tracker-reminder.ics',{type:'text/calendar'});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){ navigator.share({files:[f],title:'Arc Tracker daily reminder'}).catch(()=>{}); return; }
+    }catch(e){}
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
     a.download='arc-tracker-reminder.ics';
@@ -2390,7 +2439,7 @@ function renderSetup(){
   wireImportBox();
   document.getElementById('newArcBtn').addEventListener('click', ()=>openNewArc());
   document.getElementById('resetBtn').addEventListener('click',()=>{
-    if(!confirm('Reset your whole arc? This clears your log, habits, character and proof on this device, and your backup too, so other devices signed in with your key are reset as well. This can\u2019t be undone.')) return;
+    if(!confirm('Reset your whole arc? This clears your log, habits, character and proof on this device'+(isLocalOnly()?'':', and your backup too, so other devices signed in with your key are reset as well')+'. This can\u2019t be undone.')) return;
     if(proofDb){ proofTx('readwrite', s=>s.clear()).catch(()=>{}); }
     Object.keys(dayProof).forEach(k=>URL.revokeObjectURL(dayProof[k].url)); dayProof={}; proofError='';
     profile={name:'',archetypeKey:''}; habits={h1:{cue:'',habit:''},h2:{cue:'',habit:''},h3:{cue:'',habit:''},sc:{cue:'',habit:''}}; log=[]; weekly=[];
@@ -2801,8 +2850,12 @@ async function currentSub(){
   return reg ? reg.pushManager.getSubscription() : null;
 }
 // (re)register this device with the current reminder time, time zone and today's status
+// iOS shell only (api-shim.js defines it): reminders are scheduled on the phone instead of through the server
+const LOCAL_REM = window.ArcLocalReminders && window.ArcLocalReminders.available() ? window.ArcLocalReminders : null;
 async function pushSync(){
-  const sub=await currentSub(); if(!sub) return {ok:false};
+  if(LOCAL_REM) return LOCAL_REM.sync({time:reminder.time||'08:00', archetype:profile.archetypeKey||'', clearedToday:clearedToday(),
+    reminders: [...habitReminders(), ...myReminders.filter(r=>!r.deleted && r.on!==false).map(r=>({id:r.id, label:r.label, note:r.note, time:r.time, days:r.days}))]});
+  if(isLocalOnly()) return {ok:false}; const sub=await currentSub(); if(!sub) return {ok:false};
   const key = backendKey();
   return pushApi('subscribe',{key, endpoint:sub.endpoint, subscription:sub.toJSON(), time:reminder.time||'08:00', archetype:profile.archetypeKey||'',
     tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC', clearedToday:clearedToday(),
@@ -2819,7 +2872,14 @@ function habitReminders(){
   }).filter(Boolean);
 }
 async function pushInit(){
-  if(!PUSH_OK){ pushState=(IS_IOS && !IS_STANDALONE)?'ios-install':'unsupported'; return refreshPushBox(); }
+  if(LOCAL_REM){
+    const p=await LOCAL_REM.permission();
+    pushState = p==='denied' ? 'blocked' : (p==='granted' && reminder.enabled) ? 'on' : 'off';
+    refreshPushBox();
+    if(pushState==='on') pushSync().then(()=>refreshPushBox()).catch(()=>{});
+    return;
+  }
+  if(isLocalOnly()){ pushState='native-unavailable'; return refreshPushBox(); } if(!PUSH_OK){ pushState=(IS_IOS && !IS_STANDALONE)?'ios-install':'unsupported'; return refreshPushBox(); }
   if(Notification.permission==='denied'){ pushState='blocked'; return refreshPushBox(); }
   try{ const sub=await currentSub(); pushState=(sub && Notification.permission==='granted')?'on':'off'; }catch(e){ pushState='off'; }
   refreshPushBox();
@@ -2827,8 +2887,16 @@ async function pushInit(){
 }
 async function pushEnable(){
   pushState='busy'; pushNote=''; refreshPushBox();
+  if(LOCAL_REM){
+    const perm=await LOCAL_REM.enable();
+    if(perm!=='granted'){ pushState=perm==='denied'?'blocked':'off'; return refreshPushBox(); }
+    reminder.enabled=true; persist(LS.reminder, reminder);
+    const res=await pushSync();
+    if(!res.ok){ reminder.enabled=false; persist(LS.reminder, reminder); pushState='off'; pushNote='Couldn\u2019t turn on reminders. Try again in a moment.'; return refreshPushBox(); }
+    pushState='on'; return refreshPushBox();
+  }
   try{
-    const perm=await Notification.requestPermission();
+    if(isLocalOnly()){ pushState='native-unavailable'; return refreshPushBox(); } const perm=await Notification.requestPermission();
     if(perm!=='granted'){ pushState=perm==='denied'?'blocked':'off'; return refreshPushBox(); }
     await navigator.serviceWorker.register('/arc-sw.js',{scope:'/arc-tracker/'});
     const reg=await navigator.serviceWorker.ready;
@@ -2847,11 +2915,12 @@ async function pushEnable(){
   refreshPushBox();
 }
 async function pushDisable(){
+  if(LOCAL_REM) await LOCAL_REM.disable();
   try{
-    const sub=await currentSub();
+    const sub=(LOCAL_REM||isLocalOnly()) ? null : await currentSub();
     if(sub){ await pushApi('unsubscribe',{endpoint:sub.endpoint}).catch(()=>{}); await sub.unsubscribe(); }
   }catch(e){}
-  pushState='off'; pushNote=''; reminder.enabled=false; persist(LS.reminder, reminder);
+  pushState='off'; pushNote=LOCAL_REM?('Reminders are off. '+(await LOCAL_REM.pendingCount())+' still scheduled on this phone.'):''; reminder.enabled=false; persist(LS.reminder, reminder);
   refreshPushBox();
 }
 // saves the daily reminder time picked above and confirms it
@@ -2863,8 +2932,10 @@ async function pushSetTime(){
   pushNote = r && r.ok !== false ? 'Set. Your daily reminder is at '+timeLabel(reminder.time||'08:00')+'.' : 'Couldn\u2019t save that right now. Try again in a moment.';
   refreshPushBox();
 }
-async function pushTest(){
-  const sub=await currentSub(); if(!sub) return;
+async function pushTest(kind){
+  if(typeof kind!=='string') kind='quote';
+  if(LOCAL_REM){ pushNote=kind==='report'?'Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to open your weekly review.':'Test sent. It arrives in about 10 seconds, even if you close the app. Tap it to see how a new quote opens.'; refreshPushBox(); await LOCAL_REM.test(10,kind).catch(()=>{}); return; }
+  if(isLocalOnly()) return; const sub=await currentSub(); if(!sub) return;
   pushNote='Sending\u2026'; refreshPushBox();
   const r=await pushApi('test',{endpoint:sub.endpoint}).catch(()=>({ok:false}));
   pushNote=r.ok?'Sent. It should arrive within a few seconds.':'Couldn\u2019t send a test right now.';
@@ -2873,20 +2944,25 @@ async function pushTest(){
 // tell the server when today is cleared (or un-cleared) so it knows whether to remind
 function pushReportCleared(){
   if(pushState!=='on') return;
-  currentSub().then(s=>s && pushApi('cleared',{endpoint:s.endpoint, cleared:clearedToday()})).catch(()=>{});
+  if(LOCAL_REM){ pushSync().then(()=>refreshPushBox()).catch(()=>{}); return; }
+  if(isLocalOnly()) return; currentSub().then(s=>s && pushApi('cleared',{endpoint:s.endpoint, cleared:clearedToday()})).catch(()=>{});
 }
 function pushBoxHtml(){
   const note=pushNote?'<div class="helptext" style="margin:10px 0 0;">'+escapeHtml(pushNote)+'</div>':'';
+  if(pushState==='on' && LOCAL_REM){ const l=LOCAL_REM.last; return '<div class="proof-ok" style="margin-bottom:10px;">Reminders are on for this phone.</div>'+(l?'<div class="helptext" style="margin:0 0 10px;">Scheduled '+l.count+' reminder'+(l.count===1?'':'s')+(l.through?' through '+fmtDate(l.through):'')+'.'+(l.capped?' That is the most iOS allows at once, so later days are added as days pass.':'')+' Open Arc Tracker now and then so the next days keep getting scheduled. iPhone settings such as Focus can delay or silence reminders.</div>':'')+
+    '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button><button class="btn ghost" id="pushTestBtn">Send a test</button></div>'+(LOCAL_REM?'<div class="row" style="gap:8px;margin-top:8px;"><button class="btn ghost" id="pushTestRevBtn">Send a test review</button></div>':'')+note; }
   if(pushState==='on') return '<div class="proof-ok" style="margin-bottom:10px;">Notifications are on for this device.</div>'+
     '<div class="row" style="gap:8px;"><button class="btn" id="pushSetBtn">Set</button><button class="btn ghost" id="pushOffBtn">Turn off</button></div>'+note;
   if(pushState==='busy') return '<button class="btn" disabled>Turning on\u2026</button>';
-  if(pushState==='blocked') return '<div class="banner warn" style="margin:0;"><div>Notifications are blocked for this site in your browser settings. Allow them there, then reload this page.</div></div>';
-  if(pushState==='ios-install') return '<div class="banner info" style="margin:0;"><div><b>On iPhone and iPad, add Arc Tracker to your Home Screen first.</b> Tap the Share button, choose <b>Add to Home Screen</b>, then open Arc Tracker from the new icon and turn notifications on here.</div></div>';
+  if(pushState==='blocked') return '<div class="banner warn" style="margin:0;"><div>'+(LOCAL_REM?'Notifications are off for Arc Tracker. Allow them in the iPhone Settings app under Notifications, then come back.':'Notifications are blocked for this site in your browser settings. Allow them there, then reload this page.')+'</div></div>';
+  if(pushState==='native-unavailable') return '<div class="banner warn" style="margin:0;"><div>Reminders are not available in this version of the app.</div></div>'; if(pushState==='ios-install') return '<div class="banner info" style="margin:0;"><div><b>On iPhone and iPad, add Arc Tracker to your Home Screen first.</b> Tap the Share button, choose <b>Add to Home Screen</b>, then open Arc Tracker from the new icon and turn notifications on here.</div></div>';
   if(pushState==='unsupported') return '<div class="banner warn" style="margin:0;"><div>This browser doesn\u2019t support notifications. Use the calendar option below.</div></div>';
   return '<button class="btn" id="pushOnBtn">Turn on notifications</button>'+note;
 }
 function wirePushBox(){
-  const on=document.getElementById('pushOnBtn'), off=document.getElementById('pushOffBtn'), set=document.getElementById('pushSetBtn');
+  const on=document.getElementById('pushOnBtn'), off=document.getElementById('pushOffBtn'), set=document.getElementById('pushSetBtn'), tst=document.getElementById('pushTestBtn');
+  if(tst) tst.addEventListener('click', ()=>pushTest('quote'));
+  const tstRev=document.getElementById('pushTestRevBtn'); if(tstRev) tstRev.addEventListener('click', ()=>pushTest('report'));
   if(on) on.addEventListener('click', pushEnable);
   if(off) off.addEventListener('click', pushDisable);
   if(set) set.addEventListener('click', pushSetTime);
@@ -2917,7 +2993,7 @@ function renderGuide(){
     step(quests.some(q=>!q.deleted),'Set your Main Quest','The big goal you’re working toward, with a few milestones. Tap <b>Set a Main Quest</b> on <b>Today</b>.', quests.some(q=>!q.deleted)?'':go('today','Set your quest'))+
     step(named>=2,'Name your habits','In <b>Setup</b>: one daily non-negotiable plus a couple more. Keep each one tiny, like “open the book.”', named>=2?'':go('setup','Open Setup'))+
     step(!!(habits.sc && habits.sc.habit),'Pick your weakness habit','In <b>Setup</b>. One small thing that fights your archetype’s weak spot.')+
-    step(IS_STANDALONE,'Add it to your Home Screen','iPhone: Share, then <b>Add to Home Screen</b>. Android: the browser menu, then <b>Install app</b>.')+
+    (isLocalOnly()?'':step(IS_STANDALONE,'Add it to your Home Screen','iPhone: Share, then <b>Add to Home Screen</b>. Android: the browser menu, then <b>Install app</b>.'))+
     step(pushState==='on','Turn on reminders','In <b>Setup</b>, under <b>Reminders</b>.')+
   `</ol>
 
@@ -3024,7 +3100,7 @@ function openNewArc(key, switching){
         '<button type="button" data-na="'+x.key+'" class="'+(x.key===pick?'on':'')+'" aria-pressed="'+(x.key===pick)+'" style="--hue:'+x.hue+';">'+iconSVG(x,34)+'<span>'+escapeHtml(x.title.replace(/^The /,''))+(x.key===profile.archetypeKey?'<small>current</small>':'')+'</span></button>').join('')+'</div>')+
       '<div class="na-what"><div><b>Starts over</b>Streak, XP, rank, daily log, weekly reports, challenges and proof photos</div>'+
       '<div><b>Stays</b>Your name, habits, Main Quests, notes and reminders</div></div>'+
-      '<p class="na-note">This clears your old arc on every phone signed in with your key. It can\u2019t be undone.</p>'+
+      '<p class="na-note">'+(isLocalOnly()?'This clears your old arc on this phone.':'This clears your old arc on every phone signed in with your key.')+' It can\u2019t be undone.</p>'+
       '<button class="btn na-go" id="naGo"'+(a?'':' disabled')+'>'+(a?'Start Week 1 as '+escapeHtml(a.title):'Pick an archetype')+'</button>'+
       (switching ? '<button class="btn ghost" id="naKeep">Switch and keep my progress</button>' : '')+
       '<button class="btn ghost" id="naCancel">Cancel</button>'+
@@ -3308,6 +3384,8 @@ if(location.hash==='#quote'){
   history.replaceState(null, '', location.pathname + location.search);
   showQuoteReveal();
 }
+// tapping an on-phone reminder opens its screen (quote reveal or weekly review)
+if(LOCAL_REM && LOCAL_REM.onTap) LOCAL_REM.onTap(kind=>{ let tries=0; const t0=Date.now(); const done=()=>kind==='quote'?!!document.querySelector('.quote-reveal'):kind==='report'?!!document.querySelector('.month-recap'):true; const go=()=>{ tries++; if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } try{ if(kind==='quote') showQuoteReveal(); else if(kind==='report' && !document.getElementById('celBack') && (tries===1 || tries>=5)) maybeShowWeekReview(true); }catch(e){} if(done()) { window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:true}; return; } if(tries<12) setTimeout(go,1000); else window.__arcTapDiag={kind,tries,ms:Date.now()-t0,ok:false}; }; setTimeout(go,1200); });
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e)=>{
   if(e.data && e.data.arc==='quote') showQuoteReveal();
   if(e.data && e.data.arc==='review') maybeShowWeekReview(true);

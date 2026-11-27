@@ -34,6 +34,24 @@ jobs:
             echo "production API host blocked as intended: $(cat /tmp/curlerr)"
           fi
 
+      - name: Instrument network calls in the CI copy of the web files (evidence only)
+        run: |
+          cat >> www/api-shim.js <<'JSEOF'
+          (()=>{const KEY='zz_netlog',f=window.fetch;
+          function rd(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return []}}
+          function draw(){let d=document.getElementById('zznet');if(!d){if(!document.body)return;d=document.createElement('div');d.id='zznet';d.style.cssText='position:fixed;left:0;bottom:0;font-size:8px;opacity:.03;pointer-events:none;z-index:2147483647;max-width:100%;word-break:break-all';document.body.appendChild(d);}const a=rd();d.textContent='ZZNET '+a.length+' '+a.map(e=>e.k+' '+e.h+e.p+' '+e.m).map(x=>x.slice(0,90)).join(' ;; ').slice(0,900);}
+          function rec(k,u,m){try{const x=new URL(String(u),location.href);const a=rd();a.push({k,h:x.host,p:x.pathname,m:m||'GET'});localStorage.setItem(KEY,JSON.stringify(a));draw();}catch(_){}}
+          window.fetch=function(i,init){try{rec('fetch',typeof i==='string'?i:((i&&i.url)||''),(init&&init.method)||'GET')}catch(_){}return f.apply(this,arguments)};
+          try{const xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){rec('xhr',u,m);return xo.apply(this,arguments)};}catch(_){}
+          try{const sb=navigator.sendBeacon&&navigator.sendBeacon.bind(navigator);if(sb)navigator.sendBeacon=function(u){rec('beacon',u,'POST');return sb.apply(null,arguments)};}catch(_){}
+          try{const W=window.WebSocket;window.WebSocket=function(u,pr){rec('ws',u,'WS');return pr?new W(u,pr):new W(u)};window.WebSocket.prototype=W.prototype;}catch(_){}
+          try{const E=window.EventSource;if(E)window.EventSource=function(u,o){rec('sse',u,'GET');return new E(u,o)};}catch(_){}
+          // positive control: proves the logger records a call made by page code in this build (same-origin, not external)
+          setTimeout(()=>{try{window.fetch('/zz-positive-control').catch(()=>{})}catch(_){}},1500);
+          document.addEventListener('DOMContentLoaded',draw);})();
+          JSEOF
+          tail -c 200 www/api-shim.js
+
       - name: Install JS dependencies
         run: npm ci --no-audit --no-fund
 
@@ -138,12 +156,13 @@ jobs:
                   // also print to the run log as DUMP[...] lines.
                   let skip = app.buttons["Skip the key and open the tracker"]
                   var waited = 0
-                  var painted = skip.exists
+                  let pickerProbe = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  var painted = pickerProbe.exists || skip.exists
                   for mark in [10, 20, 40] {
                       while waited < mark && !painted {
                           sleep(2)
                           waited += 2
-                          painted = skip.exists
+                          painted = pickerProbe.exists || skip.exists
                       }
                       shot("00-launch-\(mark)s")
                       dumpHierarchy("dump-00-launch-\(mark)s")
@@ -153,8 +172,8 @@ jobs:
                   shot("01-gate")
 
                   // Gate -> open the tracker with the preview/sample path (native origin is not the live domain)
-                  XCTAssertTrue(skip.waitForExistence(timeout: 60), "preview skip button on the gate")
-                  skip.tap()
+                  XCTAssertFalse(skip.exists, "iOS app opens without the key gate")
+                  XCTAssertFalse(textExists("licence key", 1), "no licence key text on first screen")
 
                   // First-run onboarding (run 5 evidence + www/arc-tracker.js showFirstRun/showArchetypePicker):
                   // an auto-advancing splash, then a FULL-SCREEN archetype picker that covers the nav bar.
@@ -168,6 +187,9 @@ jobs:
                   let strat = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch
                   XCTAssertTrue(strat.waitForExistence(timeout: 10), "strategist card on the onboarding picker")
                   strat.tap()
+                  var pickTries = 1
+                  while !pickerHeading.waitForNonExistence(timeout: 8) && pickTries < 3 { pickTries += 1; if strat.exists && strat.isHittable { strat.tap() } }
+                  print("PICK-DIAG tapsNeeded=\(pickTries)")
                   XCTAssertTrue(pickerHeading.waitForNonExistence(timeout: 15), "picker overlay dismissed after picking")
                   sleep(2)
                   shot("03-after-pick-start-here")
@@ -218,6 +240,91 @@ jobs:
                   shot("09-guide")
                   XCTAssertTrue(textExists("Get started"), "guide tab renders")
 
+                  // On-phone reminders (local notifications)
+                  func openReminders() {
+                      let g = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "\u{1F514} Reminders")).firstMatch
+                      _ = g.waitForExistence(timeout: 10)
+                      _ = scrollUntilHittable(g, 12)
+                      for _ in 0..<3 {
+                          if app.buttons["Turn on notifications"].exists || app.buttons["Turn off"].exists { break }
+                          if g.isHittable { g.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.5)).tap() }
+                          sleep(2)
+                      }
+                  }
+                  func remLabel() -> String {
+                      let l = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Scheduled")).firstMatch
+                      return l.waitForExistence(timeout: 15) ? l.label : "none"
+                  }
+                  tapNav("Setup")
+                  openReminders()
+                  let turnOn = app.buttons["Turn on notifications"]
+                  _ = turnOn.waitForExistence(timeout: 10)
+                  _ = scrollUntilHittable(turnOn, 10)
+                  shot("R1-reminders-before")
+                  if !turnOn.isHittable { dumpHierarchy("dump-R1-reminders") }
+                  XCTAssertTrue(turnOn.isHittable, "Turn on notifications button in the iOS shell")
+                  turnOn.tap()
+                  let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+                  let allowBtn = springboard.alerts.buttons["Allow"]
+                  let alertSeen = allowBtn.waitForExistence(timeout: 15)
+                  print("REMINDER-DIAG permissionAlert=\(alertSeen)")
+                  shot("R2-permission-alert")
+                  if alertSeen { allowBtn.tap() }
+                  let scheduledOn = remLabel()
+                  print("REMINDER-DIAG scheduledAfterOn=\(scheduledOn)")
+                  shot("R3-reminders-on")
+                  if scheduledOn == "none" { dumpHierarchy("dump-R3-reminders") }
+                  XCTAssertTrue(scheduledOn != "none", "reminders scheduled line appears after allowing notifications")
+
+                  // One-off test notification: scheduled by the app, delivered by iOS while the app is closed, tap opens the quote reveal
+                  let testBtn = app.buttons["Send a test"]
+                  _ = scrollUntilHittable(testBtn, 8)
+                  XCTAssertTrue(testBtn.isHittable, "Send a test button")
+                  testBtn.tap()
+                  sleep(2)
+                  print("REMINDER-DIAG scheduledAfterTestSent=\(remLabel())")
+                  shot("R4-test-sent")
+                  app.terminate()
+                  XCUIDevice.shared.press(.home)
+                  let banner = springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Your new arc quote just dropped")).firstMatch
+                  let bannerSeen = banner.waitForExistence(timeout: 45)
+                  print("REMINDER-DIAG bannerSeenWhileAppClosed=\(bannerSeen)")
+                  shot("R5-banner")
+                  if bannerSeen { banner.tap() }
+                  if !bannerSeen { app.activate() }
+                  _ = app.wait(for: .runningForeground, timeout: 30)
+                  let skipB = app.buttons["Skip the key and open the tracker"]
+                  if skipB.waitForExistence(timeout: 40) { skipB.tap(); sleep(2) }
+                  let pickerB = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerB.waitForExistence(timeout: 8) { let sB = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sB.waitForExistence(timeout: 10) { sB.tap(); sleep(2) } }
+                  let routed = textExists("Inspired by", 25)
+                  print("REMINDER-DIAG tapOpenedQuoteReveal=\(routed)")
+                  shot("R6-quote-from-tap")
+                  if !routed { dumpHierarchy("dump-R6-no-reveal") }
+                  XCTAssertTrue(bannerSeen, "iOS delivered the test notification while the app was closed")
+                  XCTAssertTrue(routed, "tapping the notification opens the quote reveal")
+                  if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
+
+                  // Turn off must empty the OS queue; turning on again must refill it
+                  tapNav("Setup")
+                  openReminders()
+                  let offBtn = app.buttons["Turn off"]
+                  _ = scrollUntilHittable(offBtn, 8)
+                  XCTAssertTrue(offBtn.isHittable, "Turn off button")
+                  offBtn.tap()
+                  let offNote = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "still scheduled on this phone")).firstMatch
+                  let offOk = offNote.waitForExistence(timeout: 15)
+                  print("REMINDER-DIAG afterTurnOff=\(offOk ? offNote.label : "none")")
+                  shot("R7-turned-off")
+                  XCTAssertTrue(offOk && offNote.label.contains("0 still scheduled"), "turn off leaves nothing scheduled")
+                  let turnOn2 = app.buttons["Turn on notifications"]
+                  _ = scrollUntilHittable(turnOn2, 8)
+                  if turnOn2.isHittable { turnOn2.tap() }
+                  let scheduledAgain = remLabel()
+                  print("REMINDER-DIAG scheduledAfterReenable=\(scheduledAgain)")
+                  shot("R8-turned-on-again")
+                  XCTAssertTrue(scheduledAgain != "none", "turning on again schedules again")
+
                   // Relaunch persistence: the saved character and habit must survive
                   // an app restart (local storage inside the Capacitor shell).
                   // Probe for either the gate's skip button or the Today nav button,
@@ -238,7 +345,7 @@ jobs:
                       if painted2 { break }
                   }
                   print("RELAUNCH-DIAG painted=\(painted2) waitedSeconds=\(waited2) gateShown=\(skip2.exists)")
-                  if skip2.waitForExistence(timeout: 30) {
+                  if skip2.exists {
                       skip2.tap()
                       sleep(2)
                   }
@@ -297,7 +404,7 @@ jobs:
                   app.terminate()
                   app.launch()
                   let skipP = app.buttons["Skip the key and open the tracker"]
-                  if skipP.waitForExistence(timeout: 40) { skipP.tap(); sleep(2) }
+                  if skipP.exists { skipP.tap(); sleep(2) }
                   let pickerP = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
                   if pickerP.waitForExistence(timeout: 8) { let sP = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sP.waitForExistence(timeout: 10) { sP.tap(); sleep(2) } }
                   tapNav("Today")
@@ -307,6 +414,198 @@ jobs:
                   XCTAssertTrue(proofKept, "proof still shown after relaunch")
                   XCTAssertTrue(app.staticTexts["12"].waitForExistence(timeout: 5), "12 XP kept after relaunch")
                   XCTAssertTrue(app.images["Your proof"].waitForExistence(timeout: 10), "proof thumbnail rendered from on-device storage after relaunch")
+                  // Local-first: no Backup group, no key or account wording anywhere on Setup
+                  tapNav("Setup")
+                  for _ in 0..<6 { app.swipeUp(); usleep(300000) }
+                  shot("L1-setup-bottom")
+                  XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch.exists, "no Backup group on Setup")
+                  XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Backup")).firstMatch.exists, "no backup text on Setup")
+                  XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Back up now")).firstMatch.exists, "no Back up now")
+                  let moreG = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreG, 6)
+                  if moreG.isHittable { moreG.tap(); sleep(1) }
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("L2-more-group")
+                  XCTAssertTrue(textExists("Erase everything", 5), "More group present")
+                  XCTAssertFalse(textExists("in your backup", 1), "no backup claim in the reset copy")
+                  XCTAssertFalse(textExists("signed in with your key", 1), "no key claim in the reset copy")
+                  // Clear the whole day (habits 2 and 3 are still placeholders but count as due), then read the OS queue
+                  tapNav("Today")
+                  let hab2 = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Habit 2")).firstMatch
+                  _ = scrollUntilHittable(hab2, 8)
+                  hab2.tap()
+                  sleep(1)
+                  let hab3 = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Habit 3")).firstMatch
+                  _ = scrollUntilHittable(hab3, 8)
+                  hab3.tap()
+                  sleep(3)
+                  shot("R9a-day-cleared")
+                  dumpHierarchy("dump-R9a-after-clear")
+                  if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
+                  tapNav("Setup")
+                  openReminders()
+                  print("REMINDER-DIAG afterDayCleared=\(remLabel())")
+                  shot("R9b-reminders-after-clear")
+                  app.terminate()
+                  app.launch()
+                  let skipC = app.buttons["Skip the key and open the tracker"]
+                  if skipC.waitForExistence(timeout: 40) { skipC.tap(); sleep(2) }
+                  let pickerC = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Which one are you")).firstMatch
+                  if pickerC.waitForExistence(timeout: 8) { let sC = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "The Strategist")).firstMatch; if sC.waitForExistence(timeout: 10) { sC.tap(); sleep(2) } }
+                  tapNav("Setup")
+                  openReminders()
+                  print("REMINDER-DIAG afterClearedRelaunch=\(remLabel())")
+                  shot("R10-reminders-after-clear-relaunch")
+                  // Cold-start routing, no app.activate() (that could relaunch the instance the banner tap started)
+                  func coldTap(_ tag: String, _ btnLabel: String, _ bannerText: String, _ expect: String) {
+                      tapNav("Setup")
+                      openReminders()
+                      let b = app.buttons[btnLabel]
+                      _ = scrollUntilHittable(b, 8)
+                      XCTAssertTrue(b.isHittable, "\(btnLabel) button")
+                      b.tap(); sleep(2)
+                      app.terminate()
+                      XCUIDevice.shared.press(.home)
+                      let ban = springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", bannerText)).firstMatch
+                      let seen = ban.waitForExistence(timeout: 45)
+                      print("REMINDER-DIAG \(tag)BannerSeen=\(seen)")
+                      if seen { ban.tap() } else { app.activate() }
+                      _ = app.wait(for: .runningForeground, timeout: 30)
+                      let routed = textExists(expect, 30)
+                      print("REMINDER-DIAG \(tag)Routed=\(routed)")
+                      shot("R-\(tag)-from-tap")
+                      if !routed { dumpHierarchy("dump-\(tag)-no-route") }
+                      XCTAssertTrue(seen, "\(tag): banner delivered with app closed")
+                      XCTAssertTrue(routed, "\(tag): tap opens the right screen")
+                      if app.buttons["Continue"].exists { app.buttons["Continue"].tap(); sleep(1) }
+                      if app.buttons["Later"].exists { app.buttons["Later"].tap(); sleep(1) }
+                  }
+                  coldTap("review", "Send a test review", "Your Weekly Arc Review is ready", "WEEKLY ARC REVIEW")
+                  coldTap("quote2", "Send a test", "Your new arc quote just dropped", "Inspired by")
+                  // Scrolled views: status-bar area must stay clear
+                  tapNav("Today")
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("S1-today-scrolled")
+                  tapNav("Setup")
+                  for _ in 0..<4 { app.swipeUp(); usleep(300000) }
+                  shot("S2-setup-scrolled")
+                  // Import: manual streak path (asserted, persisted across relaunch), then CSV picker (best effort, not asserted)
+                  func streakLabel() -> String {
+                      tapNav("Progress")
+                      let l = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "\u{1F525}")).firstMatch
+                      _ = l.waitForExistence(timeout: 8)
+                      return l.exists ? l.label : "none"
+                  }
+                  let streakBefore = streakLabel()
+                  tapNav("Setup")
+                  let moreI = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreI, 8)
+                  if moreI.isHittable { moreI.tap(); sleep(1) }
+                  let sField = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] %@", "Days in a row")).firstMatch
+                  _ = scrollUntilHittable(sField, 10)
+                  XCTAssertTrue(sField.isHittable, "import streak field")
+                  sField.tap(); sField.typeText("3")
+                  let addDays = app.buttons["Add these days"]
+                  _ = scrollUntilHittable(addDays, 6)
+                  if !addDays.isHittable { app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "No file?")).firstMatch.tap(); _ = scrollUntilHittable(addDays, 6) }
+                  XCTAssertTrue(addDays.isHittable, "Add these days button")
+                  addDays.tap(); sleep(1)
+                  let confirmAlert = app.alerts.firstMatch
+                  let sawConfirm = confirmAlert.waitForExistence(timeout: 6)
+                  print("IMPORT-DIAG confirmDialog=\(sawConfirm) text=\(sawConfirm ? confirmAlert.label : "")")
+                  if sawConfirm { shot("I0-confirm"); let okb = confirmAlert.buttons["OK"]; if okb.exists { okb.tap() } else { confirmAlert.buttons.element(boundBy: confirmAlert.buttons.count - 1).tap() } }
+                  sleep(2)
+                  let streakAfter = streakLabel()
+                  app.terminate(); app.launch(); sleep(3)
+                  let streakRelaunch = streakLabel()
+                  print("IMPORT-DIAG streakBefore=\(streakBefore) streakAfter=\(streakAfter) streakAfterRelaunch=\(streakRelaunch)")
+                  shot("I1-streak-after-import-relaunch")
+                  XCTAssertTrue(streakBefore != streakAfter, "importing 3 days changes the current streak")
+                  XCTAssertTrue(streakAfter == streakRelaunch, "imported days persist after relaunch")
+                  let netlogF = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "ZZNET")).firstMatch
+                  _ = netlogF.waitForExistence(timeout: 15)
+                  print("NETLOG-FINAL exists=\(netlogF.exists) " + netlogF.label)
+                  shot("N1-netlog")
+                  // CSV picker attempt
+                  app.terminate(); app.launch(); sleep(4)
+                  tapNav("Setup")
+                  let moreC = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Bring over past progress")).firstMatch
+                  _ = scrollUntilHittable(moreC, 8)
+                  if moreC.isHittable { moreC.tap(); sleep(1) }
+                  dumpHierarchy("dump-csv-more")
+                  let chooseBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Upload an export")).firstMatch
+                  _ = scrollUntilHittable(chooseBtn, 10)
+                  print("CSV-DIAG chooseButton=\(chooseBtn.exists)")
+                  if chooseBtn.exists && chooseBtn.isHittable {
+                      chooseBtn.tap(); sleep(3)
+                      shot("I2-picker-sheet")
+                      dumpHierarchy("dump-I2-picker")
+                      print("CSV-DIAG appState=\(app.state.rawValue) sheetButtons=\(app.buttons.allElementsBoundByIndex.prefix(40).map{$0.label}.joined(separator: " | "))")
+                      let cf = app.buttons["Choose File"].exists ? app.buttons["Choose File"] : app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Choose File")).element(boundBy: 1)
+                      if cf.exists { cf.tap(); sleep(3) }
+                      let browseTab = app.buttons["Browse"].exists ? app.buttons["Browse"] : app.tabBars.buttons["Browse"]
+                      print("CSV-DIAG browseExists=\(browseTab.exists)")
+                      if browseTab.exists { browseTab.tap(); sleep(2) }
+                      shot("I3a-browse")
+                      let onPhone = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "On My iPhone")).firstMatch
+                      print("CSV-DIAG onMyIphone=\(onPhone.waitForExistence(timeout: 6))")
+                      if onPhone.exists { onPhone.tap(); sleep(2) }
+                      print("CSV-DIAG browseLabels=\(app.staticTexts.allElementsBoundByIndex.prefix(30).map{$0.label}.joined(separator: " | "))")
+                      dumpHierarchy("dump-I3-browse")
+                      shot("I3-files-browser")
+                      let fileItem = app.staticTexts["arcimport"].exists ? app.staticTexts["arcimport"] : app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "arcimport")).firstMatch
+                      print("CSV-DIAG fileVisible=\(fileItem.waitForExistence(timeout: 8))")
+                      if fileItem.exists {
+                          let cell = app.cells.containing(NSPredicate(format: "label CONTAINS[c] %@", "arcimport")).firstMatch
+                          if cell.exists { cell.tap() } else { fileItem.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: -1.6)).tap() }
+                          sleep(3)
+                          print("CSV-DIAG afterFirstTapPickerStillOpen=\(app.buttons["Browse"].exists)")
+                          if app.buttons["Browse"].exists && fileItem.exists { fileItem.doubleTap(); sleep(3) }
+                          print("CSV-DIAG afterSecondTapPickerStillOpen=\(app.buttons["Browse"].exists)")
+                      }
+                      let found = textExists("Match your habits", 10)
+                      print("CSV-DIAG matchScreen=\(found)")
+                      shot("I4-csv-matched")
+                      if found {
+                          let go = app.buttons["Bring these days over"]
+                          _ = scrollUntilHittable(go, 8)
+                          print("CSV-DIAG goHittable=\(go.isHittable)")
+                          if go.isHittable { go.tap(); sleep(2) }
+                          let s2 = streakLabel()
+                          print("CSV-DIAG streakAfterCsv=\(s2)")
+                          shot("I5-after-csv")
+                      }
+                  }
+                  // CALENDAR-DIAG: what the two calendar buttons do in the iPhone shell
+                  app.terminate(); app.launch(); sleep(4)
+                  tapNav("Setup")
+                  openReminders()
+                  let gcal = app.links["Add to Google Calendar"].exists ? app.links["Add to Google Calendar"] : app.staticTexts["Add to Google Calendar"]
+                  _ = scrollUntilHittable(gcal, 10)
+                  print("CALENDAR-DIAG googleExists=\(gcal.exists) hittable=\(gcal.isHittable)")
+                  shot("C0-calendar-card")
+                  if gcal.isHittable {
+                      gcal.tap(); sleep(5)
+                      let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+                      print("CALENDAR-DIAG afterGoogleTap appState=\(app.state.rawValue) safariState=\(safari.state.rawValue)")
+                      shot("C1-after-google-tap")
+                      dumpHierarchy("dump-C1")
+                  }
+                  app.terminate(); app.launch(); sleep(4)
+                  tapNav("Setup")
+                  openReminders()
+                  let icsBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", ".ics")).firstMatch
+                  _ = scrollUntilHittable(icsBtn, 10)
+                  print("CALENDAR-DIAG icsExists=\(icsBtn.exists) hittable=\(icsBtn.isHittable)")
+                  if icsBtn.isHittable {
+                      icsBtn.tap(); sleep(4)
+                      let sb2 = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+                      print("CALENDAR-DIAG afterIcsTap appState=\(app.state.rawValue) alerts=\(app.alerts.count) sheets=\(app.sheets.count) sbAlerts=\(sb2.alerts.count)")
+                      let shareUp = app.otherElements["ActivityListView"].exists || app.navigationBars["UIActivityContentView"].exists || app.buttons["Copy"].exists || app.collectionViews.cells.count > 0
+                      print("CALENDAR-DIAG shareSheetVisible=\(shareUp)")
+                      shot("C2-after-ics-tap")
+                      dumpHierarchy("dump-C2")
+                  }
                   return
 
                   // Backend unreachable: backup must fail gracefully with a clear message.
@@ -499,6 +798,26 @@ jobs:
           ls -la /tmp/proof.png
           xcrun simctl addmedia "$UDID" /tmp/proof.png
 
+      - name: Place a CSV fixture where the iOS file picker can see it (best effort)
+        run: |
+          set +e
+          D1=$(date -v-4d +%F); D2=$(date -v-3d +%F); D3=$(date -v-2d +%F)
+          printf 'date,habit\n%s,Meditate\n%s,Meditate\n%s,Meditate\n%s,Read\n' "$D1" "$D2" "$D3" "$D3" > /tmp/arcimport.csv
+          cat /tmp/arcimport.csv
+          xcrun simctl launch "$UDID" com.apple.DocumentsApp; sleep 6
+          xcrun simctl terminate "$UDID" com.apple.DocumentsApp
+          DATA="$HOME/Library/Developer/CoreSimulator/Devices/$UDID/data"
+          FPS=$(find "$DATA/Containers/Shared/AppGroup" -maxdepth 4 -type d -name "File Provider Storage" 2>/dev/null | head -1)
+          echo "File Provider Storage: $FPS"
+          if [ -n "$FPS" ]; then cp /tmp/arcimport.csv "$FPS/arcimport.csv"; ls -la "$FPS"; fi
+
+      - name: Start bounded network trace
+        run: |
+          date -u +%FT%TZ | tee /tmp/trace-start.txt
+          sudo nohup tcpdump -i any -nn -w /tmp/net.pcap >/tmp/tcpdump.log 2>&1 &
+          sleep 3
+          pgrep tcpdump || echo "tcpdump not running"
+
       - name: Run the XCUITest tracker flow
         run: |
           set -o pipefail
@@ -508,7 +827,30 @@ jobs:
             -destination "platform=iOS Simulator,id=$UDID" \
             -resultBundlePath /tmp/arcrest.xcresult \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee /tmp/xcodebuild-test.log
-        timeout-minutes: 25
+        timeout-minutes: 45
+
+      - name: Stop trace and summarize
+        if: always()
+        run: |
+          set +e +o pipefail
+          sudo pkill tcpdump || true
+          sleep 2
+          date -u +%FT%TZ
+          ls -la /tmp/net.pcap || true
+          echo "NETTRACE total packets:"; sudo tcpdump -nn -r /tmp/net.pcap 2>/dev/null | wc -l
+          echo "NETTRACE DNS names asked (count name):"; sudo tcpdump -nn -r /tmp/net.pcap 'udp port 53' 2>/dev/null | grep -o ' [A-Z]*? [^ ]*' | sort | uniq -c | sort -rn | head -40
+
+      - name: Trace destinations
+        if: always()
+        run: |
+          set +e +o pipefail
+          sudo tcpdump -nn -r /tmp/net.pcap 2>/dev/null | grep 'Flags \[S\]' > /tmp/syn.txt || true
+          echo "NETTRACE TCP SYN packets total: $(wc -l < /tmp/syn.txt)"
+          echo "NETTRACE SYNs to 127.0.0.1 (blocked-host attempts by app or runner): $(grep -c '> 127.0.0.1\.' /tmp/syn.txt)"
+          echo "NETTRACE SYN to 127.0.0.1 ports:"; grep '> 127.0.0.1\.' /tmp/syn.txt | grep -o '> 127.0.0.1\.[0-9]*' | sort | uniq -c | sort -rn | head -10
+          echo "NETTRACE SYN destinations excluding loopback (count dest):"
+          grep -v '> 127.0.0.1\.' /tmp/syn.txt | awk '{for(i=1;i<=NF;i++) if($i==">"){d=$(i+1); sub(/:$/,"",d); print d}}' | sort | uniq -c | sort -rn | head -25
+          echo "NETTRACE end"
 
       - name: Export the test screenshots
         if: always()
@@ -517,6 +859,7 @@ jobs:
           mkdir -p shots
           xcrun xcresulttool export attachments --path /tmp/arcrest.xcresult --output-path shots
           ls -la shots
+          rm -f shots/*.mp4
           for f in shots/*_*.png; do
             [ -e "$f" ] || continue
             base=$(basename "$f")

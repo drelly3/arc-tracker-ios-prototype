@@ -68,6 +68,9 @@
   document.getElementById('arc-preview-note').hidden = isLive;
   document.getElementById('arc-preview-open').addEventListener('click', () => { if (!isLive) tryKey(SAMPLE_KEY, true); });
 
+  // The iOS app has no access key and no account: it opens straight into the tracker and keeps progress on the phone.
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) { open(); return; }
+
   // Invite links look like /arc-tracker/app#key=XXXX. The key rides in the part after #, which
   // browsers never send to the server, and is removed from the address bar once read.
   const invited = new URLSearchParams(location.hash.slice(1)).get('key');

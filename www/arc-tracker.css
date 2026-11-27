@@ -549,7 +549,7 @@ body.app main{display:block;}
 
 /* ---------- opening screens: first-visit question, archetype picker, welcome back ---------- */
 html.arc-intro-lock,html.arc-intro-lock body{overflow:hidden;}
-.arc-root .arc-intro{position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;z-index:9990;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 18px calc(24px + env(safe-area-inset-bottom));text-align:center;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;cursor:pointer;animation:qrIn .35s ease-out;transition:opacity .38s;}
+.arc-root .arc-intro{position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;z-index:9990;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));text-align:center;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;cursor:pointer;animation:qrIn .35s ease-out;transition:opacity .38s;}
 .arc-root .arc-intro.out{opacity:0;}
 .arc-root .arc-intro.instant{animation:none;}
 .arc-root .intro-box{max-width:520px;animation:introRise .7s ease-out both;}
@@ -910,3 +910,7 @@ html.arc-intro-lock,html.arc-intro-lock body{overflow:hidden;}
 .arc-root .newarc .btn{display:block;width:100%;margin-top:8px;text-align:center;}
 .arc-root .newarc button.btn.na-go{background:var(--accent);color:var(--bg-elev);}
 .arc-root .newarc button.btn.na-go:disabled{background:transparent;color:var(--text-faint);}
+.arc-root input[type=time]{box-sizing:border-box;max-width:100%;}
+.arc-root #r_time{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;}
+/* Keep scrolled content from drawing under the iOS status bar (clock, battery) */
+.arc-root::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:200;pointer-events:none;}
