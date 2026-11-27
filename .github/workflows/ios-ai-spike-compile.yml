@@ -33,18 +33,8 @@ jobs:
           xcodebuild -showsdks | grep -i ios
           grep -m3 IPHONEOS_DEPLOYMENT_TARGET ios/App/App.xcodeproj/project.pbxproj || true
 
-      - name: Add the Swift plugin to the App target
-        run: |
-          cp native/ArcInsightPlugin.swift ios/App/App/ArcInsightPlugin.swift
-          ruby -e '
-          require "xcodeproj"
-          proj = Xcodeproj::Project.open("ios/App/App.xcodeproj")
-          target = proj.targets.find { |t| t.name == "App" }
-          group = proj.main_group.find_subpath("App", true)
-          ref = group.new_file("ArcInsightPlugin.swift")
-          target.add_file_references([ref])
-          proj.save
-          '
+      - name: Add the Swift plugin and bridge registration
+        run: bash native/inject-arc-insight.sh
 
       - name: Compile (unsigned iOS Simulator build, iOS 26 SDK)
         run: |
