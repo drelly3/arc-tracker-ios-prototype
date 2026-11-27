@@ -778,6 +778,46 @@ function weekReviewLines(w){
     (w.challenge ? '<li>'+escapeHtml(w.challenge.name)+': <b>'+Math.min(w.challenge.done,w.challenge.target)+' of '+w.challenge.target+'</b>'+(w.challenge.done>=w.challenge.target?' ✓':'')+'</li>' : '')+
     '</ul>';
 }
+/* ---------------- On-device weekly insight: iPhone app only, Apple Intelligence phones on iOS 26+ ----------------
+   Hidden everywhere else. Runs on the phone through Apple's on-device model; the only text it is given
+   is this week's report numbers (no notes, proof or names). Nothing is sent anywhere. */
+let aiStatus = '', aiCur = null, aiBusy = false, aiFail = false, aiProxy = null; const aiText = {};
+function aiPlugin(){
+  if(aiProxy) return aiProxy;
+  try{ if(isLocalOnly() && window.Capacitor && window.Capacitor.registerPlugin) aiProxy = window.Capacitor.registerPlugin('ArcInsight'); }catch(e){ aiProxy = null; }
+  return aiProxy;
+}
+function refreshAiStatus(){
+  if(aiStatus) return;
+  const p = aiPlugin(); if(!p){ aiStatus = 'none'; return; }
+  aiStatus = 'checking';
+  p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; if(aiStatus==='available') renderProgress(); }).catch(()=>{ aiStatus = 'unsupported'; });
+}
+function aiSummary(w){
+  return 'Week '+w.no+' of the person\u2019s habit arc: '+w.done+' of '+w.possible+' missions completed ('+w.pct+'%). '+
+    'Full-clear days: '+w.full+' of '+w.days+'. Strongest area: '+(w.strongest||'balanced')+'. Biggest obstacle: '+w.obstacle+'.';
+}
+function aiInsightHtml(w){
+  refreshAiStatus();
+  if(aiStatus!=='available') return '';
+  aiCur = w;
+  const t = aiText[w.start];
+  return '<div class="ai-insight" style="margin-top:12px;">'+
+    (t ? '<p class="ai-text">'+escapeHtml(t)+'</p><p class="card-note">Written on this phone by Apple\u2019s on-device AI from this week\u2019s numbers only. It can be wrong and isn\u2019t advice.</p>'
+       : '<button type="button" class="btn ghost" id="aiInsightBtn">'+(aiFail?'Couldn\u2019t write one. Try again':'Get an AI insight')+'</button><p class="card-note">Runs on this phone. Nothing is sent anywhere.</p>')+
+    '</div>';
+}
+function wireAiInsight(el){
+  const b = el.querySelector('#aiInsightBtn'); if(!b) return;
+  b.addEventListener('click', ()=>{
+    const p = aiPlugin(); if(aiBusy || !aiCur || !p) return;
+    const w = aiCur; aiBusy = true; aiFail = false; b.disabled = true; b.textContent = 'Writing\u2026';
+    p.weeklyInsight({summary: aiSummary(w)})
+      .then(r=>{ const x = String((r && r.text) || '').trim().slice(0,600); if(x) aiText[w.start] = x; else aiFail = true; })
+      .catch(()=>{ aiFail = true; })
+      .finally(()=>{ aiBusy = false; renderProgress(); });
+  });
+}
 let reviewWeek = 'this';
 function weekReviewCardHtml(){
   const thisStart = weekStart(todayStr()), lastStart = shiftDay(thisStart, -7);
@@ -787,7 +827,7 @@ function weekReviewCardHtml(){
   if(!w || !log.length) return '';
   return '<div class="card week-review"><div class="wr-head"><div class="card-kicker">Weekly Arc Review</div>'+
     (hasLast ? '<div class="wr-switch"><button type="button" data-wr="this" class="'+(reviewWeek==='this'?'on':'')+'">This week</button><button type="button" data-wr="last" class="'+(reviewWeek==='last'?'on':'')+'">Last week</button></div>' : '')+
-    '</div><div class="wr-title">'+weekReportTitle(w)+'</div><div class="wr-range">'+fmtDate(w.start)+' – '+fmtDate(w.end)+(reviewWeek==='this'?' · so far':'')+'</div>'+weekReviewLines(w)+
+    '</div><div class="wr-title">'+weekReportTitle(w)+'</div><div class="wr-range">'+fmtDate(w.start)+' – '+fmtDate(w.end)+(reviewWeek==='this'?' · so far':'')+'</div>'+weekReviewLines(w)+aiInsightHtml(w)+
     '<button type="button" class="btn ghost go" id="wrReflectBtn" style="margin-top:12px;">Reflect and adjust ↓</button></div>';
 }
 function goToReflection(){
@@ -797,6 +837,7 @@ function goToReflection(){
 function wireWeekReviewCard(el){
   el.querySelectorAll('[data-wr]').forEach(b=>b.addEventListener('click',()=>{ reviewWeek=b.dataset.wr; renderProgress(); }));
   const r=el.querySelector('#wrReflectBtn'); if(r) r.addEventListener('click', goToReflection);
+  wireAiInsight(el);
 }
 // The report is delivered on Sunday: the first time the tracker opens that day, the week's report
 // plays full screen. Miss Sunday and it plays the next time the tracker opens instead.
