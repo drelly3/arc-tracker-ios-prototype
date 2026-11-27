@@ -818,6 +818,70 @@ function wireAiInsight(el){
       .finally(()=>{ aiBusy = false; renderProgress(); });
   });
 }
+
+/* ---------------- Coach note (prototype): a goal-aware suggestion written on the phone ----------------
+   Same rules as the weekly insight: iPhone app only, hidden unless Apple's on-device model is available.
+   Input is minimised: the last 14 days of counts for up to 6 habits, plus up to 3 live Main Quests
+   (goal, why, milestone count, next open milestone, linked habit names). No notes, proof, photos or names.
+   The note is cached against exactly that input, so it is dropped as soon as a goal or the log changes. */
+const COACH_KEY = 'arc_coach', COACH_PREF = 'arc_coach_pref';
+let coachBusy = false, coachFail = false;
+function coachPref(){ const p = load(COACH_PREF,{}); return {on:!!p.on, freq:(p.freq==='few'?'few':'weekly')}; }
+function coachInput(){
+  const t = todayStr(), from = shiftDay(t,-13), by = Object.fromEntries(log.map(e=>[e.date,e]));
+  const days = []; for(let d = from; d <= t; d = shiftDay(d,1)) days.push(d);
+  const all = [{id:'h1', ...habits.h1}, ...otherHabits()].filter(h=>h && h.habit).slice(0,6);
+  const hs = all.map(h=>({name:String(h.habit).slice(0,60), done:days.filter(d=>{ const e = by[d]; return h.id==='h1' ? !!(e && e.h1) : didHabit(e, h.id); }).length}));
+  const qs = liveQuests().slice(0,3).map(q=>{
+    const pr = questProgress(q), next = (q.milestones||[]).find(m=>m.text && !m.done);
+    return {goal:String(q.title||'').slice(0,80), why:String(q.why||'').slice(0,120), due:q.due||'', milestones:pr.done+' of '+pr.total, next:next?String(next.text).slice(0,80):'', habits:questHabitNames(q).slice(0,4).map(x=>String(x).slice(0,60))};
+  });
+  return {days:days.length, habits:hs, quests:qs};
+}
+function coachPrompt(inp){
+  let s = 'Last '+inp.days+' days.\nHabits (days done):\n'+inp.habits.map(h=>'- '+h.name+': '+h.done+' of '+inp.days).join('\n')+'\n';
+  s += inp.quests.length ? 'Goals:\n'+inp.quests.map(q=>'- '+q.goal+(q.why?' (why: '+q.why+')':'')+(q.due?', due '+q.due:'')+', milestones '+q.milestones+(q.next?', next: '+q.next:'')+(q.habits.length?', habits: '+q.habits.join('; '):'')).join('\n') : 'No goals set yet.\n';
+  return s;
+}
+function coachCardHtml(){
+  refreshAiStatus();
+  if(aiStatus!=='available') return '';
+  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return '';
+  const key = JSON.stringify(inp), c = load(COACH_KEY,null), fresh = c && c.key===key && c.text;
+  return '<div class="card coach-note"><div class="card-kicker">Coach note</div>'+
+    (fresh ? '<p class="ai-text">'+escapeHtml(c.text)+'</p><p class="card-note">Written on this phone by Apple\u2019s on-device AI from your habits'+(inp.quests.length?' and Main Quests':'')+'. It can be wrong and isn\u2019t advice.</p><button type="button" class="btn ghost" id="coachBtn">New suggestion</button>'
+           : '<p class="card-note" style="margin-top:0;">A suggestion based on your habits'+(inp.quests.length?' and Main Quests':'. Set a Main Quest and it can connect to your goal')+'. Runs on this phone, nothing is sent anywhere.</p><button type="button" class="btn ghost" id="coachBtn">'+(coachFail?'Couldn\u2019t write one. Try again':'Get a coach note')+'</button>')+
+    '</div>';
+}
+function wireCoach(el){
+  const b = el.querySelector('#coachBtn'); if(!b) return;
+  b.addEventListener('click', ()=>{
+    const p = aiPlugin(); if(coachBusy || !p || !p.coachNote) return;
+    const inp = coachInput(), key = JSON.stringify(inp);
+    coachBusy = true; coachFail = false; b.disabled = true; b.textContent = 'Writing\u2026';
+    p.coachNote({summary: coachPrompt(inp)})
+      .then(r=>{ const x = String((r && r.text) || '').trim().slice(0,700); if(x) persist(COACH_KEY, {key, text:x, day:todayStr()}); else coachFail = true; })
+      .catch(()=>{ coachFail = true; })
+      .finally(()=>{ coachBusy = false; renderProgress(); });
+  });
+}
+// Proposed controls. Preview only: this saves the choice and schedules nothing.
+function coachSetupHtml(group){
+  refreshAiStatus();
+  if(aiStatus!=='available') return '';
+  const p = coachPref();
+  return group('coach','\uD83E\uDDED','Coach check-ins','Preview, off for now')+
+    '<p class="section-sub" style="margin-top:4px;">Suggestions written on this phone from your habits and Main Quests. Nothing leaves the phone.</p>'+
+    '<div class="card"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="coachOn"'+(p.on?' checked':'')+' style="width:auto;"> Send me coach check-ins</label>'+
+    '<label for="coachFreq">How often</label><select id="coachFreq"'+(p.on?'':' disabled')+'><option value="weekly"'+(p.freq==='weekly'?' selected':'')+'>About once a week</option><option value="few"'+(p.freq==='few'?' selected':'')+'>A few times a week</option></select>'+
+    '<div class="helptext">Preview only: this saves your choice. No check-in notifications are scheduled yet.</div></div></div></details>';
+}
+function wireCoachSetup(el){
+  const on = el.querySelector('#coachOn'), fq = el.querySelector('#coachFreq'); if(!on || !fq) return;
+  const save = ()=>persist(COACH_PREF, {on:on.checked, freq:fq.value});
+  on.addEventListener('change', ()=>{ fq.disabled = !on.checked; save(); });
+  fq.addEventListener('change', save);
+}
 let reviewWeek = 'this';
 function weekReviewCardHtml(){
   const thisStart = weekStart(todayStr()), lastStart = shiftDay(thisStart, -7);
@@ -2047,6 +2111,7 @@ function renderProgress(){
   html += '</div>';
 
   html += weekReviewCardHtml();
+  html += coachCardHtml();
   html += profileHtml();
   html += yearCardHtml();
 
@@ -2076,6 +2141,7 @@ function renderProgress(){
   el.innerHTML = html;
   wireWeeklyReview();
   wireWeekReviewCard(el);
+  wireCoach(el);
   wireYearCard(el);
   wireNotes(el);
   el.querySelectorAll('[data-quest-replay]').forEach(b=>b.addEventListener('click',()=>{ const q=quests.find(x=>x.id===b.dataset.questReplay); if(q) queueCelebration(done=>showQuestComplete(q, done)); }));
@@ -2267,6 +2333,7 @@ function renderSetup(){
 
   html += '</div></details>';
   }
+  html += coachSetupHtml(group);
   html += group('newarc','🔁','Start a new arc','Change your archetype or go back to Week 1');
   html += '<p class="section-sub" style="margin-top:4px;">Want a clean slate, or a different archetype? Start a new arc and you\u2019re back at Week 1. Your streak, XP, rank, log, weekly reports, challenges and proof photos start over. Your name, habits, Main Quests, notes and reminders stay.</p>';
   html += '<button class="btn" id="newArcBtn">Start a new arc</button>';
@@ -2478,6 +2545,7 @@ function renderSetup(){
   }
 
   wireImportBox();
+  wireCoachSetup(el);
   document.getElementById('newArcBtn').addEventListener('click', ()=>openNewArc());
   document.getElementById('resetBtn').addEventListener('click',()=>{
     if(!confirm('Reset your whole arc? This clears your log, habits, character and proof on this device'+(isLocalOnly()?'':', and your backup too, so other devices signed in with your key are reset as well')+'. This can\u2019t be undone.')) return;
