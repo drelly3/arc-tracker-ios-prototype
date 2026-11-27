@@ -788,11 +788,13 @@ function aiPlugin(){
   try{ const C = window.Capacitor; if(isLocalOnly() && C){ if(C.registerPlugin) aiProxy = C.registerPlugin('ArcInsight'); else if(C.Plugins && C.Plugins.ArcInsight) aiProxy = C.Plugins.ArcInsight; } }catch(e){ aiProxy = null; }
   return aiProxy;
 }
+// Rebuild Setup once the AI status is known so the Coach check-ins group appears, unless a Setup field is being edited; then retry shortly.
+function coachRefreshSetup(tries){ const st = document.getElementById('tab-setup'), a = document.activeElement; const busy = !!(a && st && st.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); if(!busy) renderSetup(); else if(tries<15) setTimeout(()=>coachRefreshSetup(tries+1), 2000); }
 function refreshAiStatus(){
   if(aiStatus) return;
   const p = aiPlugin(); if(!p){ aiStatus = 'none'; return; }
   aiStatus = 'checking';
-  p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; if(aiStatus==='available'){ renderProgress(); try{ const st = document.getElementById('tab-setup'); if(!(st && st.classList.contains('active'))) renderSetup(); }catch(e){} } }).catch(()=>{ aiStatus = 'unsupported'; });
+  p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; if(aiStatus==='available'){ renderProgress(); try{ coachRefreshSetup(0); }catch(e){} } }).catch(()=>{ aiStatus = 'unsupported'; });
 }
 function aiSummary(w){
   return 'Week '+w.no+' of the person\u2019s habit arc: '+w.done+' of '+w.possible+' missions completed ('+w.pct+'%). '+
