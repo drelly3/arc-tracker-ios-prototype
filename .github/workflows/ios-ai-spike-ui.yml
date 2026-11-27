@@ -4,6 +4,10 @@ on:
     branches: [ai-insight-spike]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Only the sim-test job below may write (it pushes screenshots to a scratch branch).
 permissions: {}
 
