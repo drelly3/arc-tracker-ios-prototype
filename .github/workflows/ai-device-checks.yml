@@ -1,0 +1,651 @@
+name: AI device-style checks (notifications and update-in-place, simulator)
+on:
+  push:
+    paths:
+      - '.github/workflows/ai-device-checks.yml'
+
+# Only the sim-test job below may write (it pushes screenshots to a scratch branch).
+permissions: {}
+
+env:
+  PROJECT_DIR: ios/App/App.xcodeproj
+  SCHEME: App
+  DERIVED: build/DerivedData
+
+jobs:
+  sim-test:
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [stub]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Block production API egress for the test
+        run: |
+          set -e
+          echo '127.0.0.1 animemindset.com' | sudo tee -a /etc/hosts
+          echo '127.0.0.1 www.animemindset.com' | sudo tee -a /etc/hosts
+          grep animemindset /etc/hosts
+          if curl -sS -m 5 https://animemindset.com/api/arc-verify -o /dev/null 2>/tmp/curlerr; then
+            echo 'ERROR: production API host still reachable'; exit 1
+          else
+            echo "production API host blocked as intended: $(cat /tmp/curlerr)"
+          fi
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate the iOS project
+        run: npx cap add ios
+
+      - name: Sync web assets into the iOS project
+        run: npx cap sync ios
+
+      - name: Add the on-device insight plugin and bridge registration
+        run: bash native/inject-arc-insight.sh
+
+      - name: Seed sample data (this CI copy only) and apply the variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          set -e
+          F=$(find ios/App/App -name arc-tracker.js -path '*public*' | head -1)
+          echo "patching copy: $F"
+          cat > /tmp/seed.js <<'JS'
+          (function(){ try{
+            if(localStorage.getItem('arc_log')) return;
+            var d=new Date(), pad=function(n){return String(n).padStart(2,'0');};
+            var day=function(back){ var x=new Date(d.getFullYear(), d.getMonth(), d.getDate()-back); return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate()); };
+            localStorage.setItem('arc_profile', JSON.stringify({name:'Alex',archetypeKey:'strategist'}));
+            localStorage.setItem('arc_habits', JSON.stringify({h1:{cue:'After coffee',habit:'Read one page'},h2:{cue:'After dinner',habit:'Plan the next day'},h3:{cue:'Before bed',habit:'10 push-ups'},sc:{cue:'',habit:''}}));
+            var log=[]; for(var i=5;i>=0;i--){ log.push({date:day(i),h1:i!==2,h2:i%2===0,h3:i<3,sc:false,note:'',t:Date.now()-i*86400000}); }
+            localStorage.setItem('arc_log', JSON.stringify(log));
+            localStorage.setItem('arc_quests', JSON.stringify([{id:'q1',title:'Run a half marathon',why:'Prove I finish what I start',due:'',milestones:[{id:'m1',text:'Run 5K without stopping',done:true},{id:'m2',text:'Run 10K',done:false}],habits:['h2'],created:day(14),t:Date.now()}]));
+            localStorage.setItem('arc_week_seen', JSON.stringify(day(0)));
+          }catch(e){} })();
+          JS
+          cat /tmp/seed.js "$F" > /tmp/patched.js
+          cat > /tmp/diag.py <<'PYD'
+          p='/tmp/patched.js'
+          s=open(p).read()
+          old="p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported';"
+          assert s.count(old)==1
+          s=s.replace(old, "p.availability().then(r=>{ aiStatus = (r && r.status) || 'unsupported'; try{ var dg=document.getElementById('aidiag')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'aidiag'})); dg.textContent='AI-STATUS='+aiStatus; dg.style.cssText='position:fixed;top:60px;left:0;z-index:99999;color:#0f0;background:#000;font-size:14px;padding:2px'; }catch(x){}")
+          old3="}).catch(()=>{ aiStatus = 'unsupported'; });"
+          assert s.count(old3)==1
+          s=s.replace(old3, "}).catch((err)=>{ aiStatus = 'unsupported'; try{ var dg=document.getElementById('aidiag')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'aidiag'})); dg.textContent='AI-STATUS=ERR '+String(err&&(err.message||err.code||err)); dg.style.cssText='position:fixed;top:60px;left:0;z-index:99999;color:#f55;background:#000;font-size:14px;padding:2px'; }catch(x){} });")
+          old4="const p = aiPlugin(); if(!p){ aiStatus = 'none'; return; }\n  aiStatus = 'checking';"
+          assert s.count(old4)==1
+          helper="window.__aidiag=window.__aidiag||function(t){ try{ var dg=document.getElementById('aidiag')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'aidiag'})); dg.textContent=t; dg.style.cssText='position:fixed;top:60px;left:0;z-index:99999;color:#ff0;background:#000;font-size:14px;padding:2px'; }catch(x){} };"
+          s=s.replace(old4, helper+" const p = aiPlugin(); if(!p){ aiStatus = 'none'; window.__aidiag('AI-STATUS=noproxy'); return; }\n  aiStatus = 'checking'; setTimeout(()=>{ if(aiStatus==='checking') window.__aidiag('AI-STATUS=pending'); }, 5000);")
+          old5="}catch(e){ aiProxy = null; }"
+          assert s.count(old5)==1
+          s=s.replace(old5, "}catch(e){ aiProxy = null; window.__aierr = String(e && (e.message || e)); }")
+          old6="window.__aidiag('AI-STATUS=noproxy');"
+          assert s.count(old6)==1
+          s=s.replace(old6, "window.__aidiag('AI-STATUS=noproxy native='+String(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())+' hasCap='+String(!!window.Capacitor)+' reg='+typeof (window.Capacitor&&window.Capacitor.registerPlugin)+' plugins='+Object.keys((window.Capacitor&&window.Capacitor.Plugins)||{}).join(',')+' err='+String(window.__aierr));")
+          open(p,'w').write(s)
+          PYD
+          python3 /tmp/diag.py
+          if [ "$VARIANT" = "stub" ]; then
+            cat > /tmp/stub.py <<'PYX'
+          p='/tmp/patched.js'
+          s=open(p).read()
+          old="if(aiProxy) return aiProxy;"
+          assert s.count(old)==1
+          stub="return {availability:()=>Promise.resolve({status:'available'}), weeklyInsight:()=>new Promise(r=>setTimeout(()=>r({text:'[STUB TEXT FOR LAYOUT CHECK, NOT MODEL OUTPUT] You kept your reading habit going most days this week. Try pairing it with the one that slipped.'}),600)), coachNote:()=>new Promise(r=>setTimeout(()=>r({text:'[STUB COACH NOTE, NOT MODEL OUTPUT] Your half-marathon goal has its 10K milestone open. Try a ten-minute run on busy days so the habit stays alive.'}),600))};"
+          open(p,'w').write(s.replace(old, stub))
+          PYX
+            python3 /tmp/stub.py
+          fi
+          cp /tmp/patched.js "$F"
+          head -c 300 "$F"; echo; tail -c 200 "$F"
+
+      - name: Build the iOS app
+        run: |
+          xcodebuild -project "$PROJECT_DIR" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$DERIVED" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Add UI test target and shared scheme
+        run: |
+          set -e
+          mkdir -p ios/App/AppUITests
+          cat > ios/App/AppUITests/AppUITests.swift <<'SWIFT'
+          import XCTest
+
+          final class AppUITests: XCTestCase {
+
+              var app: XCUIApplication!
+
+              override func setUpWithError() throws {
+                  continueAfterFailure = true
+                  app = XCUIApplication()
+                  app.launch()
+                  addUIInterruptionMonitor(withDescription: "system-prompts") { alert in
+                      for label in ["Not Now", "OK", "Allow", "Dismiss", "Maybe Later"] {
+                          if alert.buttons[label].exists { alert.buttons[label].tap(); return true }
+                      }
+                      return false
+                  }
+              }
+
+              func shot(_ name: String) {
+                  let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+                  attachment.name = name
+                  attachment.lifetime = .keepAlways
+                  add(attachment)
+              }
+
+              // Read-only diagnostics: hierarchy dump captured as a kept attachment.
+              // Does not change any assertion or selector.
+              func dumpHierarchy(_ name: String) {
+                  let counts = "counts staticTexts=\(app.staticTexts.count) buttons=\(app.buttons.count) textFields=\(app.textFields.count) any=\(app.descendants(matching: .any).count)"
+                  print("DUMP[\(name)] \(counts)")
+                  let att = XCTAttachment(string: counts + "\n\n" + app.debugDescription)
+                  att.name = name
+                  att.lifetime = .keepAlways
+                  add(att)
+              }
+
+              func textExists(_ fragment: String, _ timeout: Double = 10) -> Bool {
+                  let pred = NSPredicate(format: "label CONTAINS[c] %@", fragment)
+                  return app.staticTexts.matching(pred).firstMatch.waitForExistence(timeout: timeout)
+              }
+
+              func tapNav(_ label: String) {
+                  let b = app.buttons[label]
+                  if b.waitForExistence(timeout: 10) { b.tap() }
+                  sleep(2)
+              }
+
+              // Press-drag scroll: app.swipeUp() did not move the Capacitor
+              // WKWebView content in run 45325695949 (vertical scroll bar stayed
+              // at 0%), leaving below-fold elements unhittable under the fixed nav.
+              func dragScroll(_ times: Int = 1) {
+                  let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+                  let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.30))
+                  for _ in 0..<times {
+                      start.press(forDuration: 0.15, thenDragTo: end)
+                      usleep(400000)
+                  }
+              }
+
+              // Scroll until the element is actually hittable (on screen and
+              // clear of the fixed bottom nav), not just present in the AX tree.
+              @discardableResult
+              func scrollUntilHittable(_ el: XCUIElement, _ maxDrags: Int = 10) -> Bool {
+                  var n = 0
+                  while !el.isHittable && n < maxDrags {
+                      dragScroll()
+                      n += 1
+                  }
+                  return el.isHittable
+              }
+
+              func sbShot(_ name: String) { shot(name) }
+
+              func testNotificationFlow() throws {
+                  let sb = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+                  XCTAssertTrue(textExists("Read one page", 40), "seeded tracker opens on Today")
+                  sleep(2)
+                  tapNav("Setup")
+                  let coachGroup = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@", "Coach check-ins")).firstMatch
+                  let cgPresent = coachGroup.waitForExistence(timeout: 15)
+                  print("NOTIFY-COACH-SETUP-PRESENT=\(cgPresent)")
+                  guard cgPresent else { return }
+                  _ = scrollUntilHittable(coachGroup, 10)
+                  coachGroup.tap()
+                  sleep(1)
+                  let allowBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Allow notifications")).firstMatch
+                  let allowPresent = allowBtn.waitForExistence(timeout: 15)
+                  print("NOTIFY-ALLOW-BUTTON-PRESENT=\(allowPresent)")
+                  guard allowPresent else { shot("N0-no-allow-button"); return }
+                  _ = scrollUntilHittable(allowBtn, 6)
+                  shot("N1-before-allow")
+                  allowBtn.tap()
+                  let alertAllow = sb.alerts.buttons["Allow"]
+                  let alertShown = alertAllow.waitForExistence(timeout: 20)
+                  print("NOTIFY-PERMISSION-ALERT-SHOWN=\(alertShown)")
+                  shot("N2-permission-alert")
+                  if alertShown { alertAllow.tap() }
+                  sleep(3)
+                  let testBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "test check-in")).firstMatch
+                  let testPresent = testBtn.waitForExistence(timeout: 15)
+                  print("NOTIFY-TEST-BUTTON-PRESENT-AFTER-ALLOW=\(testPresent)")
+                  shot("N3-after-allow")
+                  guard testPresent else { dumpHierarchy("after-allow"); return }
+                  _ = scrollUntilHittable(testBtn, 6)
+                  testBtn.tap()
+                  let scheduled = textExists("Test check-in scheduled", 20)
+                  print("NOTIFY-TEST-SCHEDULED-MESSAGE=\(scheduled)")
+                  shot("N4-scheduled")
+                  XCUIDevice.shared.press(.home)
+                  var banner = false
+                  let bannerText = sb.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "coach has a suggestion")).firstMatch
+                  banner = bannerText.waitForExistence(timeout: 25)
+                  print("NOTIFY-BANNER-SHOWN=\(banner)")
+                  shot("N5-banner")
+                  if banner {
+                      print("NOTIFY-BANNER-LABEL=\(bannerText.label)")
+                      let leak = sb.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "STUB COACH NOTE")).firstMatch.exists
+                      print("NOTIFY-BANNER-LEAKS-FULL-TEXT=\(leak)")
+                      bannerText.tap()
+                      sleep(4)
+                      shot("N6-after-tap")
+                      let fg = app.wait(for: .runningForeground, timeout: 15)
+                      print("NOTIFY-APP-FOREGROUND-AFTER-TAP=\(fg)")
+                      tapNav("Progress")
+                      let card = textExists("Your coach check-in", 15)
+                      let stub = textExists("STUB COACH NOTE", 5)
+                      print("NOTIFY-TAP-CARD-SHOWN=\(card) FULL-TEXT-IN-APP=\(stub)")
+                      sleep(1)
+                      shot("N7-progress-after-tap")
+                  } else {
+                      sleep(3)
+                      shot("N5b-springboard")
+                  }
+              }
+          }
+          SWIFT
+
+          cat > /tmp/inject.rb <<'RUBY'
+          require 'xcodeproj'
+          proj = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+          app = proj.targets.find { |t| t.name == 'App' } or abort 'App target not found'
+          abort 'AppUITests already exists' if proj.targets.any? { |t| t.name == 'AppUITests' }
+          uitest = proj.new_target(:ui_test_bundle, 'AppUITests', :ios, '15.0', nil, :swift)
+          grp = proj.main_group.new_group('AppUITests', 'AppUITests')
+          ref = grp.new_file('AppUITests.swift')
+          uitest.source_build_phase.add_file_reference(ref)
+          uitest.add_dependency(app)
+          uitest.build_configurations.each do |c|
+            c.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.animemindset.arctracker.uitests'
+            c.build_settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
+            c.build_settings['TEST_TARGET_NAME'] = 'App'
+            c.build_settings['SWIFT_VERSION'] = '5.0'
+            c.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
+            c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+            c.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+            c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+            c.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+          end
+          proj.save
+          puts "APP_UUID=#{app.uuid}"
+          puts "UITEST_UUID=#{uitest.uuid}"
+          RUBY
+
+          RUBY_BIN=$(head -1 "$(command -v pod)" | sed 's/^#!//')
+          "$RUBY_BIN" /tmp/inject.rb | tee /tmp/uuids.txt
+          APP_UUID=$(grep '^APP_UUID=' /tmp/uuids.txt | cut -d= -f2)
+          UITEST_UUID=$(grep '^UITEST_UUID=' /tmp/uuids.txt | cut -d= -f2)
+          [ -n "$APP_UUID" ] && [ -n "$UITEST_UUID" ] || { echo 'uuid capture failed'; exit 1; }
+
+          cat > /tmp/scheme.tpl <<'SCHEME'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Scheme
+             LastUpgradeVersion = "2600"
+             version = "1.7">
+             <BuildAction
+                parallelizeBuildables = "YES"
+                buildImplicitDependencies = "YES"
+                buildArchitectures = "Automatic">
+                <BuildActionEntries>
+                   <BuildActionEntry
+                      buildForTesting = "YES"
+                      buildForRunning = "YES"
+                      buildForProfiling = "YES"
+                      buildForArchiving = "YES"
+                      buildForAnalyzing = "YES">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "__APP_UUID__"
+                         BuildableName = "App.app"
+                         BlueprintName = "App"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </BuildActionEntry>
+                </BuildActionEntries>
+             </BuildAction>
+             <TestAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                shouldUseLaunchSchemeArgsEnv = "YES">
+                <Testables>
+                   <TestableReference
+                      skipped = "NO"
+                      parallelizable = "NO">
+                      <BuildableReference
+                         BuildableIdentifier = "primary"
+                         BlueprintIdentifier = "__UITEST_UUID__"
+                         BuildableName = "AppUITests.xctest"
+                         BlueprintName = "AppUITests"
+                         ReferencedContainer = "container:App.xcodeproj">
+                      </BuildableReference>
+                   </TestableReference>
+                </Testables>
+             </TestAction>
+             <LaunchAction
+                buildConfiguration = "Debug"
+                selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+                selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+                launchStyle = "0"
+                useCustomWorkingDirectory = "NO"
+                ignoresPersistentStateOnLaunch = "NO"
+                debugDocumentVersioning = "YES"
+                debugServiceExtension = "internal"
+                allowLocationSimulation = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "__APP_UUID__"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </LaunchAction>
+             <ProfileAction
+                buildConfiguration = "Release"
+                shouldUseLaunchSchemeArgsEnv = "YES"
+                savedToolIdentifier = ""
+                useCustomWorkingDirectory = "NO"
+                debugDocumentVersioning = "YES">
+                <BuildableProductRunnable
+                   runnableDebuggingMode = "0">
+                   <BuildableReference
+                      BuildableIdentifier = "primary"
+                      BlueprintIdentifier = "__APP_UUID__"
+                      BuildableName = "App.app"
+                      BlueprintName = "App"
+                      ReferencedContainer = "container:App.xcodeproj">
+                   </BuildableReference>
+                </BuildableProductRunnable>
+             </ProfileAction>
+             <AnalyzeAction
+                buildConfiguration = "Debug">
+             </AnalyzeAction>
+             <ArchiveAction
+                buildConfiguration = "Release"
+                revealArchiveInOrganizer = "YES">
+             </ArchiveAction>
+          </Scheme>
+          SCHEME
+
+          mkdir -p "$PROJECT_DIR/xcshareddata/xcschemes"
+          sed -e "s/__APP_UUID__/$APP_UUID/g" -e "s/__UITEST_UUID__/$UITEST_UUID/g" \
+            /tmp/scheme.tpl > "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+          echo 'shared scheme written:'
+          grep -c 'BuildableReference' "$PROJECT_DIR/xcshareddata/xcschemes/App.xcscheme"
+
+      - name: Show UI test target build settings
+        run: |
+          xcodebuild -project "$PROJECT_DIR" -list
+          xcodebuild -project "$PROJECT_DIR" -target AppUITests -configuration Debug -sdk iphonesimulator -showBuildSettings | grep -E ' (PRODUCT_NAME|FULL_PRODUCT_NAME|WRAPPER_NAME|PRODUCT_BUNDLE_IDENTIFIER|TEST_TARGET_NAME) = '
+
+
+      - name: Boot a 6.9-inch iPhone simulator with a clean status bar
+        run: |
+          set -e
+          TYPE=$(xcrun simctl list devicetypes -j | python3 -c '
+          import json,sys,re
+          d=json.load(sys.stdin)
+          ids=[t["identifier"] for t in d["devicetypes"] if re.search(r"iPhone-1[6-9]-Pro-Max", t["identifier"])]
+          print(sorted(ids)[-1] if ids else "")')
+          echo "device type: $TYPE"
+          [ -n "$TYPE" ] || { echo 'no Pro Max device type'; exit 1; }
+          UDID=$(xcrun simctl create arctracker "$TYPE")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          sleep 5
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularMode active --cellularBars 4 --wifiBars 3 || true
+
+      - name: Run the XCUITest tracker flow
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT_DIR" \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -resultBundlePath /tmp/arcrest.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee /tmp/xcodebuild-test.log
+        timeout-minutes: 45
+
+
+      - name: Capture plugin evidence
+        if: always()
+        run: |
+          mkdir -p shots
+          {
+            echo "variant=${{ matrix.variant }}"
+            cat /tmp/inject-info.txt 2>/dev/null || echo "no inject info"
+            xcodebuild -version
+            APP=$(find ~/Library/Developer/Xcode/DerivedData -name App.app -path '*Debug-iphonesimulator*' | head -1)
+            echo "app bundle: $APP"
+            otool -L "$APP/App" | grep -i -E "FoundationModels" || echo "no FoundationModels link line"
+            for B in "$APP/App" "$APP/App.debug.dylib"; do
+              [ -e "$B" ] || continue
+              echo "== $B"
+              otool -L "$B" | grep -i FoundationModels || echo "no FoundationModels link line"
+              echo "ArcInsightPlugin symbols: $(nm "$B" 2>/dev/null | grep -c ArcInsightPlugin)"
+              echo "LanguageModelSession mentions: $(strings "$B" | grep -c LanguageModelSession)"
+            done
+            ls "$APP" | head -20
+            echo "--- runtime log lines from the plugin ---"
+            xcrun simctl spawn "$UDID" log show --last 30m --style compact --predicate 'eventMessage CONTAINS "ArcInsight"' | grep -i arcinsight | head -20 || true
+            grep -E "NOTIFY-|AI-BUTTON-PRESENT|COACH-" /tmp/xcodebuild-test.log || true
+          } > shots/evidence.txt 2>&1
+          cat shots/evidence.txt
+
+      - name: Export the test screenshots
+        if: always()
+        run: |
+          set -e
+          mkdir -p shots
+          xcrun xcresulttool export attachments --path /tmp/arcrest.xcresult --output-path shots
+          ls -la shots
+          rm -f shots/*.mp4
+          for f in shots/*_*.png; do
+            [ -e "$f" ] || continue
+            base=$(basename "$f")
+            new=$(echo "$base" | sed -E 's/_[A-F0-9a-f-]{36}\.png$/.png/')
+            mv "$f" "shots/$new"
+          done
+          ls -la shots
+
+      - name: Upload simulator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notify-shots-${{ matrix.variant }}-${{ github.run_id }}
+          path: shots/*
+
+
+      - name: Push screenshots to a scratch branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.email "ci@localhost"
+          git config user.name "ci"
+          BR="ai-notify-${{ matrix.variant }}-${{ github.run_id }}"
+          echo "BRANCH=$BR" >> "$GITHUB_ENV"
+          rm -rf /tmp/shotpush && mkdir -p /tmp/shotpush
+          cd /tmp/shotpush
+          git init -q
+          git checkout -q -b "$BR"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          cp "$GITHUB_WORKSPACE"/shots/* . 2>/dev/null || true
+          cat > RUN.md <<EOF2
+          # AI insight spike: simulator UI check (not real-device model validation)
+
+          Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Sample data is seeded into this CI build only. Variant real = the actual plugin on the simulator; variant stub = plugin replaced by a stub, for layout only.
+          Sample data only ("Alex", "Read one page", "Plan the next day", "10 push-ups"). Not tested: real devices, model output quality.
+          EOF2
+          git add .
+          git commit -q -m "Native UI test screenshots for run ${{ github.run_id }}"
+          git push -q origin "$BR"
+          echo "Pushed screenshots to branch $BR"
+
+  update-preserve:
+    runs-on: macos-26
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: new
+      - uses: actions/checkout@v4
+        with:
+          ref: release-ios
+          path: old
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build A (first-release code, release-ios, build 3) with marker data
+        run: |
+          set -e
+          cd old
+          echo "A sha: $(git rev-parse HEAD)"
+          npm ci --no-audit --no-fund
+          npx cap add ios
+          npx cap sync ios
+          F=$(find ios/App/App -name arc-tracker.js -path '*public*' | head -1)
+          cat > /tmp/seedA.js <<'JS'
+          (function(){ try{
+            if(localStorage.getItem('arc_log')) return;
+            var d=new Date(), pad=function(n){return String(n).padStart(2,'0');};
+            var day=function(back){ var x=new Date(d.getFullYear(), d.getMonth(), d.getDate()-back); return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate()); };
+            localStorage.setItem('arc_profile', JSON.stringify({name:'Alex',archetypeKey:'strategist'}));
+            localStorage.setItem('arc_habits', JSON.stringify({h1:{cue:'After coffee',habit:'MARKERA read one page'},h2:{cue:'',habit:''},h3:{cue:'',habit:''},sc:{cue:'',habit:''}}));
+            var log=[]; for(var i=3;i>=0;i--){ log.push({date:day(i),h1:true,h2:false,h3:false,sc:false,note:'',t:Date.now()-i*86400000}); }
+            localStorage.setItem('arc_log', JSON.stringify(log));
+            localStorage.setItem('arc_week_seen', JSON.stringify(day(0)));
+          }catch(e){} })();
+          JS
+          cat /tmp/seedA.js "$F" > /tmp/patchedA.js
+          cp /tmp/patchedA.js "$F"
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination "generic/platform=iOS Simulator" -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO CURRENT_PROJECT_VERSION=3 MARKETING_VERSION=1.0 build 2>&1 | tail -5
+          find build/DerivedData -name App.app -path '*Debug-iphonesimulator*' | head -1 | tee /tmp/appA.path
+
+      - name: Build B (AI test code, build 1004) with different marker data
+        run: |
+          set -e
+          cd new
+          echo "B sha: $(git rev-parse HEAD)"
+          npm ci --no-audit --no-fund
+          npx cap add ios
+          npx cap sync ios
+          bash native/inject-arc-insight.sh
+          F=$(find ios/App/App -name arc-tracker.js -path '*public*' | head -1)
+          sed "s/MARKERA read one page/MARKERB reseeded habit/; s/name:'Alex'/name:'Blake'/" /tmp/seedA.js > /tmp/seedB.js
+          grep -c MARKERB /tmp/seedB.js
+          cat /tmp/seedB.js "$F" > /tmp/patchedB.js
+          cp /tmp/patchedB.js "$F"
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination "generic/platform=iOS Simulator" -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO CURRENT_PROJECT_VERSION=1004 MARKETING_VERSION=1.0 build 2>&1 | tail -5
+          find build/DerivedData -name App.app -path '*Debug-iphonesimulator*' | head -1 | tee /tmp/appB.path
+
+      - name: Install A, then install B over it, and compare the stored data
+        run: |
+          set -e
+          mkdir -p shots
+          APPA="$GITHUB_WORKSPACE/old/$(cat /tmp/appA.path)"; APPB="$GITHUB_WORKSPACE/new/$(cat /tmp/appB.path)"
+          BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APPA/Info.plist")
+          BIDB=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APPB/Info.plist")
+          echo "bundle id A=$BID B=$BIDB"
+          echo "A version: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APPA/Info.plist") build $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APPA/Info.plist")"
+          echo "B version: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APPB/Info.plist") build $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APPB/Info.plist")"
+          TYPE=$(xcrun simctl list devicetypes -j | python3 -c '
+          import json,sys,re
+          d=json.load(sys.stdin)
+          ids=[t["identifier"] for t in d["devicetypes"] if re.search(r"iPhone-1[6-9]-Pro-Max", t["identifier"])]
+          print(sorted(ids)[-1] if ids else "")')
+          UDID=$(xcrun simctl create upd "$TYPE")
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          sleep 5
+          cat > /tmp/dump.py <<'PY'
+          import sqlite3,sys,glob
+          root=sys.argv[1]
+          fs=glob.glob(root+'/**/localstorage.sqlite3', recursive=True)
+          print('localstorage files:', len(fs))
+          for f in fs:
+              try:
+                  c=sqlite3.connect('file:'+f+'?mode=ro', uri=True)
+                  for k,v in c.execute('select key,value from ItemTable'):
+                      if isinstance(v,bytes):
+                          try: v=v.decode('utf-16le')
+                          except Exception: v=repr(v)
+                      if k in ('arc_profile','arc_habits'): print('  ',k,'=',v[:140])
+                      elif k=='arc_log': print('  ',k,'entries=',v.count('"date"'))
+              except Exception as e: print('  read error',e)
+          PY
+          echo "=== install A and launch"
+          xcrun simctl install "$UDID" "$APPA"
+          DA=$(xcrun simctl get_app_container "$UDID" "$BID" data); echo "data container after A: $DA"
+          xcrun simctl launch "$UDID" "$BID"
+          sleep 25
+          xcrun simctl io "$UDID" screenshot shots/U1-after-A-launch.png
+          xcrun simctl terminate "$UDID" "$BID"
+          sleep 5
+          echo "--- stored data after A:"; python3 /tmp/dump.py "$DA" | tee shots/dump-A.txt
+          echo "=== install B over A (no uninstall)"
+          xcrun simctl install "$UDID" "$APPB"
+          DB=$(xcrun simctl get_app_container "$UDID" "$BIDB" data); echo "data container after B install: $DB"
+          [ "$DA" = "$DB" ] && echo "SAME-DATA-CONTAINER=true" || echo "SAME-DATA-CONTAINER=false"
+          echo "--- stored data right after B install, before launching B:"; python3 /tmp/dump.py "$DB" | tee shots/dump-B-before-launch.txt
+          xcrun simctl launch "$UDID" "$BIDB"
+          sleep 25
+          xcrun simctl io "$UDID" screenshot shots/U2-after-B-launch.png
+          xcrun simctl terminate "$UDID" "$BIDB"
+          sleep 5
+          echo "--- stored data after launching B:"; python3 /tmp/dump.py "$DB" | tee shots/dump-B-after-launch.txt
+          APPS=$(xcrun simctl listapps "$UDID" | grep -A12 "$BIDB" | grep -E "CFBundleVersion|CFBundleShortVersionString" | head -4)
+          echo "installed now: $APPS"
+          {
+            echo "A sha old/release-ios: $(git -C $GITHUB_WORKSPACE/old rev-parse HEAD)"
+            echo "B sha new: $(git -C $GITHUB_WORKSPACE/new rev-parse HEAD)"
+            echo "SAME-DATA-CONTAINER: $([ "$DA" = "$DB" ] && echo true || echo false)"
+            echo "installed now: $APPS"
+            grep -h -E "MARKER|Alex|Blake" shots/dump-*.txt || true
+          } > shots/evidence.txt
+          cat shots/evidence.txt
+
+      - name: Push screenshots to a scratch branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config --global user.email "ci@localhost"
+          git config --global user.name "ci"
+          BR="ai-update-${{ github.run_id }}"
+          rm -rf /tmp/shotpush && mkdir -p /tmp/shotpush
+          cd /tmp/shotpush
+          git init -q
+          git checkout -q -b "$BR"
+          cp "$GITHUB_WORKSPACE"/shots/* . 2>/dev/null || true
+          echo "Install-over-install check, simulator only, sample marker data. Run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > RUN.md
+          git add .
+          git commit -q -m "Update-in-place check screenshots for run ${{ github.run_id }}"
+          git push -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$BR"
+          echo "Pushed to $BR"
