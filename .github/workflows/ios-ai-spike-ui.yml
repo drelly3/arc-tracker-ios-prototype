@@ -423,6 +423,7 @@ jobs:
           mkdir -p shots
           {
             echo "variant=${{ matrix.variant }}"
+            cat /tmp/inject-info.txt 2>/dev/null || echo "no inject info"
             xcodebuild -version
             APP=$(find ~/Library/Developer/Xcode/DerivedData -name App.app -path '*Debug-iphonesimulator*' | head -1)
             echo "app bundle: $APP"
