@@ -1,0 +1,15 @@
+name: iOS TestFlight upload (release)
+
+# Registration stub only. The real workflow lives on the release-ios branch and is
+# started with that branch selected. This copy has no secrets, no environment and
+# no permissions, and only prints a line.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Stub on main. Run this workflow with the release-ios branch selected."
