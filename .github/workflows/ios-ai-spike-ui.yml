@@ -213,7 +213,7 @@ jobs:
                   let diag = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "AI-STATUS=")).firstMatch
                   if diag.waitForExistence(timeout: 8) { print("AI-STATUS-LABEL=\(diag.label)") } else { print("AI-STATUS-LABEL=none") }
                   let coachBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "coach note")).firstMatch
-                  let coachPresent = coachBtn.waitForExistence(timeout: 4)
+                  let coachPresent = coachBtn.waitForExistence(timeout: 15)
                   print("COACH-BUTTON-PRESENT=\(coachPresent)")
                   if coachPresent {
                       _ = scrollUntilHittable(coachBtn, 6)
