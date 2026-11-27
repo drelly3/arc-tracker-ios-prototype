@@ -1,6 +1,6 @@
-name: iOS TestFlight upload (release)
+name: iOS TestFlight upload (AI internal test)
 
-# Manual trigger only. Runs only on the release-ios branch, inside the "appstore"
+# Manual trigger only. Runs only on the release-ios-ai-test branch (temporary, separate from the release candidate), inside the "appstore"
 # environment, which needs the owner's approval click before any secret is released.
 # Uploads a signed build to App Store Connect / TestFlight. It does NOT submit for review
 # and does NOT publish anything.
@@ -11,13 +11,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: testflight-upload
+  group: testflight-upload-ai
   cancel-in-progress: false
 
 jobs:
   upload:
-    if: github.ref == 'refs/heads/release-ios'
-    runs-on: macos-latest
+    if: github.ref == 'refs/heads/release-ios-ai-test'
+    runs-on: macos-26
     environment: appstore
     timeout-minutes: 45
     steps:
@@ -37,6 +37,9 @@ jobs:
         run: |
           npx cap add ios
           npx cap sync ios
+
+      - name: Add the on-device insight plugin
+        run: bash native/inject-arc-insight.sh
 
       - name: Configure app (icon, iPhone-only, encryption flag, permission text)
         run: |
@@ -90,7 +93,7 @@ jobs:
             CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
             PRODUCT_BUNDLE_IDENTIFIER=com.animemindset.arctracker \
-            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            CURRENT_PROJECT_VERSION="100${{ github.run_number }}" \
             TARGETED_DEVICE_FAMILY=1 \
             MARKETING_VERSION=1.0
 
