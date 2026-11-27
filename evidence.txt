@@ -1,0 +1,11 @@
+variant=stub
+Xcode 26.6
+Build version 17F113
+app bundle: /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app
+no FoundationModels link line
+ArcInsightPlugin symbols: 0
+LanguageModelSession mentions: 0
+--- runtime log lines from the plugin ---
+getpwuid_r did not find a match for uid 501
+2026-11-27 18:56:37.262 Df log[31667:0] [com.apple.log:] log run noninteractively, parent: 3598 (launchd_sim), args: 'log' 'show' '--last' '30m' '--style' 'compact' '--predicate' 'eventMessage CONTAINS "ArcInsight"'
+AI-BUTTON-PRESENT=false
