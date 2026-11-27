@@ -1,8 +1,10 @@
 name: iOS AI insight spike (compile only)
 
-# Manual trigger only. Compile proof of the on-device AI plugin on the iOS 26 SDK.
+# Runs on pushes to the spike branch only. Compile proof of the on-device AI plugin on the iOS 26 SDK.
 # Does not run the model. Real-device validation is separate.
 on:
+  push:
+    branches: [ai-insight-spike]
   workflow_dispatch:
 
 permissions: {}
