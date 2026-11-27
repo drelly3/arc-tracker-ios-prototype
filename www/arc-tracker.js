@@ -964,7 +964,7 @@ function coachSetupHtml(group){
     '<p class="section-sub" style="margin-top:4px;">Suggestions written on this phone from your habits and Main Quests. Nothing leaves the phone.</p>'+
     '<div class="card"><label style="display:flex;gap:10px;align-items:center;"><input type="checkbox" id="coachOn"'+(p.on?' checked':'')+' style="width:auto;"> Send me coach check-ins</label>'+
     '<label for="coachFreq">How often</label><select id="coachFreq"'+(p.on?'':' disabled')+'><option value="few"'+(p.freq==='few'?' selected':'')+'>Twice a week</option><option value="weekly"'+(p.freq==='weekly'?' selected':'')+'>Once a week</option></select>'+
-    '<div class="helptext" id="coachStatus">&nbsp;</div><button type="button" class="btn ghost" id="coachAllow" style="display:none;">Allow notifications</button>'+
+    '<div class="helptext" id="coachStatus" style="margin-top:14px;">&nbsp;</div><button type="button" class="btn ghost" id="coachAllow" style="display:none;margin-top:10px;">Allow notifications</button>'+
     '<div class="helptext">Separate from your habit reminders: works even if those are off, and turning one off does not change the other. Written when you open the app and sent later, so a check-in can\u2019t react to something that happens after it was written.</div></div></div></details>';
 }
 function wireCoachSetup(el){
