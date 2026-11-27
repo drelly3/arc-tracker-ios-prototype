@@ -95,7 +95,7 @@ jobs:
           s=s.replace(old5, "}catch(e){ aiProxy = null; window.__aierr = String(e && (e.message || e)); }")
           old6="window.__aidiag('AI-STATUS=noproxy');"
           assert s.count(old6)==1
-          s=s.replace(old6, "window.__aidiag('AI-STATUS=noproxy native='+String(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())+' hasCap='+String(!!window.Capacitor)+' reg='+typeof (window.Capacitor&&window.Capacitor.registerPlugin)+' err='+String(window.__aierr));")
+          s=s.replace(old6, "window.__aidiag('AI-STATUS=noproxy native='+String(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())+' hasCap='+String(!!window.Capacitor)+' reg='+typeof (window.Capacitor&&window.Capacitor.registerPlugin)+' plugins='+Object.keys((window.Capacitor&&window.Capacitor.Plugins)||{}).join(',')+' err='+String(window.__aierr));")
           open(p,'w').write(s)
           PYD
           python3 /tmp/diag.py
@@ -225,7 +225,7 @@ jobs:
                       shot("06-coach-result")
                   }
                   tapNav("Setup")
-                  let coachGroup = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Coach check-ins")).firstMatch
+                  let coachGroup = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@", "Coach check-ins")).firstMatch
                   let cgPresent = coachGroup.waitForExistence(timeout: 6)
                   print("COACH-SETUP-PRESENT=\(cgPresent)")
                   if cgPresent {
