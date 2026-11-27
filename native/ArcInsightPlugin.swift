@@ -91,6 +91,7 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
 // Registers the plugin with the bridge (the app has no other native code).
 class ArcBridgeViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
+        NSLog("ArcInsight bridge view controller loaded, registering plugin")
         bridge?.registerPluginInstance(ArcInsightPlugin())
     }
 }
