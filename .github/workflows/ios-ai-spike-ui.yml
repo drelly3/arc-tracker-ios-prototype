@@ -233,6 +233,12 @@ jobs:
                       coachGroup.tap()
                       sleep(1)
                       shot("07-coach-setup")
+                      let allowBtn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Allow notifications")).firstMatch
+                      if allowBtn.waitForExistence(timeout: 3) {
+                          _ = scrollUntilHittable(allowBtn, 6)
+                          print("COACH-ALLOW-PRESENT=true")
+                          shot("08-coach-allow")
+                      } else { print("COACH-ALLOW-PRESENT=false") }
                   }
                   tapNav("Progress")
                   let btn = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Get an AI insight")).firstMatch
