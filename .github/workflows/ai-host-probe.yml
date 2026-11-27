@@ -1,0 +1,47 @@
+name: AI host probe (diagnostic, no secrets)
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ai-host-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - name: Host info
+        run: |
+          sw_vers
+          xcodebuild -version
+          sysctl -n machdep.cpu.brand_string || true
+          sysctl -n hw.memsize || true
+          sysctl -n kern.hv_vmm_present || true
+      - name: Host SystemLanguageModel availability and one generation
+        run: |
+          mkdir -p /tmp/p && cd /tmp/p
+          cat > main.swift <<'SWIFT'
+          import Foundation
+          import FoundationModels
+          let m = SystemLanguageModel.default
+          print("HOST-AVAILABILITY=\(m.availability)")
+          let sem = DispatchSemaphore(value: 0)
+          Task {
+              do {
+                  let s = LanguageModelSession()
+                  let r = try await s.respond(to: "Reply with the single word: ok")
+                  print("HOST-GEN-OK length=\(r.content.count)")
+              } catch {
+                  let ns = error as NSError
+                  let u = (ns.userInfo[NSUnderlyingErrorKey] as? NSError).map { "\($0.domain)/\($0.code)" } ?? "none"
+                  print("HOST-GEN-ERR domain=\(ns.domain) code=\(ns.code) underlying=\(u)")
+              }
+              sem.signal()
+          }
+          _ = sem.wait(timeout: .now() + 90)
+          SWIFT
+          swiftc -O main.swift -o probe 2>&1 | tail -20
+          ./probe 2>&1 | tail -20
