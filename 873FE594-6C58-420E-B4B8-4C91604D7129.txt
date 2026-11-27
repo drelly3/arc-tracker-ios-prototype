@@ -1,0 +1,34 @@
+counts staticTexts=0 buttons=0 textFields=0 any=17
+
+Optional(Attributes: Application, 0x1183d9a40, pid: 18846, label: 'Arc Tracker'
+Element subtree:
+ →Application, 0x1183d9a40, pid: 18846, label: 'Arc Tracker'
+    Window (Main), 0x1183daf80, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x1183db0c0, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x1183db200, {{0.0, 0.0}, {390.0, 844.0}}
+          WebView, 0x1183d9b80, {{0.0, 0.0}, {390.0, 844.0}}
+            WebView, 0x1183da1c0, {{0.0, 0.0}, {390.0, 844.0}}
+              WebView, 0x1183da300, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x1183da080, {{0.0, 0.0}, {390.0, 844.0}}
+                  Other, 0x1183da580, {{0.0, 0.0}, {390.0, 844.0}}
+                    Other, 0x1183daa80, {{0.0, 0.0}, {390.0, 844.0}}
+                      Other, 0x1183dabc0, {{0.0, 0.0}, {980.0, 2121.0}}, Focused
+              Other, 0x1183dae40, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                Other, 0x1183da800, {{384.0, 792.0}, {3.0, 7.0}}
+              Other, 0x1183da6c0, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 3 pages', value: 0%
+                Other, 0x1183db340, {{338.3, 838.0}, {7.0, 3.0}}
+              Other, 0x1183db480, {{357.0, 47.3}, {30.0, 749.3}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                Other, 0x1183db5c0, {{384.0, 792.0}, {3.0, 7.0}}
+              Other, 0x1183db700, {{47.3, 811.0}, {295.3, 30.0}}, label: 'Horizontal scroll bar, 3 pages', value: 0%
+                Other, 0x1183dad00, {{338.3, 838.0}, {7.0, 3.0}}
+    Window, 0x1183db840, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x1183db980, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x1183dbac0, {{0.0, 0.0}, {390.0, 844.0}}
+Path to element:
+ →Application, 0x1183d9a40, pid: 18846, label: 'Arc Tracker'
+Query chain:
+ →Find: Target Application 'com.animemindset.arctracker'
+  Output: {
+    Application, 0x1183d8140, pid: 18846, label: 'Arc Tracker'
+  }
+)
