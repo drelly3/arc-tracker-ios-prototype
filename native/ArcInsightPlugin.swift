@@ -80,7 +80,8 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
                     call.resolve(["text": response.content])
                 } catch {
                     // Diagnostic only: error type and message, never the prompt or response.
-                    NSLog("ArcInsight generation error type=%@ message=%@", String(describing: type(of: error)), String(describing: error).replacingOccurrences(of: "\n", with: " ").prefix(1200).description)
+                    let ns = error as NSError
+                    NSLog("ArcInsight generation error domain=%@ code=%ld", ns.domain, ns.code)
                     call.reject("generation failed")
                 }
             }
