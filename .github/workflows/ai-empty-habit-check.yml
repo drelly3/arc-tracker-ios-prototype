@@ -223,37 +223,40 @@ jobs:
                   if fp {
                       _ = scrollUntilHittable(field, 6)
                       field.tap(); field.typeText("Read one page")
-                      let kb = app.keyboards.firstMatch
-                      print("KEYBOARD-OPEN=\(kb.exists)")
-                      shot("03-setup-typed")
+                      print("KEYBOARD-OPEN=\(app.keyboards.firstMatch.exists)")
                       let save = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Save character")).firstMatch
-                      let sp = save.waitForExistence(timeout: 5)
-                      print("SAVE-BUTTON-FOUND=\(sp)")
-                      print("SAVE-HITTABLE-NOW-KEYBOARD-OPEN=\(save.isHittable)")
-                      var n = 0
-                      while !save.isHittable && n < 14 { dragScroll(); n += 1 }
-                      print("SAVE-HITTABLE-AFTER-SCROLL-KEYBOARD-OPEN=\(save.isHittable) drags=\(n)")
-                      shot("04-keyboard-open-scrolled")
-                      var dismissed = "none"
-                      for label in ["Done", "return", "Return"] {
-                          let k = app.keyboards.buttons[label]
-                          if k.exists && k.isHittable { k.tap(); dismissed = label; break }
+                      print("SAVE-BUTTON-VISIBLE=\(save.exists && save.isHittable)")
+                      let navBtn = app.buttons["Progress"]
+                      print("NAV-HITTABLE-KEYBOARD-OPEN=\(navBtn.exists && navBtn.isHittable)")
+                      shot("03-setup-typed-keyboard-open")
+                      if !(navBtn.exists && navBtn.isHittable) {
+                          var dismissed = "none"
+                          for label in ["Done", "return", "Return"] {
+                              let k = app.keyboards.buttons[label]
+                              if k.exists && k.isHittable { k.tap(); dismissed = label; break }
+                          }
+                          sleep(1)
+                          print("KEYBOARD-DISMISS-VIA=\(dismissed) keyboardStillOpen=\(app.keyboards.firstMatch.exists)")
+                          print("NAV-HITTABLE-AFTER-DISMISS=\(navBtn.exists && navBtn.isHittable)")
+                          shot("04-keyboard-dismissed")
                       }
-                      sleep(1)
-                      print("KEYBOARD-DISMISS-VIA=\(dismissed) keyboardStillOpen=\(app.keyboards.firstMatch.exists)")
-                      var m = 0
-                      while !save.isHittable && m < 14 { dragScroll(); m += 1 }
-                      print("SAVE-HITTABLE-AFTER-DISMISS=\(save.isHittable) drags=\(m)")
-                      shot("04b-save-visible")
-                      if save.isHittable { save.tap(); sleep(2) }
                   }
-                  tapNav("Progress")
                   let btn2 = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "coach note")).firstMatch
                   let p2 = btn2.waitForExistence(timeout: 10)
                   print("COACH-BUTTON-PRESENT-AFTER-HABIT=\(p2)")
                   if p2 { _ = scrollUntilHittable(btn2, 8) }
                   sleep(1)
                   shot("05-progress-after-habit")
+                  tapNav("Setup")
+                  let f2 = app.textFields.matching(NSPredicate(format: "value CONTAINS[c] %@", "Read one page")).firstMatch
+                  print("HABIT-KEPT-AFTER-TAB-SWITCH=\(f2.waitForExistence(timeout: 8))")
+                  app.terminate()
+                  app.launch()
+                  XCTAssertTrue(app.buttons["Setup"].waitForExistence(timeout: 40))
+                  tapNav("Setup")
+                  let f3 = app.textFields.matching(NSPredicate(format: "value CONTAINS[c] %@", "Read one page")).firstMatch
+                  print("HABIT-KEPT-AFTER-RELAUNCH=\(f3.waitForExistence(timeout: 10))")
+                  shot("06-setup-after-relaunch")
               }
           }
           SWIFT
@@ -445,7 +448,7 @@ jobs:
             ls "$APP" | head -20
             echo "--- runtime log lines from the plugin ---"
             xcrun simctl spawn "$UDID" log show --last 30m --style compact --predicate 'eventMessage CONTAINS "ArcInsight"' | grep -i arcinsight | head -20 || true
-            grep -E "EMPTY-HABIT|COACH-|DISCLOSURE|HABIT-FIELD|SAVE-|KEYBOARD" /tmp/xcodebuild-test.log || true
+            grep -E "EMPTY-HABIT|COACH-|DISCLOSURE|HABIT-|SAVE-|KEYBOARD|NAV-" /tmp/xcodebuild-test.log || true
           } > shots/evidence.txt 2>&1
           cat shots/evidence.txt
 
