@@ -1,0 +1,53 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FA5A652-01D1-48F6-9569-682579136056",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "59E2556F-B17C-4FC1-8D7A-A21D155E87A4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06-setup-after-relaunch_0_1178D433-FFA3-4DF0-B481-09D942A0651C.png",
+        "timestamp" : 1795830319.684
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FA5A652-01D1-48F6-9569-682579136056",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "8D24EFFB-1917-4E00-82D1-49934DE4E1CB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05-progress-after-habit_0_7D47CBEC-6496-4068-A7FC-947E79DB6EC2.png",
+        "timestamp" : 1795830301.879
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FA5A652-01D1-48F6-9569-682579136056",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "1974E2AF-AFFD-4F4D-BD75-EB78D7E60095.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-setup-typed-keyboard-open_0_F1BCDCA6-E7AD-46B5-A3D3-B9B5D1E3A275.png",
+        "timestamp" : 1795830289.92
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FA5A652-01D1-48F6-9569-682579136056",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "50FD149E-0A8C-420A-8B6C-987F67AA21D9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-progress-empty-habit_0_3401F122-E102-4116-8894-8E28C54018FC.png",
+        "timestamp" : 1795830281.508
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FA5A652-01D1-48F6-9569-682579136056",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "A637016E-2024-4453-BF5C-E50406FBD288.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-first-screen_0_A98780AE-99EE-4C00-B328-4C8A712DAAC2.png",
+        "timestamp" : 1795830270.189
+      }
+    ],
+    "testIdentifier" : "AppUITests/testEmptyHabitState()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testEmptyHabitState"
+  }
+]
