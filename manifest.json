@@ -1,0 +1,80 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "6CA7228F-096C-43C8-9B2A-0D91EB3CF330.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04-ai-result_0_217C2C40-B26B-4F0A-972B-52417FD1D0EB.png",
+        "timestamp" : 1795827895.936
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "939BB3A1-A096-4FAB-8F33-4C96E3DBF544.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-ai-button_0_71FE26A6-2B96-41C4-968B-4FEA65003E63.png",
+        "timestamp" : 1795827873.232
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "6424FDCD-2FE8-424C-A898-ED3B975069FE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "08-coach-allow_0_924B56F6-0229-4926-A437-2EB6082B9FC2.png",
+        "timestamp" : 1795827867.549
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "09297848-07A7-4688-8B0D-A6B69D1409D3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "07-coach-setup_0_6430F177-D8E7-4892-AC8F-58F44724FCB6.png",
+        "timestamp" : 1795827863.58
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "58AD5A58-EEDF-4294-B1EE-167742F1BD89.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06-coach-result_0_B528EB39-D046-469B-A7C8-81A6D7735C83.png",
+        "timestamp" : 1795827851.996
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "E82EF92D-FD3B-42D2-8844-9FBD09BF62B8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05-coach-button_0_2DF08491-3BA7-4B28-8EAC-9531CD8748FA.png",
+        "timestamp" : 1795827829.162
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "B963EEA3-E2F6-4650-BA40-6210A4993B0E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-progress-weekly-review_0_D78FE4DE-F874-4C2C-8BA0-D2AB87DAD18E.png",
+        "timestamp" : 1795827823.947
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "900F72A1-451D-4D10-BF81-9E70EFE5B414",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "2E49D834-01CD-45D1-812E-C7B132FB14C7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-today_0_BD81E7EB-D33B-4C25-8697-3A0B7346D372.png",
+        "timestamp" : 1795827811.969
+      }
+    ],
+    "testIdentifier" : "AppUITests/testInsightScreens()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testInsightScreens"
+  }
+]
