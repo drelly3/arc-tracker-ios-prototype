@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [real, stub]
+        variant: [real, stub, none]
     permissions:
       contents: write
     steps:
@@ -109,6 +109,17 @@ jobs:
           open(p,'w').write(s.replace(old, stub))
           PYX
             python3 /tmp/stub.py
+          fi
+          if [ "$VARIANT" = "none" ]; then
+            cat > /tmp/none.py <<'PYN'
+          p='/tmp/patched.js'
+          s=open(p).read()
+          old="if(aiProxy) return aiProxy;"
+          assert s.count(old)==1
+          stub="return {availability:()=>Promise.resolve({status:'deviceNotEligible'}), weeklyInsight:()=>Promise.reject(new Error('x')), coachNote:()=>Promise.reject(new Error('x'))};"
+          open(p,'w').write(s.replace(old, stub))
+          PYN
+            python3 /tmp/none.py
           fi
           cp /tmp/patched.js "$F"
           head -c 300 "$F"; echo; tail -c 200 "$F"
@@ -430,6 +441,7 @@ jobs:
             echo "variant=${{ matrix.variant }}"
             cat /tmp/inject-info.txt 2>/dev/null || echo "no inject info"
             xcodebuild -version
+            echo "deployment targets:"; grep -h IPHONEOS_DEPLOYMENT_TARGET ios/App/App.xcodeproj/project.pbxproj | sort | uniq -c
             APP=$(find ~/Library/Developer/Xcode/DerivedData -name App.app -path '*Debug-iphonesimulator*' | head -1)
             echo "app bundle: $APP"
             otool -L "$APP/App" | grep -i -E "FoundationModels" || echo "no FoundationModels link line"
