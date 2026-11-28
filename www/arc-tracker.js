@@ -1053,6 +1053,10 @@ function showTab(name){
 }
 // Typed habit changes only stick after Save. When the user taps to another tab with unsaved edits,
 // OK saves and continues (only if the save worked); Cancel keeps them in Setup with their edits.
+// While the keyboard is open it covers the bottom tab bar. Lift the bar to sit just above the keyboard so tabs stay reachable.
+(function(){ const vv = window.visualViewport; if(!vv) return;
+  const lift = ()=>{ const n = document.querySelector('nav.tabs'); if(!n) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)); n.style.transform = kb>60 ? 'translateY('+(-kb)+'px)' : ''; };
+  vv.addEventListener('resize', lift); vv.addEventListener('scroll', lift); })();
 function leaveSetupOk(name){
   if(name==='setup') return true;
   const st = document.getElementById('tab-setup');
