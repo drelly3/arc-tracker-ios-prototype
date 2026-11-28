@@ -1,0 +1,4 @@
+localstorage files: 1
+   arc_profile = {"name":"Alex","archetypeKey":"strategist"}
+   arc_habits = {"h1":{"cue":"After coffee","habit":"MARKERA read one page"},"h2":{"cue":"","habit":""},"h3":{"cue":"","habit":""},"sc":{"cue":"","habit":""
+   arc_log entries= 4

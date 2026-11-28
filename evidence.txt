@@ -1,0 +1,10 @@
+A sha old/release-ios: 482eef9740634dc6e1af95c484f73533e8418253
+B sha new: b4cd0fe8a7d87cead7597925eec501d4e4667335
+SAME-DATA-CONTAINER: false
+installed now:         CFBundleVersion = 1004;
+   arc_profile = {"name":"Alex","archetypeKey":"strategist"}
+   arc_habits = {"h1":{"cue":"After coffee","habit":"MARKERA read one page"},"h2":{"cue":"","habit":""},"h3":{"cue":"","habit":""},"sc":{"cue":"","habit":""
+   arc_profile = {"name":"Alex","archetypeKey":"strategist"}
+   arc_habits = {"h1":{"cue":"After coffee","habit":"MARKERA read one page"},"h2":{"cue":"","habit":""},"h3":{"cue":"","habit":""},"sc":{"cue":"","habit":""
+   arc_profile = {"name":"Alex","archetypeKey":"strategist"}
+   arc_habits = {"h1":{"cue":"After coffee","habit":"MARKERA read one page"},"h2":{"cue":"","habit":""},"h3":{"cue":"","habit":""},"sc":{"cue":"","habit":""
