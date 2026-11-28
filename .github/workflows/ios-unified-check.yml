@@ -23,7 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [real, stub, none]
+        variant: [stub]
+        device: [promax, se]
     permissions:
       contents: write
     steps:
@@ -256,6 +257,10 @@ jobs:
                   tapNav("Setup")
                   let f2 = app.textFields.matching(NSPredicate(format: "value CONTAINS[c] %@", "Read one page")).firstMatch
                   print("HABIT-KEPT-AFTER-TAB-SWITCH=\(f2.waitForExistence(timeout: 8))")
+                  let unl = app.buttons.allElementsBoundByIndex.filter { $0.label.isEmpty }.count
+                  print("A11Y-UNLABELED-BUTTONS=\(unl)")
+                  print("A11Y-SAVE-IN-AX-TREE=\(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Save character")).count)")
+                  print("DEVICE-SCREEN=\(XCUIScreen.main.screenshot().image.size)")
                   app.terminate()
                   app.launch()
                   XCTAssertTrue(app.buttons["Setup"].waitForExistence(timeout: 40))
@@ -410,7 +415,7 @@ jobs:
           TYPE=$(xcrun simctl list devicetypes -j | python3 -c '
           import json,sys,re
           d=json.load(sys.stdin)
-          ids=[t["identifier"] for t in d["devicetypes"] if re.search(r"iPhone-1[6-9]-Pro-Max", t["identifier"])]
+          ids=[t["identifier"] for t in d["devicetypes"] if re.search(r"${{ matrix.device == 'se' && 'iPhone-SE' || 'iPhone-1[6-9]-Pro-Max' }}", t["identifier"])]
           print(sorted(ids)[-1] if ids else "")')
           echo "device type: $TYPE"
           [ -n "$TYPE" ] || { echo 'no Pro Max device type'; exit 1; }
@@ -455,7 +460,7 @@ jobs:
             ls "$APP" | head -20
             echo "--- runtime log lines from the plugin ---"
             xcrun simctl spawn "$UDID" log show --last 30m --style compact --predicate 'eventMessage CONTAINS "ArcInsight"' | grep -i arcinsight | head -20 || true
-            grep -E "EMPTY-HABIT|COACH-|DISCLOSURE|HABIT-|SAVE-|KEYBOARD|NAV-" /tmp/xcodebuild-test.log || true
+            grep -E "A11Y-|EMPTY-HABIT|COACH-|DISCLOSURE|HABIT-|SAVE-|KEYBOARD|NAV-|DEVICE-" /tmp/xcodebuild-test.log || true
           } > shots/evidence.txt 2>&1
           cat shots/evidence.txt
 
@@ -479,7 +484,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: spike-shots-${{ matrix.variant }}-${{ github.run_id }}
+          name: spike-shots-${{ matrix.variant }}-${{ matrix.device }}-${{ github.run_id }}
           path: shots/*
 
 
@@ -491,7 +496,7 @@ jobs:
           set -e
           git config user.email "ci@localhost"
           git config user.name "ci"
-          BR="unified-check-${{ matrix.variant }}-${{ github.run_id }}"
+          BR="unified-check-${{ matrix.variant }}-${{ matrix.device }}-${{ github.run_id }}"
           echo "BRANCH=$BR" >> "$GITHUB_ENV"
           rm -rf /tmp/shotpush && mkdir -p /tmp/shotpush
           cd /tmp/shotpush
