@@ -831,23 +831,31 @@ const COACH_KEY = 'arc_coach', COACH_PREF = 'arc_coach_pref';
 let coachBusy = false, coachFail = false;
 // Default is ON (owner's decision), but nothing is scheduled until iOS notification permission is granted; the user can switch it off in Setup.
 function coachPref(){ const p = load(COACH_PREF,{}); return {on:p.on!==false, freq:(p.freq==='weekly'?'weekly':'few')}; }
+// flags: one boolean per day, oldest first (14 days). Counts only what the log shows.
+function coachHabitStats(flags){
+  const n = flags.length, cnt = a=>a.filter(Boolean).length;
+  const last7 = cnt(flags.slice(Math.max(0,n-7))), prev7 = cnt(flags.slice(Math.max(0,n-14), Math.max(0,n-7)));
+  let run = 0; for(let i=n-1;i>=0;i--){ if(flags[i]) run++; else if(i===n-1) continue; else break; }
+  return {done:cnt(flags), last7, prev7, run};
+}
 function coachInput(){
   const t = todayStr(), from = shiftDay(t,-13), by = Object.fromEntries(log.map(e=>[e.date,e]));
   const days = []; for(let d = from; d <= t; d = shiftDay(d,1)) days.push(d);
   const all = [{id:'h1', ...habits.h1}, ...otherHabits()].filter(h=>h && h.habit).slice(0,6);
-  const hs = all.map(h=>({name:String(h.habit).slice(0,60), done:days.filter(d=>{ const e = by[d]; return h.id==='h1' ? !!(e && e.h1) : didHabit(e, h.id); }).length}));
+  const hs = all.map(h=>({name:String(h.habit).slice(0,60), ...coachHabitStats(days.map(d=>{ const e = by[d]; return h.id==='h1' ? !!(e && e.h1) : didHabit(e, h.id); }))}));
   const qs = liveQuests().slice(0,3).map(q=>{
     const pr = questProgress(q), next = (q.milestones||[]).find(m=>m.text && !m.done);
     return {goal:String(q.title||'').slice(0,80), why:String(q.why||'').slice(0,120), due:q.due||'', milestones:pr.done+' of '+pr.total, next:next?String(next.text).slice(0,80):'', habits:questHabitNames(q).slice(0,4).map(x=>String(x).slice(0,60))};
   });
   return {days:days.length, habits:hs, quests:qs};
 }
-function coachPrompt(inp){
+function coachPrompt(inp, prevText){
   const any = inp.habits.some(h=>h.done>0);
   let s = inp.habits.length
-    ? 'Habits the person has set (this is their real, current list):\n'+inp.habits.map(h=>'- '+h.name+(any ? ': done on '+h.done+' of the last '+inp.days+' days' : '')).join('\n')+'\n'+(any ? '' : 'No completions are recorded yet for these habits.\n')
+    ? 'Habits the person has set (this is their real, current list):\n'+inp.habits.map(h=>'- '+h.name+(h.done>0 ? ': done '+h.last7+' of the last 7 days and '+h.prev7+' of the 7 days before that'+(h.run>1 ? ', current run '+h.run+' days in a row' : '') : '')).join('\n')+'\n'+(any ? '' : 'No completions are recorded yet for these habits, so there is no history to comment on.\n')
     : 'Habits: none set yet.\n';
   s += inp.quests.length ? 'Main Quests:\n'+inp.quests.map(q=>'- '+q.goal+(q.why?' (why: '+q.why+')':'')+(q.due?', due '+q.due:'')+', milestones '+q.milestones+(q.next?', next: '+q.next:'')+(q.habits.length?', habits: '+q.habits.join('; '):'')).join('\n')+'\n' : 'Main Quests: none set. They are optional, so do not mention them.\n';
+  if(prevText) s += 'Your last suggestion was: "'+String(prevText).slice(0,300)+'". Give a different tactic this time.\n';
   return s;
 }
 function coachCardHtml(){
@@ -870,7 +878,7 @@ function wireCoach(el){
     const p = aiPlugin(); if(coachBusy || !p || !p.coachNote) return;
     const inp = coachInput(), key = JSON.stringify(inp);
     coachBusy = true; coachFail = false; b.disabled = true; b.textContent = 'Writing\u2026';
-    p.coachNote({summary: coachPrompt(inp)})
+    p.coachNote({summary: coachPrompt(inp, (load(COACH_KEY,null)||{}).text)})
       .then(r=>{ const x = String((r && r.text) || '').trim().slice(0,700); if(x) persist(COACH_KEY, {key, text:x, day:todayStr()}); else coachFail = true; })
       .catch(()=>{ coachFail = true; })
       .finally(()=>{ coachBusy = false; renderProgress(); });
