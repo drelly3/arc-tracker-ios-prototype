@@ -843,17 +843,21 @@ function coachInput(){
   return {days:days.length, habits:hs, quests:qs};
 }
 function coachPrompt(inp){
-  let s = 'Last '+inp.days+' days.\nHabits (days done):\n'+inp.habits.map(h=>'- '+h.name+': '+h.done+' of '+inp.days).join('\n')+'\n';
-  s += inp.quests.length ? 'Goals:\n'+inp.quests.map(q=>'- '+q.goal+(q.why?' (why: '+q.why+')':'')+(q.due?', due '+q.due:'')+', milestones '+q.milestones+(q.next?', next: '+q.next:'')+(q.habits.length?', habits: '+q.habits.join('; '):'')).join('\n') : 'No goals set yet.\n';
+  const any = inp.habits.some(h=>h.done>0);
+  let s = inp.habits.length
+    ? 'Habits the person has set (this is their real, current list):\n'+inp.habits.map(h=>'- '+h.name+(any ? ': done on '+h.done+' of the last '+inp.days+' days' : '')).join('\n')+'\n'+(any ? '' : 'No completions are recorded yet for these habits.\n')
+    : 'Habits: none set yet.\n';
+  s += inp.quests.length ? 'Main Quests:\n'+inp.quests.map(q=>'- '+q.goal+(q.why?' (why: '+q.why+')':'')+(q.due?', due '+q.due:'')+', milestones '+q.milestones+(q.next?', next: '+q.next:'')+(q.habits.length?', habits: '+q.habits.join('; '):'')).join('\n')+'\n' : 'Main Quests: none set. They are optional, so do not mention them.\n';
   return s;
 }
 function coachCardHtml(){
   refreshAiStatus();
   if(aiStatus!=='available') return '';
-  const disc = coachTapHtml()+coachDisclosureHtml();
-  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return disc;
+  const tap = coachTapHtml(), disc = coachDisclosureHtml();
+  const open = tap+'<div class="card coach-note"><div class="card-kicker">Coach</div>'+disc;
+  const inp = coachInput(); if(!inp.habits.length && !inp.quests.length) return open+'<p class="card-note" style="margin-top:0;">Add a habit in Setup to get a coach note.</p></div>';
   const key = JSON.stringify(inp), c = load(COACH_KEY,null), fresh = c && c.key===key && c.text;
-  return disc+'<div class="card coach-note"><div class="card-kicker">Coach note</div>'+
+  return open+
     (fresh ? '<p class="ai-text">'+escapeHtml(c.text)+'</p><p class="card-note">Written on this phone by Apple\u2019s on-device AI from your habits'+(inp.quests.length?' and Main Quests':'')+'. It can be wrong and isn\u2019t advice.</p><button type="button" class="btn ghost" id="coachBtn">New suggestion</button>'
            : '<p class="card-note" style="margin-top:0;">A suggestion based on your habits'+(inp.quests.length?' and Main Quests':'. Set a Main Quest and it can connect to your goal')+'. Runs on this phone, nothing is sent anywhere.</p><button type="button" class="btn ghost" id="coachBtn">'+(coachFail?'Couldn\u2019t write one. Try again':'Get a coach note')+'</button>')+
     '</div>';
@@ -957,7 +961,7 @@ function coachTapHtml(){
 }
 function coachDisclosureHtml(){
   if(load(COACH_SEEN,false) || !coachPref().on) return '';
-  return '<div class="card"><div class="card-kicker">Coach check-ins are on</div><p class="card-note" style="margin-top:0;">The app can send you short suggestions about your habits and Main Quests, written on this phone and sent as notifications. Nothing leaves the phone. They are written when you open the app, so they can\u2019t react to things that happen later. iPhone has to allow notifications before anything is sent. You can turn this off any time in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Got it</button><button type="button" class="btn ghost" id="coachOffNow">Turn off</button></div></div>';
+  return '<div class="coach-disc" style="margin-bottom:12px;"><p class="card-note" style="margin-top:0;"><strong>Coach check-ins are on.</strong> The app can send you short suggestions about your habits and Main Quests, written on this phone and sent as notifications. Nothing leaves the phone. They are written when you open the app, so they can\u2019t react to things that happen later. iPhone has to allow notifications before anything is sent. You can turn this off any time in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Got it</button><button type="button" class="btn ghost" id="coachOffNow">Turn off</button></div></div>';
 }
 function wireCoachDisclosure(el){
   const k = el.querySelector('#coachKeep'), o = el.querySelector('#coachOffNow'), td = el.querySelector('#coachTapDone');
