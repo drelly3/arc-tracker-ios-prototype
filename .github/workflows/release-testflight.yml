@@ -17,7 +17,7 @@ concurrency:
 jobs:
   upload:
     if: github.ref == 'refs/heads/release-ios'
-    runs-on: macos-latest
+    runs-on: macos-26
     environment: appstore
     timeout-minutes: 45
     steps:
@@ -37,6 +37,9 @@ jobs:
         run: |
           npx cap add ios
           npx cap sync ios
+
+      - name: Add the on-device insight plugin
+        run: bash native/inject-arc-insight.sh
 
       - name: Configure app (icon, iPhone-only, encryption flag, permission text)
         run: |
