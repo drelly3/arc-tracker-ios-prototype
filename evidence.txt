@@ -1,0 +1,40 @@
+variant=stub
+storyboard class lines:
+14:                <viewController id="BYZ-38-t0r" customClass="ArcBridgeViewController" customModule="App" sceneMemberID="viewController"/>
+packageClassList:
+['LocalNotificationsPlugin', 'ArcInsightPlugin']
+Xcode 26.6
+Build version 17F113
+app bundle: /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app
+no FoundationModels link line
+== /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app/App
+no FoundationModels link line
+ArcInsightPlugin symbols: 0
+LanguageModelSession mentions: 0
+== /Users/runner/Library/Developer/Xcode/DerivedData/App-fbdvgtjlhcjurkeakbhbmbufzqeo/Build/Products/Debug-iphonesimulator/App.app/App.debug.dylib
+	/System/Library/Frameworks/FoundationModels.framework/FoundationModels (compatibility version 1.0.0, current version 1.5.2, weak)
+ArcInsightPlugin symbols: 73
+LanguageModelSession mentions: 0
+__preview.dylib
+App
+App.debug.dylib
+AppIcon60x60@2x.png
+AppIcon76x76@2x~ipad.png
+Assets.car
+Base.lproj
+capacitor.config.json
+config.xml
+Frameworks
+Info.plist
+PkgInfo
+public
+--- runtime log lines from the plugin ---
+getpwuid_r did not find a match for uid 501
+2026-11-28 02:00:00.323 Df log[14058:0] [com.apple.log:] log run noninteractively, parent: 3507 (launchd_sim), args: 'log' 'show' '--last' '30m' '--style' 'compact' '--predicate' 'eventMessage CONTAINS "ArcInsight"'
+AI-STATUS-LABEL=AI-STATUS=available
+COACH-BUTTON-PRESENT=true
+COACH-RESULT-SHOWN=true
+COACH-SETUP-PRESENT=true
+COACH-ALLOW-PRESENT=true
+AI-BUTTON-PRESENT=true
+AI-RESULT-SHOWN=true
