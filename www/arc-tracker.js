@@ -961,7 +961,7 @@ function coachTapHtml(){
 }
 function coachDisclosureHtml(){
   if(load(COACH_SEEN,false) || !coachPref().on) return '';
-  return '<div class="coach-disc" style="margin-bottom:12px;"><p class="card-note" style="margin-top:0;"><strong>Coach check-ins are on.</strong> The app can send you short suggestions about your habits and Main Quests, written on this phone and sent as notifications. Nothing leaves the phone. They are written when you open the app, so they can\u2019t react to things that happen later. iPhone has to allow notifications before anything is sent. You can turn this off any time in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Got it</button><button type="button" class="btn ghost" id="coachOffNow">Turn off</button></div></div>';
+  return '<div class="coach-disc" style="margin-bottom:12px;"><p class="card-note" style="margin-top:0;"><strong>Coach check-ins are on.</strong> You can turn them off in Setup.</p><div style="display:flex;gap:8px;"><button type="button" class="btn ghost" id="coachKeep">Got it</button></div></div>';
 }
 function wireCoachDisclosure(el){
   const k = el.querySelector('#coachKeep'), o = el.querySelector('#coachOffNow'), td = el.querySelector('#coachTapDone');
@@ -1054,12 +1054,12 @@ function showTab(name){
 // Typed habit changes only stick after Save. When the user taps to another tab with unsaved edits,
 // OK saves and continues (only if the save worked); Cancel keeps them in Setup with their edits.
 function leaveSetupOk(name){
-  if(!setupDirty || name==='setup') return true;
+  if(name==='setup') return true;
   const st = document.getElementById('tab-setup');
   if(!st || !st.classList.contains('active')) return true;
-  if(!confirm('You have habit changes that are not saved yet.\n\nOK: save them and continue.\nCancel: stay here and keep editing.')) return false;
-  const sb = document.getElementById('saveHabitsBtn'); if(sb) sb.click();
-  return !setupDirty;
+  clearTimeout(setupTimer);
+  if(setupDirty || setupNeedsRender){ const sb = document.getElementById('saveHabitsBtn'); if(sb) sb.click(); }
+  return true;
 }
 document.querySelectorAll('nav.tabs button').forEach(btn=>btn.addEventListener('click',()=>{ if(leaveSetupOk(btn.dataset.tab)) showTab(btn.dataset.tab); }));
 // buttons inside a tab that jump to another one, like "Open Setup" in the guide
@@ -2387,7 +2387,9 @@ function playEmblemDemo(arche){
 /* ---------------- Setup tab ---------------- */
 let reminderTimer=null;
 const setupOpen = new Set(); // which folded Setup groups are open, kept across redraws
-let setupDirty = false; // habit fields typed in Setup but not saved yet
+let setupDirty = false; // habit fields typed in Setup but not saved yet (they save by themselves a moment after typing stops)
+let setupNeedsRender = false, setupSaver = null, setupTimer = null;
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden' && setupDirty && setupSaver){ try{ setupSaver(true); }catch(e){} } });
 function renderSetup(){
   const el=document.getElementById('tab-setup');
   let html = '<h2 class="section-title">Setup</h2>';
@@ -2423,8 +2425,8 @@ function renderSetup(){
     html += '<div class="banner info" style="margin-top:20px;">Pick an archetype in the Archetypes tab to see your weakness and ideas to fight it.</div>';
   }
 
-  html += '<p class="card-note" id="saveHint" hidden style="margin-top:10px;color:var(--accent);">Not saved yet. Tap Save character & habits to keep these changes.</p>';
-  html += '<button class="btn" id="saveHabitsBtn" style="margin-top:6px;">Save character & habits</button>';
+  html += '<p class="card-note" id="saveHint" style="margin-top:10px;">Your changes save automatically.</p>';
+  html += '<button class="btn" id="saveHabitsBtn" hidden aria-hidden="true" tabindex="-1">Save character & habits</button>';
 
   // everything past the habits folds away, so a new member sees a short page
   const group = (key, icon, title, hint)=>'<details class="set-group" data-group="'+key+'"'+(setupOpen.has(key)?' open':'')+'><summary><span class="sg-icon">'+icon+'</span><span class="sg-title">'+title+'<small>'+hint+'</small></span></summary><div class="sg-body">';
@@ -2545,13 +2547,14 @@ function renderSetup(){
     });
   });
 
-  setupDirty = false;
+  setupDirty = false; setupNeedsRender = false;
   const markSetupDirty = e=>{
     const id = (e.target && e.target.id) || '';
-    if(id==='p_name' || /_(habit|every|n|remind)$/.test(id)){ setupDirty = true; const h=document.getElementById('saveHint'); if(h) h.hidden=false; }
+    if(id==='p_name' || /_(habit|every|n|remind)$/.test(id)){ setupDirty = true; clearTimeout(setupTimer); setupTimer = setTimeout(()=>{ if(setupDirty && setupSaver) setupSaver(true); }, 700); }
   };
   el.oninput = markSetupDirty; el.onchange = markSetupDirty;
-  document.getElementById('saveHabitsBtn').addEventListener('click',()=>{
+  const saveSetupNow = (quiet)=>{
+    clearTimeout(setupTimer);
     profile.name = document.getElementById('p_name').value.trim();
     const remindOf = key=>{ const x=document.getElementById(key+'_remind'); return x ? x.value : ''; };
     habits.h1 = {...habits.h1, habit:document.getElementById('h1_habit').value.trim(), remind:remindOf('h1')};
@@ -2591,8 +2594,10 @@ function renderSetup(){
     persist(LS.profile, profile);
     persist(LS.habits, habits);
     if(pushState==='on') pushSync().catch(()=>{});
-        renderAll();
-  });
+    if(quiet){ setupDirty = false; setupNeedsRender = true; } else renderAll();
+  };
+  setupSaver = saveSetupNow;
+  document.getElementById('saveHabitsBtn').addEventListener('click',()=>saveSetupNow(false));
 
   function calendarEvent(){
     const time=(document.getElementById('r_time').value||reminder.time||'08:00').split(':');
