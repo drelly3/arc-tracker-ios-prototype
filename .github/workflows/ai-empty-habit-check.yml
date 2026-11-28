@@ -227,19 +227,15 @@ jobs:
                       let save = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Save character")).firstMatch
                       print("SAVE-BUTTON-VISIBLE=\(save.exists && save.isHittable)")
                       let navBtn = app.buttons["Progress"]
-                      print("NAV-HITTABLE-KEYBOARD-OPEN(reported by XCUI)=\(navBtn.exists && navBtn.isHittable)")
+                      let kbd = app.keyboards.firstMatch
+                      print("NAV-FRAME=\(navBtn.frame) KEYBOARD-FRAME=\(kbd.frame)")
+                      print("NAV-ABOVE-KEYBOARD=\(navBtn.exists && kbd.exists && navBtn.frame.maxY <= kbd.frame.minY + 1)")
                       shot("03-setup-typed-keyboard-open")
-                      var dismissed = "none"
-                      for label in ["Done", "return", "Return"] {
-                          let k = app.keyboards.buttons[label]
-                          if k.exists && k.isHittable { k.tap(); dismissed = label; break }
-                      }
-                      sleep(1)
-                      print("KEYBOARD-DISMISS-VIA=\(dismissed) keyboardStillOpen=\(app.keyboards.firstMatch.exists)")
-                      shot("04-keyboard-dismissed")
                   }
-                  tapNav("Progress")
-                  print("ON-PROGRESS-AFTER-TAP=\(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Progress")).firstMatch.exists)")
+                  // tap the Progress tab directly, with the keyboard still open
+                  app.buttons["Progress"].tap()
+                  sleep(2)
+                  shot("04-after-direct-tab-tap")
                   let btn2 = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "coach note")).firstMatch
                   let p2 = btn2.waitForExistence(timeout: 10)
                   print("COACH-BUTTON-PRESENT-AFTER-HABIT=\(p2)")
