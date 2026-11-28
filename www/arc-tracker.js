@@ -831,28 +831,61 @@ const COACH_KEY = 'arc_coach', COACH_PREF = 'arc_coach_pref';
 let coachBusy = false, coachFail = false;
 // Default is ON (owner's decision), but nothing is scheduled until iOS notification permission is granted; the user can switch it off in Setup.
 function coachPref(){ const p = load(COACH_PREF,{}); return {on:p.on!==false, freq:(p.freq==='weekly'?'weekly':'few')}; }
-// flags: one boolean per day, oldest first (14 days). Counts only what the log shows.
-function coachHabitStats(flags){
-  const n = flags.length, cnt = a=>a.filter(Boolean).length;
-  const last7 = cnt(flags.slice(Math.max(0,n-7))), prev7 = cnt(flags.slice(Math.max(0,n-14), Math.max(0,n-7)));
-  let run = 0; for(let i=n-1;i>=0;i--){ if(flags[i]) run++; else if(i===n-1) continue; else break; }
-  return {done:cnt(flags), last7, prev7, run};
+// rows: one per day, oldest first, last row is today: {due, done, started}. due = the habit's schedule asks for it that
+// day, started = the habit existed (tracking had begun). Only days that are over, or today once done, are real
+// opportunities, so a new, non-daily or half-finished day never reads as a miss.
+function coachHabitStats(rows){
+  const n = rows.length, opp = r=>r.started && r.due && (r!==rows[n-1] || r.done), cnt = a=>a.filter(r=>r.done).length;
+  const rec = rows.slice(Math.max(0,n-7)).filter(opp), bef = rows.slice(Math.max(0,n-14), Math.max(0,n-7)).filter(opp);
+  let run = 0; for(let i=n-1;i>=0;i--){ const r = rows[i]; if(!opp(r)) continue; if(r.done) run++; else break; }
+  return {tracked: rows.filter(r=>r.started).length, ro: rec.length, rd: cnt(rec), bo: bef.length, bd: cnt(bef), run};
+}
+// Habits 1-3 have no start date, so tracking starts the first day that habit was done. That never calls a newly
+// added habit "missed" (it may under-count early misses). Habits added with a schedule start on that schedule's day.
+function coachHabitStart(h, done, by, t){
+  const sf = (h.sched||[]).map(x=>x.from).filter(Boolean).sort()[0];
+  if(sf) return sf;
+  const ds = Object.keys(by).sort().filter(done); return ds.length ? ds[0] : t;
+}
+function coachHabitView(h, days, by, t){
+  const cur = h.id==='h1' ? {every:'daily'} : scheduleOn(h, t);
+  if(!cur || cur.every==='off') return null;
+  const done = d=>{ const e = by[d]; return h.id==='h1' ? !!(e && e.h1) : didHabit(e, h.id); };
+  const start = coachHabitStart(h, done, by, t);
+  const out = {name:String(h.habit).slice(0,60), kind: cur.every==='bonus'?'bonus': cur.every==='week'?'week': cur.every==='days'?'days':'daily'};
+  if(out.kind==='bonus') return out;
+  if(out.kind==='week'){
+    const n = cur.n||3, ws = weekStart(t), lws = shiftDay(ws,-7);
+    if(start <= lws){ let last = 0, now = 0; for(let x = lws; x < ws; x = shiftDay(x,1)) if(done(x)) last++; for(let x = ws; x <= t; x = shiftDay(x,1)) if(done(x)) now++; out.target = n; out.lastWeek = last; out.thisWeek = now; }
+    else out.target = n;
+    return out;
+  }
+  const rows = days.map(d=>{ const s = h.id==='h1' ? {every:'daily'} : scheduleOn(h, d); const due = !!s && (s.every==='daily' || (s.every==='days' && (s.days||[]).includes(dfs(d).getDay()))); return {due, done: done(d), started: d >= start}; });
+  return {...out, min: out.kind==='days' ? 3 : 4, ...coachHabitStats(rows)};
 }
 function coachInput(){
   const t = todayStr(), from = shiftDay(t,-13), by = Object.fromEntries(log.map(e=>[e.date,e]));
   const days = []; for(let d = from; d <= t; d = shiftDay(d,1)) days.push(d);
   const all = [{id:'h1', ...habits.h1}, ...otherHabits()].filter(h=>h && h.habit).slice(0,6);
-  const hs = all.map(h=>({name:String(h.habit).slice(0,60), ...coachHabitStats(days.map(d=>{ const e = by[d]; return h.id==='h1' ? !!(e && e.h1) : didHabit(e, h.id); }))}));
+  const hs = all.map(h=>coachHabitView(h, days, by, t)).filter(Boolean);
   const qs = liveQuests().slice(0,3).map(q=>{
     const pr = questProgress(q), next = (q.milestones||[]).find(m=>m.text && !m.done);
     return {goal:String(q.title||'').slice(0,80), why:String(q.why||'').slice(0,120), due:q.due||'', milestones:pr.done+' of '+pr.total, next:next?String(next.text).slice(0,80):'', habits:questHabitNames(q).slice(0,4).map(x=>String(x).slice(0,60))};
   });
   return {days:days.length, habits:hs, quests:qs};
 }
+function coachHabitLine(h){
+  const tooEarly = 'too few scheduled opportunities so far to see a pattern';
+  if(h.kind==='bonus') return '- '+h.name+' (optional bonus habit, no target)';
+  if(h.kind==='week') return '- '+h.name+' (target '+h.target+' a week)'+(h.lastWeek==null ? ': '+tooEarly : ': last full week done '+h.lastWeek+' of '+h.target+', so far this week '+h.thisWeek);
+  const sched = h.kind==='daily' ? 'every day' : 'on set days';
+  if(h.ro < h.min) return '- '+h.name+' ('+sched+'): '+tooEarly;
+  return '- '+h.name+' ('+sched+'): done '+h.rd+' of '+h.ro+' scheduled days in the last 7'+(h.bo>=4 ? ', and '+h.bd+' of '+h.bo+' the 7 days before' : '')+(h.kind==='daily' && h.run>=3 ? ', current run '+h.run+' scheduled days in a row' : '');
+}
 function coachPrompt(inp, prevText){
-  const any = inp.habits.some(h=>h.done>0);
+  const pattern = inp.habits.some(h=>h.kind==='daily'||h.kind==='days' ? h.ro>=h.min : h.kind==='week' && h.lastWeek!=null);
   let s = inp.habits.length
-    ? 'Habits the person has set (this is their real, current list):\n'+inp.habits.map(h=>'- '+h.name+(h.done>0 ? ': done '+h.last7+' of the last 7 days and '+h.prev7+' of the 7 days before that'+(h.run>1 ? ', current run '+h.run+' days in a row' : '') : '')).join('\n')+'\n'+(any ? '' : 'No completions are recorded yet for these habits, so there is no history to comment on.\n')
+    ? 'Habits the person has set (this is their real, current list):\n'+inp.habits.map(coachHabitLine).join('\n')+'\n'+(pattern ? '' : 'No habit has enough history for a pattern yet. Do not comment on progress or missed days.\n')
     : 'Habits: none set yet.\n';
   s += inp.quests.length ? 'Main Quests:\n'+inp.quests.map(q=>'- '+q.goal+(q.why?' (why: '+q.why+')':'')+(q.due?', due '+q.due:'')+', milestones '+q.milestones+(q.next?', next: '+q.next:'')+(q.habits.length?', habits: '+q.habits.join('; '):'')).join('\n')+'\n' : 'Main Quests: none set. They are optional, so do not mention them.\n';
   if(prevText) s += 'Your last suggestion was: "'+String(prevText).slice(0,300)+'". Give a different tactic this time.\n';
