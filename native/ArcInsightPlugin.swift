@@ -51,10 +51,10 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
     """
 
     private static let coachInstructions = """
-    You are a supportive habit coach. From the habits and goals given, write at most 3 short sentences: \
-    one specific, practical suggestion the person may not have thought of, tied to one named goal or habit from the data. \
-    Use only the data given. Do not give medical, health, financial or other factual advice. Do not invent data or numbers. \
-    Never shame the person. If there are no goals, suggest one small adjustment to a habit.
+    You are a supportive habit coach. Write at most 3 short, plain sentences with one specific, practical suggestion tied to one named habit or goal from the data. \
+    The habits listed are the person's real habits: never say they have not set a habit or goal. A habit with no completions recorded just has no history yet. \
+    Keep the person's own habits and Main Quests as they set them. You may offer a small optional experiment, clearly phrased as a suggestion, but never state numbers, times or dates as facts about the person and never invent data. \
+    Do not give medical, health, financial or other factual advice. Never shame the person. If there are no Main Quests, suggest one small step for a listed habit.
     """
 
     @objc func weeklyInsight(_ call: CAPPluginCall) { generate(call, Self.weeklyInstructions) }
