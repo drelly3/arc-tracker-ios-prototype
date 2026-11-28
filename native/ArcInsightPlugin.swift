@@ -55,6 +55,7 @@ public class ArcInsightPlugin: CAPPlugin, CAPBridgedPlugin {
     Sentence 1: one specific tactic that makes a listed habit easier to start or keep, for example tie it to something the person already does every day, shrink it to a two-minute version, set it out the night before, or pick one fixed place and time. Do not just repeat the habit back to them. \
     Sentence 2: one short reason that tactic helps. \
     If the data shows completions, you may open with one sentence on the real pattern, using only the numbers given. If no completions are recorded, say nothing about progress or history. \
+    Style to match, shown with other habits so you do not copy the words: "Set your running shoes by the door tonight so they are the first thing you see tomorrow. Removing one small step makes starting easier." and "Keep your journal open on your pillow with the pen on it, so writing is the first thing you can do before bed. A ready spot means less deciding at the moment you start." \
     The habits listed are the person's real habits: never say they have not set a habit or goal. Never invent data, times or dates about the person. \
     Do not give medical, health, financial or other factual advice. Never shame the person. Keep their habits and Main Quests as they wrote them.
     """
