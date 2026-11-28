@@ -227,20 +227,19 @@ jobs:
                       let save = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Save character")).firstMatch
                       print("SAVE-BUTTON-VISIBLE=\(save.exists && save.isHittable)")
                       let navBtn = app.buttons["Progress"]
-                      print("NAV-HITTABLE-KEYBOARD-OPEN=\(navBtn.exists && navBtn.isHittable)")
+                      print("NAV-HITTABLE-KEYBOARD-OPEN(reported by XCUI)=\(navBtn.exists && navBtn.isHittable)")
                       shot("03-setup-typed-keyboard-open")
-                      if !(navBtn.exists && navBtn.isHittable) {
-                          var dismissed = "none"
-                          for label in ["Done", "return", "Return"] {
-                              let k = app.keyboards.buttons[label]
-                              if k.exists && k.isHittable { k.tap(); dismissed = label; break }
-                          }
-                          sleep(1)
-                          print("KEYBOARD-DISMISS-VIA=\(dismissed) keyboardStillOpen=\(app.keyboards.firstMatch.exists)")
-                          print("NAV-HITTABLE-AFTER-DISMISS=\(navBtn.exists && navBtn.isHittable)")
-                          shot("04-keyboard-dismissed")
+                      var dismissed = "none"
+                      for label in ["Done", "return", "Return"] {
+                          let k = app.keyboards.buttons[label]
+                          if k.exists && k.isHittable { k.tap(); dismissed = label; break }
                       }
+                      sleep(1)
+                      print("KEYBOARD-DISMISS-VIA=\(dismissed) keyboardStillOpen=\(app.keyboards.firstMatch.exists)")
+                      shot("04-keyboard-dismissed")
                   }
+                  tapNav("Progress")
+                  print("ON-PROGRESS-AFTER-TAP=\(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Progress")).firstMatch.exists)")
                   let btn2 = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "coach note")).firstMatch
                   let p2 = btn2.waitForExistence(timeout: 10)
                   print("COACH-BUTTON-PRESENT-AFTER-HABIT=\(p2)")
