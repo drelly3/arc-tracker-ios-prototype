@@ -1,0 +1,62 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0A1CDF6A-6EAC-49F0-87B5-0A868C5A9C4E",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "A3DAA350-4522-42AD-BB93-AF07B75DA70E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06-setup-after-relaunch_0_1C8CCC96-AB1A-458A-9E83-2212B5C6C47B.png",
+        "timestamp" : 1795870563.233
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0A1CDF6A-6EAC-49F0-87B5-0A868C5A9C4E",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "38455F17-1AF4-4497-8590-BB91B704F0F8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05-progress-after-habit_0_3BCE728B-3056-4389-A954-650720850684.png",
+        "timestamp" : 1795870528.425
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0A1CDF6A-6EAC-49F0-87B5-0A868C5A9C4E",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "99C7B8F9-F2FE-4FCD-8516-0E11442CFE28.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04-after-direct-tab-tap_0_5F6FDD2F-E4BC-46BE-9563-41E944BE6C58.png",
+        "timestamp" : 1795870525.547
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0A1CDF6A-6EAC-49F0-87B5-0A868C5A9C4E",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "371F40C0-CC66-4611-B82F-EA7483FA0B37.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-setup-typed-keyboard-open_0_5D30BDA0-F593-435A-B921-CBF1CDB01E31.png",
+        "timestamp" : 1795870522.724
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0A1CDF6A-6EAC-49F0-87B5-0A868C5A9C4E",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "2323FAA5-FC4E-4472-914A-8FF17E81C3B3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02-progress-empty-habit_0_9617FF0D-2F82-40DC-970F-BB7F731071F0.png",
+        "timestamp" : 1795870510.154
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0A1CDF6A-6EAC-49F0-87B5-0A868C5A9C4E",
+        "deviceName" : "arctracker",
+        "exportedFileName" : "8FCB5BD0-933A-4F4F-BB2B-2A1ACF7D1C8A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-first-screen_0_A06832C5-3B9C-4221-92FA-1FC135FAAA2A.png",
+        "timestamp" : 1795870432.924
+      }
+    ],
+    "testIdentifier" : "AppUITests/testEmptyHabitState()",
+    "testIdentifierURL" : "test://com.apple.xcode/App/AppUITests/AppUITests/testEmptyHabitState"
+  }
+]
