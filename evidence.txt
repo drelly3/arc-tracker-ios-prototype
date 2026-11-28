@@ -1,0 +1,15 @@
+variant=stub
+storyboard class lines:
+14:                <viewController id="BYZ-38-t0r" customClass="ArcBridgeViewController" customModule="App" sceneMemberID="viewController"/>
+packageClassList:
+['LocalNotificationsPlugin', 'ArcInsightPlugin']
+Xcode 26.6
+Build version 17F113
+app bundle: 
+error: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /App (No such file or directory)
+no FoundationModels link line
+ls: : No such file or directory
+--- runtime log lines from the plugin ---
+getpwuid_r did not find a match for uid 501
+2026-11-28 01:33:57.034 Df log[11170:0] [com.apple.log:] log run noninteractively, parent: 3735 (launchd_sim), args: 'log' 'show' '--last' '30m' '--style' 'compact' '--predicate' 'eventMessage CONTAINS "ArcInsight"'
+grep: /tmp/xcodebuild-test.log: No such file or directory
