@@ -2553,6 +2553,10 @@ function renderSetup(){
     if(id==='p_name' || /_(habit|every|n|remind)$/.test(id)){ setupDirty = true; clearTimeout(setupTimer); setupTimer = setTimeout(()=>{ if(setupDirty && setupSaver) setupSaver(true); }, 700); }
   };
   el.oninput = markSetupDirty; el.onchange = markSetupDirty;
+  // The keyboard covers the tab bar, so Return closes it (and saves what was typed); leaving a field saves too.
+  el.querySelectorAll('input[type="text"]').forEach(i=>i.setAttribute('enterkeyhint','done'));
+  el.onkeydown = e=>{ if(e.key==='Enter' && e.target && e.target.tagName==='INPUT'){ e.preventDefault(); e.target.blur(); } };
+  el.onfocusout = ()=>{ clearTimeout(setupTimer); if(setupDirty && setupSaver) setupSaver(true); };
   const saveSetupNow = (quiet)=>{
     clearTimeout(setupTimer);
     profile.name = document.getElementById('p_name').value.trim();
